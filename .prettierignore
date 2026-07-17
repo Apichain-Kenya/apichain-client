@@ -1,0 +1,6 @@
+# Generated / vendored contract artifacts. Never hand-format these: openapi.json
+# is vendored byte-for-byte from the backend, and schema.d.ts is generated.
+openapi.json
+src/api/client/schema.d.ts
+dist
+node_modules
