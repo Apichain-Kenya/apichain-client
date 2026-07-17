@@ -1,0 +1,18 @@
+{
+  "states": {
+    "CREATED": "Created",
+    "HARVESTED": "Harvested",
+    "PROCESSED": "Processed",
+    "LAB_VERIFIED": "Lab-verified",
+    "PACKAGED": "Packaged",
+    "DISTRIBUTED": "Distributed"
+  },
+  "scan": {
+    "authConsistent": "Origin signals consistent",
+    "authUnderReview": "Authenticity: under review",
+    "authUnknown": "Authenticity: not yet available",
+    "producer": "Producer",
+    "from": "Honey from",
+    "unknownPlace": "Kenya"
+  }
+}
