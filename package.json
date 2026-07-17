@@ -10,9 +10,15 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc -b --noEmit",
+    "generate:api": "openapi-typescript ./openapi.json -o src/api/client/schema.d.ts",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "preview": "vite preview"
+  },
+  "apichainBackendContract": {
+    "repo": "Apichain-Kenya/apichain-backend",
+    "commit": "c0af94bcf803cd69f14600ab36a80080086aaeb8",
+    "note": "openapi.json is vendored at this backend commit. Bumping it is an explicit, reviewed change: copy the new openapi.json, run npm run generate:api, commit both."
   },
   "dependencies": {
     "i18next": "^26.3.6",
@@ -30,9 +36,10 @@
     "@vitejs/plugin-react": "^6.0.3",
     "@vitest/coverage-v8": "^4.1.10",
     "jsdom": "^29.1.1",
+    "openapi-typescript": "^7.13.0",
     "oxlint": "^1.71.0",
     "prettier": "^3.9.5",
-    "typescript": "~6.0.2",
+    "typescript": "^5.9.3",
     "vite": "^8.1.1",
     "vitest": "^4.1.10"
   }
