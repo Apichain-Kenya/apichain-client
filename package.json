@@ -17,7 +17,7 @@
   },
   "apichainBackendContract": {
     "repo": "Apichain-Kenya/apichain-backend",
-    "commit": "c0af94bcf803cd69f14600ab36a80080086aaeb8",
+    "commit": "d7e3a34f483c433fb231ab3eb04546e19ad2fdff",
     "note": "openapi.json is vendored at this backend commit. Bumping it is an explicit, reviewed change: copy the new openapi.json, run npm run generate:api, commit both."
   },
   "dependencies": {
