@@ -1,0 +1,31 @@
+# DigitalOcean App Platform spec — apichain-client (STAGING).
+#
+# STATUS: TEMPLATE, NOT DEPLOYED. Authored in Phase 0 (WP5) so the deploy shape
+# exists and activation is a checklist, not a design exercise. It is UNTESTED
+# and intentionally inert: no DO account or token exists yet (deferred on cost
+# grounds — `npm run dev` against the local compose backend is the dev target).
+# Do not treat this as working infra. Activation: see DEPLOYMENT.md.
+#
+# The client deploys as an App Platform static site (free tier): DO runs the
+# build and serves dist/. The nginx Dockerfile in this repo is the alternative
+# container path for full staging/prod parity — swap to a `services:` entry with
+# `dockerfile_path: Dockerfile` if the static-site build proves limiting.
+
+name: apichain-client-staging
+region: fra # Frankfurt — closest DO region to Kenya
+
+static_sites:
+  - name: web
+    source_dir: /
+    github:
+      repo: Apichain-Kenya/apichain-client
+      branch: main
+      deploy_on_push: false # CD is driven by the gated .github/workflows/deploy.yml
+    build_command: npm ci && npm run build
+    output_dir: dist
+    envs:
+      # Set to the live staging backend URL at activation (Phase 1+). Baked in
+      # at BUILD_TIME by Vite — matches the Dockerfile's VITE_API_BASE_URL arg.
+      - key: VITE_API_BASE_URL
+        scope: BUILD_TIME
+        value: https://REPLACE-with-staging-backend-url
