@@ -1,0 +1,91 @@
+.page {
+  max-width: 35rem;
+  display: grid;
+  gap: var(--space-4);
+}
+.page h1 {
+  margin: 0;
+  font-size: var(--text-2xl);
+}
+.register {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: var(--touch-lg);
+  border-radius: var(--radius-sm);
+  background: var(--ink);
+  color: var(--on-ink);
+  font-weight: 500;
+  text-decoration: none;
+}
+.title {
+  margin: var(--space-2) 0 0;
+  font-size: var(--text-md);
+  font-weight: 600;
+}
+.empty {
+  margin: 0;
+  color: var(--ink-2);
+}
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-3);
+}
+.card {
+  display: grid;
+  grid-template-columns: 2.25rem 1fr;
+  gap: var(--space-3);
+  align-items: start;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+}
+.cell {
+  width: 2.25rem;
+  height: 2.5rem;
+}
+.cellSent {
+  fill: var(--comb-strong);
+}
+.cellLocal {
+  fill: none;
+  stroke: var(--sealing);
+  stroke-width: 4;
+  stroke-dasharray: 7 6;
+}
+.cellAttention {
+  fill: none;
+  stroke: var(--alert);
+  stroke-width: 4;
+}
+.text {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.what {
+  font-weight: 500;
+}
+.sub {
+  font-size: var(--text-sm);
+  color: var(--ink-2);
+}
+.attention {
+  display: grid;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+  font-size: var(--text-sm);
+}
+.attention p {
+  margin: 0;
+}
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}

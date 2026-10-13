@@ -1,0 +1,40 @@
+.page {
+  max-width: 35rem;
+  display: grid;
+  gap: var(--space-4);
+}
+.page h1 {
+  margin: 0;
+  font-size: var(--text-2xl);
+}
+.page p {
+  margin: 0;
+  color: var(--ink-2);
+}
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-3);
+}
+.list li {
+  display: grid;
+  gap: 2px;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+}
+.name {
+  font-weight: 500;
+}
+.sub {
+  font-size: var(--text-sm);
+  color: var(--ink-2);
+}
+.note {
+  padding: var(--space-3);
+  border-radius: var(--radius-sm);
+  background: var(--tint-sealing);
+}

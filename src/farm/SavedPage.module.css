@@ -1,0 +1,65 @@
+.page {
+  max-width: 30rem;
+  margin: var(--space-8) auto 0;
+  display: grid;
+  justify-items: center;
+  gap: var(--space-4);
+  text-align: center;
+}
+.page h1 {
+  margin: 0;
+  font-size: var(--text-2xl);
+}
+.page p {
+  margin: 0;
+  color: var(--ink-2);
+  max-width: 30ch;
+}
+.cell {
+  width: 6rem;
+  height: 6.75rem;
+}
+.local path:first-child {
+  fill: var(--tint-sealing);
+  stroke: var(--sealing);
+  stroke-width: 3;
+}
+.sent path:first-child {
+  fill: var(--sealed);
+}
+.check {
+  fill: none;
+  stroke-width: 4.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.local .check {
+  stroke: var(--sealing);
+}
+.sent .check {
+  stroke: var(--tint-sealed);
+}
+.actions {
+  display: grid;
+  gap: var(--space-2);
+  width: 100%;
+  margin-top: var(--space-4);
+}
+.primary,
+.secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--touch-lg);
+  border-radius: var(--radius-sm);
+  border: 1.5px solid var(--ink);
+  font-weight: 500;
+  text-decoration: none;
+}
+.primary {
+  background: var(--ink);
+  color: var(--on-ink);
+}
+.secondary {
+  color: var(--ink);
+}

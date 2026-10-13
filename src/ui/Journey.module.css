@@ -1,0 +1,85 @@
+.wrap {
+  container-type: inline-size;
+  display: grid;
+  gap: var(--space-2);
+}
+.title {
+  margin: 0;
+  font-size: var(--text-md);
+  font-weight: 600;
+}
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+}
+.step {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1.4rem 1fr auto;
+  gap: var(--space-3);
+  align-items: center;
+  min-height: 2.5rem;
+}
+.step:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  left: calc(0.7rem - 1px);
+  top: 1.9rem;
+  bottom: -0.6rem;
+  width: 2px;
+  background: var(--line);
+}
+.done:not(:last-child)::after {
+  background: var(--comb-strong);
+}
+.marker {
+  width: 1.4rem;
+  height: 1.5rem;
+  position: relative;
+  z-index: 1;
+}
+.done .marker path {
+  fill: var(--comb-strong);
+}
+.todo .marker path {
+  fill: var(--paper);
+  stroke: var(--ink-2);
+  stroke-width: 5;
+  stroke-dasharray: 7 6;
+}
+.label {
+  font-size: var(--text-md);
+}
+.todo .label,
+.when {
+  color: var(--ink-2);
+}
+.when {
+  font-size: var(--text-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+@container (min-width: 30rem) {
+  .list {
+    grid-template-columns: repeat(6, 1fr);
+  }
+  .step {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    text-align: center;
+    gap: var(--space-1);
+  }
+  .step:not(:last-child)::after {
+    left: 50%;
+    right: -50%;
+    top: 0.7rem;
+    bottom: auto;
+    width: auto;
+    height: 2px;
+  }
+  .label {
+    font-size: var(--text-sm);
+  }
+}

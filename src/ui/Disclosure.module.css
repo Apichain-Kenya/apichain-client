@@ -1,0 +1,31 @@
+.details {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+}
+.summary {
+  list-style: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: var(--touch-lg);
+  padding: 0 var(--space-4);
+  font-weight: 500;
+  cursor: pointer;
+}
+.summary::-webkit-details-marker {
+  display: none;
+}
+.chevron {
+  transition: transform 200ms ease-out;
+}
+.details[open] .chevron {
+  transform: rotate(180deg);
+}
+.body {
+  padding: 0 var(--space-4) var(--space-4);
+  display: grid;
+  gap: var(--space-3);
+  font-size: var(--text-sm);
+}

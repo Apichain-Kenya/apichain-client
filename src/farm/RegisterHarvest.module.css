@@ -1,0 +1,124 @@
+.flow {
+  max-width: 35rem;
+  margin: 0 auto;
+  display: grid;
+  gap: var(--space-5);
+}
+.bar:not([hidden]) {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+.back {
+  width: var(--touch);
+  height: var(--touch);
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--ink);
+  cursor: pointer;
+}
+.progress {
+  flex: 1;
+  display: grid;
+  gap: var(--space-1);
+  font-size: var(--text-sm);
+  color: var(--ink-2);
+}
+.track {
+  display: block;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--line);
+  overflow: hidden;
+}
+.track span {
+  display: block;
+  height: 100%;
+  background: var(--comb-strong);
+}
+.step {
+  display: grid;
+  gap: var(--space-5);
+}
+.step :is(h1, h2) {
+  margin: 0;
+  font-size: var(--text-2xl);
+}
+.note {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border-radius: var(--radius-sm);
+  background: var(--tint-open);
+}
+.note p,
+.error,
+.gps {
+  margin: 0;
+}
+.error {
+  color: var(--alert);
+  font-size: var(--text-sm);
+}
+.gps {
+  color: var(--ink);
+}
+.offlineMap {
+  min-height: 9rem;
+  display: grid;
+  align-items: end;
+  padding: var(--space-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background-color: var(--surface);
+  background-image:
+    linear-gradient(var(--line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--line) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+.offlineMap p {
+  margin: 0;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--paper);
+  font-size: var(--text-sm);
+}
+.summary {
+  margin: 0;
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+}
+.summary div {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+.summary dt {
+  color: var(--ink-2);
+}
+.summary dd {
+  margin: 0;
+  font-weight: 500;
+  text-align: right;
+}
+.actions {
+  position: sticky;
+  bottom: calc(3.5rem + env(safe-area-inset-bottom, 0px));
+  padding: var(--space-3) 0;
+  background: var(--paper);
+  border-top: 1px solid var(--line);
+}
+@media (min-width: 1024px) {
+  .actions {
+    position: static;
+    border-top: 0;
+  }
+}

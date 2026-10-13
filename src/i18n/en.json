@@ -8,11 +8,291 @@
     "DISTRIBUTED": "Distributed"
   },
   "scan": {
-    "authConsistent": "Origin signals consistent",
-    "authUnderReview": "Authenticity: under review",
-    "authUnknown": "Authenticity: not yet available",
-    "producer": "Producer",
-    "from": "Honey from",
-    "unknownPlace": "Kenya"
+    "authConsistent": "Lab test meets the international honey standard.",
+    "authUnderReview": "Lab results are being reviewed.",
+    "authUnknown": "No lab result yet.",
+    "harvestedNear": "Harvested near",
+    "harvestedIn": "Harvested in Kenya",
+    "lot": "{{honey}} honey, harvested {{when}}",
+    "scanAnother": "Scan another",
+    "checkAnother": "Check another jar",
+    "how": "How this was checked",
+    "unchanged": "Unchanged",
+    "changed": "Doesn't match",
+    "explain": {
+      "sealed": "Each step was saved with a fingerprint, and they all still match. Their combined fingerprint is recorded in public on Bitcoin.",
+      "sealing": "Each step was saved with a fingerprint, and they all still match. They are bundled into a public record on Bitcoin, which is still being confirmed.",
+      "in_progress": "Each step recorded so far was saved with a fingerprint, and they all still match.",
+      "mismatch": "Each step was saved with a fingerprint. At least one no longer matches what was saved."
+    },
+    "publicRecord": "View the public record",
+    "cachedOn": "Checked on {{date}}. Connect to check again.",
+    "mismatchAdvice": "If you bought this jar, keep it and its receipt. Show this page to the shop.",
+    "checkAgain": "Check again",
+    "notFound": "We couldn't find this jar. Check the code and try again.",
+    "offline": "Connect to the internet to check this jar.",
+    "error": "The check didn't finish. Try again in a moment.",
+    "tryAgain": "Try again",
+    "lab": {
+      "title": "Lab measures",
+      "measure": "Lab measure",
+      "result": "Result",
+      "standard": "Codex standard",
+      "pass": "Meets it",
+      "fail": "Outside it",
+      "not_measured": "Not measured",
+      "atMost": "at most {{limit}} {{unit}}",
+      "atLeast": "at least {{limit}} {{unit}}",
+      "names": {
+        "moisture": "Moisture",
+        "fructose_glucose": "Fructose + glucose",
+        "sucrose": "Sucrose",
+        "hmf": "HMF (freshness)",
+        "diastase": "Diastase",
+        "free_acidity": "Free acidity"
+      }
+    },
+    "stages": {
+      "apiary": "Apiary",
+      "metadata": "Registration",
+      "harvest": "Harvest",
+      "process": "Processing",
+      "lab": "Lab test",
+      "packaging": "Packing",
+      "distribution": "Sent to shops"
+    },
+    "honey": {
+      "acacia": "Acacia",
+      "wildflower": "Wildflower",
+      "eucalyptus": "Eucalyptus",
+      "sunflower": "Sunflower",
+      "mixed": "Mixed"
+    },
+    "scanTitle": "Check a jar",
+    "scanLead": "Point your camera at the code on the jar's label.",
+    "useCamera": "Use the camera",
+    "cameraHelp": "Your camera is only used while this page is open, to read the code.",
+    "cameraDenied": "The camera isn't available. Type the code from the label instead.",
+    "typeCode": "Or type the code from the label",
+    "codeLabel": "Code on the label",
+    "codeHint": "32 letters and numbers, printed under the QR code",
+    "codeInvalid": "That isn't a jar code. Check it and try again.",
+    "check": "Check this jar",
+    "stopCamera": "Stop the camera"
+  },
+  "ui": {
+    "seal": {
+      "sealed": {
+        "headline": "Checked and publicly sealed",
+        "detail": "Every step of this jar's journey is on record, unchanged since it was saved.",
+        "label": "Sealed"
+      },
+      "sealing": {
+        "headline": "Checked. Public seal on its way",
+        "detail": "Every step is on record and unchanged. The public seal usually takes a few hours.",
+        "label": "Being sealed"
+      },
+      "in_progress": {
+        "headline": "Still on its journey",
+        "detail": "{{done}} of 6 steps recorded.",
+        "label": "Open, {{done}} of 6 steps"
+      },
+      "mismatch": {
+        "headline": "This record doesn't match",
+        "detail": "Part of this jar's record has changed since it was saved. Don't rely on this label.",
+        "label": "Does not match"
+      }
+    },
+    "journey": {
+      "title": "Its journey",
+      "notYet": "Not yet",
+      "steps": {
+        "CREATED": "Registered by the beekeeper",
+        "HARVESTED": "Harvested",
+        "PROCESSED": "Processed",
+        "LAB_VERIFIED": "Lab tested",
+        "PACKAGED": "Packed",
+        "DISTRIBUTED": "Sent to shops"
+      }
+    },
+    "sync": {
+      "local": "Saved on this phone",
+      "sending": "Sending",
+      "sent": "Sent",
+      "attention": "Needs your attention",
+      "waiting_one": "{{count}} waiting to send",
+      "waiting_other": "{{count}} waiting to send",
+      "allSent": "All sent"
+    },
+    "stepper": {
+      "fewer": "One fewer",
+      "more": "One more"
+    },
+    "dates": {
+      "today": "Today",
+      "yesterday": "Yesterday",
+      "pick": "Pick a date"
+    },
+    "offline": "You're offline. Harvests you save will send when you're back online.",
+    "nav": {
+      "label": "Main"
+    }
+  },
+  "app": {
+    "restoring": "Signing you back in",
+    "wrongRole": {
+      "title": "This page is not for your account",
+      "body": "Your account can't use this page. Go back, or sign in with a different account."
+    },
+    "notFound": {
+      "title": "There's nothing at this address",
+      "back": "Go to the start"
+    },
+    "loading": "Loading",
+    "update": {
+      "ready": "A newer version is ready",
+      "reload": "Reload"
+    }
+  },
+  "landing": {
+    "title": "Where did your honey come from?",
+    "lead": "Scan the code on the jar to see where it was harvested and how it was checked.",
+    "scan": "Check a jar",
+    "signIn": "Beekeepers: sign in"
+  },
+  "farm": {
+    "nav": {
+      "harvests": "Harvests",
+      "register": "Register",
+      "apiaries": "Apiaries",
+      "me": "Me"
+    },
+    "signIn": {
+      "title": "Sign in",
+      "lead": "You need internet to sign in the first time. After that you can save harvests offline.",
+      "identifier": "Phone number or username",
+      "password": "Password",
+      "submit": "Sign in",
+      "invalid": "That phone number or password isn't right. Check them and try again.",
+      "offline": "You're offline. Connect to sign in the first time."
+    },
+    "greeting": {
+      "morning": "Good morning, {{name}}",
+      "afternoon": "Good afternoon, {{name}}",
+      "evening": "Good evening, {{name}}"
+    },
+    "register": "Register a harvest",
+    "harvests": {
+      "title": "My harvests",
+      "empty": "No harvests yet. Register your first one.",
+      "offlineList": "Connect to see harvests you sent before.",
+      "row": "{{honey}}, {{kg}} kg",
+      "at": "{{apiary}}, {{date}}",
+      "newApiary": "New apiary: {{name}}",
+      "sentNow": "Sent. Now {{state}}",
+      "states": {
+        "CREATED": "registered",
+        "HARVESTED": "harvest recorded",
+        "PROCESSED": "at processing",
+        "LAB_VERIFIED": "lab tested",
+        "PACKAGED": "packed",
+        "DISTRIBUTED": "in shops"
+      },
+      "attention": {
+        "title": "This harvest needs your attention",
+        "why": "The server refused it: {{reason}}",
+        "remove": "Remove it from this phone",
+        "confirmRemove": "Remove this harvest? It hasn't been sent and can't be recovered.",
+        "yesRemove": "Yes, remove it",
+        "keep": "Keep it",
+        "unknownReason": "no reason given"
+      }
+    },
+    "steps": {
+      "progress": "Step {{n}} of 4: {{name}}",
+      "where": "where",
+      "what": "what",
+      "when": "when",
+      "check": "check",
+      "back": "Back",
+      "next": "Next"
+    },
+    "where": {
+      "title": "Where is this apiary?",
+      "pick": "One of my apiaries",
+      "new": "Add a new apiary",
+      "noneSaved": "You have no apiaries yet. Add one here.",
+      "useLocation": "Use my location",
+      "locating": "Finding your location",
+      "accuracy": "Your location, within about {{m}} m.",
+      "drag": "Drag the pin if it's off.",
+      "waitBetter": "Your location is only accurate to about {{m}} m. Wait a moment for a better reading, or use it anyway.",
+      "useAnyway": "Use it anyway",
+      "denied": "Location is turned off for this app. Turn it on in your phone's settings, then try again.",
+      "noGps": "This phone can't share its location.",
+      "mapOffline": "Map will show when you're online. Your location is saved.",
+      "pickOnMap": "Tap the map where the apiary is.",
+      "name": "Name this apiary",
+      "nameHint": "Any name you will recognise",
+      "nameRequired": "Name the apiary to continue",
+      "hives": "Number of hives",
+      "needLocation": "Add the apiary's location to continue",
+      "timeout": "Couldn't get your location yet. Step into the open, wait a moment, and try again."
+    },
+    "what": {
+      "title": "What did you harvest?",
+      "honey": "What honey is it mostly?",
+      "harvested": "Harvested (kg)",
+      "expected": "Expected yield (kg)",
+      "method": "How are the hives kept?",
+      "methods": {
+        "organic": "Organic",
+        "conventional": "Conventional",
+        "regenerative": "Regenerative"
+      },
+      "quantityRequired": "Enter how much you harvested"
+    },
+    "when": {
+      "title": "When did you harvest?",
+      "legend": "Harvest day"
+    },
+    "check": {
+      "title": "Check and save",
+      "apiary": "Apiary",
+      "honey": "Honey",
+      "harvested": "Harvested",
+      "day": "Day",
+      "save": "Save harvest",
+      "kgOn": "{{kg}} kg, {{day}}",
+      "newApiary_one": "{{name}} (new), {{count}} hive",
+      "newApiary_other": "{{name}} (new), {{count}} hives"
+    },
+    "saved": {
+      "local": "Saved on this phone",
+      "localBody": "It will send by itself when you're back online. You can close the app.",
+      "sent": "Sent",
+      "sentBody": "Your harvest is recorded.",
+      "done": "Done",
+      "another": "Register another"
+    },
+    "apiaries": {
+      "title": "My apiaries",
+      "empty": "No apiaries yet. You add one when you register a harvest.",
+      "noPlace": "Place name not found yet",
+      "hives_one": "{{count}} hive",
+      "hives_other": "{{count}} hives"
+    },
+    "me": {
+      "title": "Me",
+      "storageOk": "This phone keeps your saved harvests even when it is low on space.",
+      "storageAsk": "This phone may clear saved harvests when it is low on space. Send them when you can.",
+      "signOut": "Sign out",
+      "signOutWaiting_one": "{{count}} harvest is still on this phone. It will send when you sign back in.",
+      "signOutWaiting_other": "{{count}} harvests are still on this phone. They will send when you sign back in."
+    },
+    "dates": {
+      "today": "today",
+      "yesterday": "yesterday"
+    }
   }
 }

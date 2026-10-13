@@ -1,0 +1,266 @@
+{
+  "anchor_status": "confirmed",
+  "batch_id": 3,
+  "conformance": {
+    "parameters": [
+      {
+        "basis": "codex-mandatory",
+        "comparator": "<=",
+        "limit": "20.00",
+        "measured": "18.40",
+        "parameter": "moisture",
+        "status": "pass",
+        "unit": "%"
+      },
+      {
+        "basis": "codex-mandatory",
+        "comparator": ">=",
+        "limit": "60.00",
+        "measured": "72.10",
+        "parameter": "fructose_glucose",
+        "status": "pass",
+        "unit": "g/100g"
+      },
+      {
+        "basis": "codex-mandatory",
+        "comparator": "<=",
+        "limit": "5.00",
+        "measured": "2.30",
+        "parameter": "sucrose",
+        "status": "pass",
+        "unit": "g/100g"
+      },
+      {
+        "basis": "codex-annex",
+        "comparator": "<=",
+        "limit": "80.00",
+        "measured": "21.00",
+        "parameter": "hmf",
+        "status": "pass",
+        "unit": "mg/kg"
+      },
+      {
+        "basis": "codex-annex",
+        "comparator": ">=",
+        "limit": "8.00",
+        "measured": "14.20",
+        "parameter": "diastase",
+        "status": "pass",
+        "unit": "Schade"
+      },
+      {
+        "basis": "codex-annex",
+        "comparator": "<=",
+        "limit": "50.00",
+        "measured": "28.00",
+        "parameter": "free_acidity",
+        "status": "pass",
+        "unit": "meq/kg"
+      }
+    ],
+    "rule_set_version": "codex-kenya-v1",
+    "verdict": "pass"
+  },
+  "metadata": {
+    "apiary_management_method": "organic",
+    "expected_yield_kg": "50.00",
+    "harvest_window_end": "2026-04-01",
+    "harvest_window_start": "2026-03-01",
+    "honey_type": "acacia"
+  },
+  "place": "Nyeri, Kenya",
+  "public_id": "d9510442067ffe1ab199fabba349e6ae",
+  "state": "DISTRIBUTED",
+  "verification": {
+    "apiary": {
+      "anchor_status": "confirmed",
+      "audit_id": 17,
+      "match": true,
+      "payload": {
+        "altitude": "1800",
+        "apiary_id": null,
+        "batch_id": 3,
+        "hive_count": 12,
+        "latitude": "-1.29",
+        "longitude": "36.82",
+        "vegetation_type": "acacia_woodland"
+      },
+      "payload_precision": "reduced",
+      "recomputed_hash": null,
+      "recorded_hash": null,
+      "recorded_on": "2026-10-13",
+      "redacted_fields": ["apiary_id", "latitude", "longitude", "altitude"]
+    },
+    "distribution": {
+      "anchor_status": "confirmed",
+      "audit_id": 23,
+      "match": true,
+      "payload": {
+        "batch_id": 3,
+        "handover_notes": null,
+        "retailer_name": "Naivas Westlands",
+        "transport_reference": null
+      },
+      "payload_precision": "reduced",
+      "recomputed_hash": null,
+      "recorded_hash": null,
+      "recorded_on": "2026-10-13",
+      "redacted_fields": ["transport_reference", "handover_notes"]
+    },
+    "harvest": {
+      "anchor_status": "confirmed",
+      "audit_id": 19,
+      "match": true,
+      "payload": {
+        "batch_id": 3,
+        "gps_lat": "-1.29",
+        "gps_lon": "36.82",
+        "harvest_date": "2026-03-15T09:30:00",
+        "hive_ids": ["H1", "H2"],
+        "notes": null,
+        "quantity_kg": "42.50"
+      },
+      "payload_precision": "reduced",
+      "recomputed_hash": null,
+      "recorded_hash": null,
+      "recorded_on": "2026-10-13",
+      "redacted_fields": ["gps_lat", "gps_lon", "notes"]
+    },
+    "lab": {
+      "anchor_status": "confirmed",
+      "audit_id": 21,
+      "match": true,
+      "payload": {
+        "analyst_name": null,
+        "batch_id": 3,
+        "certificate_number": "KEBS-2026-0042",
+        "conformance": {
+          "parameters": [
+            {
+              "basis": "codex-mandatory",
+              "comparator": "<=",
+              "limit": "20.00",
+              "measured": "18.40",
+              "parameter": "moisture",
+              "status": "pass",
+              "unit": "%"
+            },
+            {
+              "basis": "codex-mandatory",
+              "comparator": ">=",
+              "limit": "60.00",
+              "measured": "72.10",
+              "parameter": "fructose_glucose",
+              "status": "pass",
+              "unit": "g/100g"
+            },
+            {
+              "basis": "codex-mandatory",
+              "comparator": "<=",
+              "limit": "5.00",
+              "measured": "2.30",
+              "parameter": "sucrose",
+              "status": "pass",
+              "unit": "g/100g"
+            },
+            {
+              "basis": "codex-annex",
+              "comparator": "<=",
+              "limit": "80.00",
+              "measured": "21.00",
+              "parameter": "hmf",
+              "status": "pass",
+              "unit": "mg/kg"
+            },
+            {
+              "basis": "codex-annex",
+              "comparator": ">=",
+              "limit": "8.00",
+              "measured": "14.20",
+              "parameter": "diastase",
+              "status": "pass",
+              "unit": "Schade"
+            },
+            {
+              "basis": "codex-annex",
+              "comparator": "<=",
+              "limit": "50.00",
+              "measured": "28.00",
+              "parameter": "free_acidity",
+              "status": "pass",
+              "unit": "meq/kg"
+            }
+          ],
+          "rule_set_version": "codex-kenya-v1",
+          "verdict": "PASS"
+        },
+        "diastase_schade": "14.20",
+        "free_acidity_meq_kg": "28.00",
+        "fructose_glucose_g_100g": "72.10",
+        "hmf_mg_kg": "21.00",
+        "laboratory_name": "KEBS Nairobi",
+        "moisture_pct": "18.40",
+        "notes": null,
+        "pollen_density": "64.50",
+        "sucrose_g_100g": "2.30",
+        "tested_at": "2026-04-02T11:00:00"
+      },
+      "payload_precision": "reduced",
+      "recomputed_hash": null,
+      "recorded_hash": null,
+      "recorded_on": "2026-10-13",
+      "redacted_fields": ["analyst_name"]
+    },
+    "metadata": {
+      "anchor_status": "confirmed",
+      "audit_id": 18,
+      "match": true,
+      "payload": {
+        "apiary_management_method": "organic",
+        "batch_id": 3,
+        "expected_yield_kg": "50.00",
+        "harvest_window_end": "2026-04-01",
+        "harvest_window_start": "2026-03-01",
+        "honey_type": "acacia",
+        "recorded_at": "2026-10-13T11:09:41.330756"
+      },
+      "payload_precision": "exact",
+      "recomputed_hash": "2433c3951141008abd453f04b4e0ff099778735bc9fd0b3cfc1a281f2fe926c5",
+      "recorded_hash": "2433c3951141008abd453f04b4e0ff099778735bc9fd0b3cfc1a281f2fe926c5",
+      "recorded_on": "2026-10-13",
+      "redacted_fields": []
+    },
+    "packaging": {
+      "anchor_status": "confirmed",
+      "audit_id": 22,
+      "match": true,
+      "payload": {
+        "batch_id": 3,
+        "jar_ids": ["J-0001", "J-0002"],
+        "notes": null,
+        "unit_count": 120
+      },
+      "payload_precision": "reduced",
+      "recomputed_hash": null,
+      "recorded_hash": null,
+      "recorded_on": "2026-10-13",
+      "redacted_fields": ["notes"]
+    },
+    "process": {
+      "anchor_status": "confirmed",
+      "audit_id": 20,
+      "match": true,
+      "payload": {
+        "batch_id": 3,
+        "extraction_method": "centrifugal",
+        "handling_notes": null,
+        "moisture_content": "18.20"
+      },
+      "payload_precision": "reduced",
+      "recomputed_hash": null,
+      "recorded_hash": null,
+      "recorded_on": "2026-10-13",
+      "redacted_fields": ["handling_notes"]
+    }
+  }
+}

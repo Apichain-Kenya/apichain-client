@@ -1,0 +1,17 @@
+.banner {
+  display: flex;
+  gap: var(--space-2);
+  align-items: flex-start;
+  margin: 0;
+  padding: var(--space-3);
+  border-radius: var(--radius-sm);
+  background: var(--tint-sealing);
+  color: var(--ink);
+  font-size: var(--text-sm);
+  max-width: none;
+}
+.banner svg {
+  color: var(--sealing);
+  flex: none;
+  margin-top: 2px;
+}

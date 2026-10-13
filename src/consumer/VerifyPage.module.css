@@ -1,0 +1,17 @@
+.problem {
+  max-width: 30rem;
+  margin: var(--space-8) auto 0;
+  display: grid;
+  gap: var(--space-4);
+  justify-items: start;
+}
+.problem p {
+  margin: 0;
+  font-size: var(--text-lg);
+}
+.link {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--touch);
+  font-weight: 500;
+}

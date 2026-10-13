@@ -1,0 +1,42 @@
+.page {
+  max-width: 30rem;
+  margin: 0 auto;
+  display: grid;
+  gap: var(--space-4);
+}
+.page h1 {
+  margin: var(--space-4) 0 0;
+  font-size: var(--text-place);
+}
+.lead,
+.help {
+  margin: 0;
+  color: var(--ink-2);
+}
+.help {
+  font-size: var(--text-sm);
+}
+.camera {
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--ink);
+  aspect-ratio: 1;
+  max-width: 100%;
+}
+.video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.form {
+  display: grid;
+  gap: var(--space-4);
+  margin-top: var(--space-6);
+  padding-top: var(--space-6);
+  border-top: 1px solid var(--line);
+}
+.or {
+  margin: 0;
+  font-size: var(--text-md);
+  font-weight: 600;
+}

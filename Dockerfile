@@ -5,10 +5,11 @@ WORKDIR /src
 COPY package.json package-lock.json ./
 RUN npm ci
 COPY . .
-ARG VITE_API_BASE_URL=http://localhost:8000
-ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
+# No API URL is baked in: the PWA always calls its own origin (12 D4). Behind
+# this image, route /v2 to the API on the same host.
 RUN npm run build
 
 FROM nginx:alpine
 COPY --from=build /src/dist /usr/share/nginx/html
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 EXPOSE 80

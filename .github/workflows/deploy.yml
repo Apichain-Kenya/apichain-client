@@ -25,4 +25,7 @@ jobs:
         uses: digitalocean/app_action/deploy@v2
         with:
           token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
-          app_spec_location: .do/app.yaml
+          # One app, one origin (12 D4): the spec lives in apichain-backend and
+          # deploys this static site at / with the API at /v2. Fetch it from
+          # there at activation; see DEPLOYMENT.md.
+          app_spec_location: backend/.do/app.yaml

@@ -1,0 +1,44 @@
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: var(--touch-lg);
+  padding: 0 var(--space-5);
+  border-radius: var(--radius-sm);
+  border: 1.5px solid var(--ink);
+  font: inherit;
+  font-weight: 500;
+  font-size: var(--text-md);
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: transform 120ms ease-out;
+}
+.button:active:not(:disabled) {
+  transform: scale(0.98);
+}
+.button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.primary {
+  background: var(--ink);
+  color: var(--on-ink);
+}
+.secondary {
+  background: transparent;
+  color: var(--ink);
+}
+.quiet {
+  background: transparent;
+  border-color: transparent;
+  color: var(--comb-ink);
+  min-height: var(--touch);
+  padding: 0 var(--space-2);
+}
+.full {
+  width: 100%;
+}
+.icon {
+  display: inline-flex;
+}
