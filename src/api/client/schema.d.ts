@@ -21,6 +21,353 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v2/apiaries": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create Apiary */
+        post: operations["create_apiary_v2_apiaries_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v2/audit/anchor-health": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Anchor Health
+         * @description Anchor lag: how far the public witness trails the log (05 §3.6).
+         *
+         *     A separate endpoint rather than extra fields on /audit/health, so the
+         *     Phase 1 contract does not move. Phase 5's alarms read these fields.
+         */
+        get: operations["anchor_health_v2_audit_anchor_health_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v2/audit/health": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Audit Health */
+        get: operations["audit_health_v2_audit_health_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v2/auth/login": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Login */
+        post: operations["login_v2_auth_login_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v2/auth/logout": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Logout */
+        post: operations["logout_v2_auth_logout_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v2/auth/refresh": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Refresh */
+        post: operations["refresh_v2_auth_refresh_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v2/batches": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create Batch */
+        post: operations["create_batch_v2_batches_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v2/batches/{batch_id}/distribute": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Record Distribution
+         * @description S4 -> S5. Terminal: `transitions` gives DISTRIBUTED no successor, so
+         *     every transition endpoint refuses a distributed batch, this one included.
+         */
+        post: operations["record_distribution_v2_batches__batch_id__distribute_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v2/batches/{batch_id}/harvest": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Record Harvest
+         * @description S0 -> S1.
+         */
+        post: operations["record_harvest_v2_batches__batch_id__harvest_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v2/batches/{batch_id}/lab-verify": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Record Lab Result
+         * @description S2 -> S3, and the only transition that produces a judgement.
+         *
+         *     A failing verdict does **not** block the transition: `LAB_VERIFIED` means a
+         *     lab result has been recorded, not that the honey passed. Conflating them
+         *     would make a failing result unrecordable, which is how bad results go
+         *     missing. The verdict is anchored and surfaced instead.
+         */
+        post: operations["record_lab_result_v2_batches__batch_id__lab_verify_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v2/batches/{batch_id}/package": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Record Packaging
+         * @description S3 -> S4.
+         */
+        post: operations["record_packaging_v2_batches__batch_id__package_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v2/batches/{batch_id}/process": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Record Process
+         * @description S1 -> S2.
+         */
+        post: operations["record_process_v2_batches__batch_id__process_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v2/documents/{document_id}/download-url": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Document Download Url */
+        get: operations["document_download_url_v2_documents__document_id__download_url_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v2/farmers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Enroll Farmer */
+        post: operations["enroll_farmer_v2_farmers_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v2/farmers/{farmer_id}/consents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Farmer Consents
+         * @description The current state of every purpose. A read, so no audit row (the PII
+         *     `data_access` rows are Phase 5).
+         */
+        get: operations["farmer_consents_v2_farmers__farmer_id__consents_get"];
+        put?: never;
+        /**
+         * Record Farmer Consent
+         * @description Grant or withdraw one consent purpose (03 §7, 11 §5).
+         *
+         *     The ledger keeps every choice; the newest row decides. `data_processing`
+         *     cannot be withdrawn here: withdrawing it means "stop processing my data",
+         *     which is the Phase 5 deletion workflow, and recording a withdrawal nothing
+         *     honours would be worse than refusing it.
+         */
+        post: operations["record_farmer_consent_v2_farmers__farmer_id__consents_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v2/farmers/{farmer_id}/documents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Documents */
+        get: operations["list_documents_v2_farmers__farmer_id__documents_get"];
+        put?: never;
+        /** Upload Document */
+        post: operations["upload_document_v2_farmers__farmer_id__documents_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v2/farmers/{farmer_id}/verifications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Send Verification Code */
+        post: operations["send_verification_code_v2_farmers__farmer_id__verifications_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v2/farmers/{farmer_id}/verifications/confirm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Confirm Verification Code */
+        post: operations["confirm_verification_code_v2_farmers__farmer_id__verifications_confirm_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v2/ping": {
         parameters: {
             query?: never;
@@ -42,10 +389,600 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v2/public/batches/{public_id}/anchor-proof": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Batch Anchor Proof
+         * @description Everything needed to verify this batch's records offline.
+         *
+         *     One entry per audit row, each carrying its own status, so a record that
+         *     exists in our log but has no public anchor yet is reported as `pending`
+         *     rather than as a missing field (03 §6).
+         */
+        get: operations["batch_anchor_proof_v2_public_batches__public_id__anchor_proof_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v2/public/batches/{public_id}/verify": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Verify Batch
+         * @description The three-way match over every recorded stage of this batch.
+         *
+         *     Being anonymous, it applies `verification.FIELD_POLICY` (hive coordinates
+         *     at 2 dp, altitude at 100 m, free text and the analyst's name withheld) and
+         *     publishes no hashes for a redacted block. Staff see exact values in an
+         *     authenticated view, never here. Reports facts only: no score, no band —
+         *     those mappings are the client's (03 §1, §6).
+         */
+        get: operations["verify_batch_v2_public_batches__public_id__verify_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /**
+         * AnchorHealthResponse
+         * @description Anchor lag, for the uptime check and the Phase 5 alarms (05 §3.6).
+         */
+        AnchorHealthResponse: {
+            /** Anchor Ok */
+            anchor_ok: boolean;
+            /** Last Anchor Id */
+            last_anchor_id?: number | null;
+            /** Last Anchored Audit Id */
+            last_anchored_audit_id?: number | null;
+            /** Last Error */
+            last_error?: string | null;
+            /** Last Run At */
+            last_run_at?: string | null;
+            /** Oldest Unanchored At */
+            oldest_unanchored_at?: string | null;
+            /** Pending Anchors */
+            pending_anchors: number;
+            /** Pending Rows */
+            pending_rows: number;
+            /** Waiting On Audit Id */
+            waiting_on_audit_id?: number | null;
+        };
+        /**
+         * AnchorProofEntry
+         * @description One audit row of this batch, and the proof for it if one exists yet.
+         */
+        AnchorProofEntry: {
+            /** Action */
+            action: string;
+            anchor_target?: components["schemas"]["AnchorTarget"] | null;
+            /** Anchored At */
+            anchored_at?: string | null;
+            /** Audit Id */
+            audit_id: number;
+            /** Merkle Path */
+            merkle_path?: components["schemas"]["ProofStepOut"][] | null;
+            /** Merkle Root */
+            merkle_root?: string | null;
+            /** Ots Proof */
+            ots_proof?: string | null;
+            /** Row Hash */
+            row_hash: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "pending" | "anchored" | "confirmed";
+            /** Verified At */
+            verified_at?: string | null;
+        };
+        /** AnchorProofResponse */
+        AnchorProofResponse: {
+            /** Batch Id */
+            batch_id: number;
+            /** Entries */
+            entries: components["schemas"]["AnchorProofEntry"][];
+            /** Public Id */
+            public_id: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "pending" | "partial" | "anchored" | "confirmed";
+        };
+        /**
+         * AnchorTarget
+         * @description Where a Merkle root is published (04 §5.2).
+         *
+         *     The target is settled: OpenTimestamps to Bitcoin (05 §6.3). `polygon` is a
+         *     reserved fallback (06 §9) — the value exists so switching would not need a
+         *     migration; no code path in v2 consumes it.
+         * @enum {string}
+         */
+        AnchorTarget: "opentimestamps" | "polygon";
+        /** ApiaryCreateRequest */
+        ApiaryCreateRequest: {
+            /** Altitude */
+            altitude?: number | string | null;
+            /** Farmer Id */
+            farmer_id: number;
+            /** Hive Count */
+            hive_count?: number | null;
+            /** Latitude */
+            latitude: number | string;
+            /** Longitude */
+            longitude: number | string;
+            /** Name */
+            name: string;
+            /** Vegetation Type */
+            vegetation_type?: string | null;
+        };
+        /**
+         * ApiaryManagementMethod
+         * @enum {string}
+         */
+        ApiaryManagementMethod: "organic" | "conventional" | "regenerative";
+        /** ApiaryResponse */
+        ApiaryResponse: {
+            /** Altitude */
+            altitude: string | null;
+            /** Farmer Id */
+            farmer_id: number;
+            /** Hive Count */
+            hive_count: number | null;
+            /** Id */
+            id: number;
+            /** Latitude */
+            latitude: string;
+            /** Longitude */
+            longitude: string;
+            /** Name */
+            name: string;
+            /** Vegetation Type */
+            vegetation_type: string | null;
+        };
+        /** AuditHealthResponse */
+        AuditHealthResponse: {
+            /** Chain Ok */
+            chain_ok: boolean;
+            /** Checked At */
+            checked_at: string | null;
+            /** Rows Checked */
+            rows_checked: number;
+        };
+        /** BatchCreateRequest */
+        BatchCreateRequest: {
+            /** Apiary Id */
+            apiary_id: number;
+            /** Batch Code */
+            batch_code?: string | null;
+            /** Farmer Id */
+            farmer_id: number;
+            metadata: components["schemas"]["BatchMetadataInput"];
+        };
+        /**
+         * BatchMetadataInput
+         * @description What the farmer declares about a batch at creation — the S0 pre-image.
+         *
+         *     `notes` is stored but deliberately outside the canonical payload, so fixing
+         *     a typo cannot invalidate anchored history (v1 Sprint 8; see
+         *     `stage_payloads.batch_metadata`). It is not shown on the anonymous
+         *     `/verify` view: free text is withheld there (`verification.FIELD_POLICY`).
+         */
+        BatchMetadataInput: {
+            apiary_management_method: components["schemas"]["ApiaryManagementMethod"];
+            /** Expected Yield Kg */
+            expected_yield_kg: number | string;
+            /**
+             * Harvest Window End
+             * Format: date
+             */
+            harvest_window_end: string;
+            /**
+             * Harvest Window Start
+             * Format: date
+             */
+            harvest_window_start: string;
+            honey_type: components["schemas"]["HoneyType"];
+            /** Notes */
+            notes?: string | null;
+        };
+        /** BatchResponse */
+        BatchResponse: {
+            /** Batch Code */
+            batch_code: string;
+            /** Farmer Id */
+            farmer_id: number;
+            /** Id */
+            id: number;
+            /** Public Id */
+            public_id: string;
+            /** State */
+            state: string;
+        };
+        /** BatchVerifyResponse */
+        BatchVerifyResponse: {
+            /**
+             * Anchor Status
+             * @enum {string}
+             */
+            anchor_status: "pending" | "partial" | "anchored" | "confirmed";
+            /** Batch Id */
+            batch_id: number;
+            conformance: components["schemas"]["ConformanceOut"] | null;
+            metadata: components["schemas"]["MetadataPublic"] | null;
+            /** Public Id */
+            public_id: string;
+            /** State */
+            state: string;
+            verification: components["schemas"]["StageVerifications"];
+        };
+        /** Body_upload_document_v2_farmers__farmer_id__documents_post */
+        Body_upload_document_v2_farmers__farmer_id__documents_post: {
+            /**
+             * Doc Type
+             * @enum {string}
+             */
+            doc_type: "national_id" | "kra_pin_certificate" | "land_document" | "farm_photo" | "other";
+            /** File */
+            file: string;
+        };
+        /**
+         * CommChannel
+         * @description Outbound channels (04 §5.7).
+         * @enum {string}
+         */
+        CommChannel: "sms" | "email";
+        /**
+         * ConformanceOut
+         * @description The Codex/KEBS verdict re-derived from the lab row now, under the rule
+         *     set recorded with it. Every limit and its basis travel with the result, so
+         *     a reader never needs to know which rules were in force.
+         */
+        ConformanceOut: {
+            /** Parameters */
+            parameters: components["schemas"]["ConformanceParameterOut"][];
+            /** Rule Set Version */
+            rule_set_version: string;
+            /**
+             * Verdict
+             * @enum {string}
+             */
+            verdict: "pass" | "fail" | "incomplete";
+        };
+        /** ConformanceParameterOut */
+        ConformanceParameterOut: {
+            /** Basis */
+            basis: string;
+            /**
+             * Comparator
+             * @enum {string}
+             */
+            comparator: "<=" | ">=";
+            /** Limit */
+            limit: string;
+            /** Measured */
+            measured: string | null;
+            /** Parameter */
+            parameter: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "pass" | "fail" | "not_measured";
+            /** Unit */
+            unit: string;
+        };
+        /**
+         * ConsentPurpose
+         * @description Consent events captured at enrollment or upload (04 §5.2).
+         * @enum {string}
+         */
+        ConsentPurpose: "data_processing" | "document_upload" | "sms_notifications" | "email_notifications" | "photo_publish";
+        /** ConsentRecordRequest */
+        ConsentRecordRequest: {
+            /** Granted */
+            granted: boolean;
+            purpose: components["schemas"]["ConsentPurpose"];
+            /** Text Version */
+            text_version: string;
+        };
+        /** ConsentResponse */
+        ConsentResponse: {
+            /** Granted */
+            granted: boolean;
+            granted_via: components["schemas"]["GrantedVia"];
+            /** Id */
+            id: number;
+            purpose: components["schemas"]["ConsentPurpose"];
+            /**
+             * Recorded At
+             * Format: date-time
+             */
+            recorded_at: string;
+            /** Text Version */
+            text_version: string;
+        };
+        /**
+         * ConsentStateOut
+         * @description The current state of one purpose: the newest row, or never recorded.
+         */
+        ConsentStateOut: {
+            /** Granted */
+            granted: boolean;
+            granted_via: components["schemas"]["GrantedVia"] | null;
+            purpose: components["schemas"]["ConsentPurpose"];
+            /** Recorded At */
+            recorded_at: string | null;
+            /** Text Version */
+            text_version: string | null;
+        };
+        /** ConsentStateResponse */
+        ConsentStateResponse: {
+            /** Consents */
+            consents: components["schemas"]["ConsentStateOut"][];
+            /** Farmer Id */
+            farmer_id: number;
+        };
+        /**
+         * DistributionRecordRequest
+         * @description S5, terminal.
+         */
+        DistributionRecordRequest: {
+            /** Handover Notes */
+            handover_notes?: string | null;
+            /** Retailer Name */
+            retailer_name: string;
+            /** Transport Reference */
+            transport_reference?: string | null;
+        };
+        /** DocumentListResponse */
+        DocumentListResponse: {
+            /** Documents */
+            documents: components["schemas"]["DocumentResponse"][];
+            /** Farmer Id */
+            farmer_id: number;
+        };
+        /** DocumentResponse */
+        DocumentResponse: {
+            /** Content Hash */
+            content_hash: string;
+            /** Content Type */
+            content_type: string;
+            /** Doc Type */
+            doc_type: string;
+            /** Farmer Id */
+            farmer_id: number;
+            /** Id */
+            id: number;
+            /** Original Filename */
+            original_filename: string;
+            scan_status: components["schemas"]["ScanStatus"];
+            /** Size Bytes */
+            size_bytes: number;
+            /**
+             * Uploaded At
+             * Format: date-time
+             */
+            uploaded_at: string;
+        };
+        /**
+         * DownloadUrlResponse
+         * @description A short-lived signed URL (04 §5.6). Request a fresh one per view; it
+         *     is never stored and never appears on any public response.
+         */
+        DownloadUrlResponse: {
+            /**
+             * Expires At
+             * Format: date-time
+             */
+            expires_at: string;
+            /** Url */
+            url: string;
+        };
+        /**
+         * ErrorResponse
+         * @description OpenAPI shape of the error envelope, so documented error responses match
+         *     what the handler emits (keeps the Schemathesis contract test honest).
+         */
+        ErrorResponse: {
+            /** Code */
+            code: string;
+            /** Details */
+            details?: {
+                [key: string]: unknown;
+            } | null;
+            /** Message */
+            message: string;
+        };
+        /** FarmerEnrollRequest */
+        FarmerEnrollRequest: {
+            /** Address */
+            address?: string | null;
+            /** Consent Granted */
+            consent_granted: boolean;
+            /** Consent Text Version */
+            consent_text_version: string;
+            /** Email */
+            email?: string | null;
+            /** First Name */
+            first_name: string;
+            /** Last Name */
+            last_name: string;
+            /** Number Of Hives */
+            number_of_hives?: number | null;
+            /** Password */
+            password: string;
+            /** Phone */
+            phone: string;
+        };
+        /** FarmerResponse */
+        FarmerResponse: {
+            /** First Name */
+            first_name: string;
+            /** Id */
+            id: number;
+            /** Last Name */
+            last_name: string;
+            /** Phone */
+            phone: string;
+            /** User Id */
+            user_id: number | null;
+        };
+        /**
+         * GrantedVia
+         * @description How a consent grant was captured (04 §5.2).
+         * @enum {string}
+         */
+        GrantedVia: "onboarder" | "farmer_self";
+        /** HTTPValidationError */
+        HTTPValidationError: {
+            /** Detail */
+            detail?: components["schemas"]["ValidationError"][];
+        };
+        /**
+         * HarvestRecordRequest
+         * @description S1. `harvest_date` is actor-asserted and hashed; an offset on the wire
+         *     is normalized to UTC before storage (see `models/types.UtcDateTime`).
+         */
+        HarvestRecordRequest: {
+            /** Gps Lat */
+            gps_lat?: number | string | null;
+            /** Gps Lon */
+            gps_lon?: number | string | null;
+            /**
+             * Harvest Date
+             * Format: date-time
+             */
+            harvest_date: string;
+            /**
+             * Hive Ids
+             * @default []
+             */
+            hive_ids: string[];
+            /** Notes */
+            notes?: string | null;
+            /** Quantity Kg */
+            quantity_kg: number | string;
+        };
+        /**
+         * HoneyType
+         * @description Validated here rather than as a PostgreSQL enum, so amending the list is
+         *     a one-file edit instead of an `ALTER TYPE` migration (v1 Sprint 8).
+         * @enum {string}
+         */
+        HoneyType: "acacia" | "wildflower" | "eucalyptus" | "sunflower" | "mixed";
+        /**
+         * LabResultRequest
+         * @description S3. Every measurement names its quantity and its unit.
+         *
+         *     `02` R9 is why: v1 carried `sucrose_level`, which actually held total
+         *     sugars around 75-80% while the Codex sucrose limit is 5 g/100g, so a scorer
+         *     reading it would have failed every honest batch. Naming the field for what
+         *     it measures is the cheapest possible guard against that class of mistake.
+         *
+         *     Every parameter is optional. A lab that reports five of six should be able
+         *     to submit; the scorer marks the sixth `not_measured` and the verdict is
+         *     `INCOMPLETE` rather than a confident pass.
+         */
+        LabResultRequest: {
+            /** Analyst Name */
+            analyst_name?: string | null;
+            /** Certificate Number */
+            certificate_number?: string | null;
+            /** Diastase Schade */
+            diastase_schade?: number | string | null;
+            /** Free Acidity Meq Kg */
+            free_acidity_meq_kg?: number | string | null;
+            /** Fructose Glucose G 100G */
+            fructose_glucose_g_100g?: number | string | null;
+            /** Hmf Mg Kg */
+            hmf_mg_kg?: number | string | null;
+            /** Laboratory Name */
+            laboratory_name?: string | null;
+            /** Moisture Pct */
+            moisture_pct?: number | string | null;
+            /** Notes */
+            notes?: string | null;
+            /** Pollen Density */
+            pollen_density?: number | string | null;
+            /** Sucrose G 100G */
+            sucrose_g_100g?: number | string | null;
+            /** Tested At */
+            tested_at?: string | null;
+        };
+        /** LoginRequest */
+        LoginRequest: {
+            /** Identifier */
+            identifier: string;
+            /** Password */
+            password: string;
+        };
+        /** LogoutRequest */
+        LogoutRequest: {
+            /** Refresh Token */
+            refresh_token: string;
+        };
+        /**
+         * MetadataPublic
+         * @description The farmer's declaration as the anonymous `/verify` view shows it.
+         *
+         *     No `notes`: free text can carry personal data whatever it was meant for,
+         *     and this view is broadcast to anyone who scans a jar.
+         */
+        MetadataPublic: {
+            /** Apiary Management Method */
+            apiary_management_method: string;
+            /** Expected Yield Kg */
+            expected_yield_kg: string;
+            /**
+             * Harvest Window End
+             * Format: date
+             */
+            harvest_window_end: string;
+            /**
+             * Harvest Window Start
+             * Format: date
+             */
+            harvest_window_start: string;
+            /** Honey Type */
+            honey_type: string;
+        };
+        /**
+         * PackagingRecordRequest
+         * @description S4. One QR per batch, so v1's per-jar `qr_codes` is gone; `unit_count`
+         *     already equals the jar count.
+         */
+        PackagingRecordRequest: {
+            /**
+             * Jar Ids
+             * @default []
+             */
+            jar_ids: string[];
+            /** Notes */
+            notes?: string | null;
+            /** Unit Count */
+            unit_count: number;
+        };
         /**
          * PingResponse
          * @description Minimal typed response so the OpenAPI schema has real content for the
@@ -57,6 +994,187 @@ export interface components {
             service: string;
             /** Version */
             version: string;
+        };
+        /**
+         * ProcessRecordRequest
+         * @description S2.
+         */
+        ProcessRecordRequest: {
+            /** Extraction Method */
+            extraction_method: string;
+            /** Handling Notes */
+            handling_notes?: string | null;
+            /** Moisture Content */
+            moisture_content?: number | string | null;
+        };
+        /**
+         * ProofStepOut
+         * @description One sibling on the path to the root; `position` is the sibling's side.
+         */
+        ProofStepOut: {
+            /**
+             * Position
+             * @enum {string}
+             */
+            position: "left" | "right";
+            /** Sibling */
+            sibling: string;
+        };
+        /** RefreshRequest */
+        RefreshRequest: {
+            /** Refresh Token */
+            refresh_token: string;
+        };
+        /**
+         * RequestValidationErrorResponse
+         * @description FastAPI's own 422 body for a request that fails schema validation.
+         *
+         *     A route that also raises a *domain* 422 (`consent_required`,
+         *     `invalid_code`, ...) declares 422 itself, which replaces FastAPI's default
+         *     422 schema. Without this second shape the declaration would then promise
+         *     only the envelope, and every malformed body would violate the contract
+         *     (P3b-B: Schemathesis sent a lone NUL byte as a body and found exactly that).
+         */
+        RequestValidationErrorResponse: {
+            /** Detail */
+            detail: {
+                [key: string]: unknown;
+            }[];
+        };
+        /**
+         * ScanStatus
+         * @description Antivirus outcome for a stored document (04 §5.6, 11 D5).
+         *
+         *     Only `clean` is written in 3b, because the upload scans synchronously and
+         *     stores nothing that fails. `infected` and `pending` exist so a later rescan
+         *     job has somewhere to put its answer without an `ALTER TYPE`.
+         * @enum {string}
+         */
+        ScanStatus: "clean" | "infected" | "pending";
+        /**
+         * StageRecordedResponse
+         * @description What a transition returns: where the batch now is, and what it recorded.
+         */
+        StageRecordedResponse: {
+            /** Audit Id */
+            audit_id: number;
+            /** Batch Code */
+            batch_code: string;
+            /** Batch Id */
+            batch_id: number;
+            /** Payload Hash */
+            payload_hash: string;
+            /** State */
+            state: string;
+        };
+        /**
+         * StageVerificationOut
+         * @description One stage of the three-way match.
+         *
+         *     `payload` is the canonical pre-image as the stage row stands now. When
+         *     `payload_precision` is `exact`, hashing it reproduces `recomputed_hash`.
+         *     When it is `reduced`, the fields in `redacted_fields` were coarsened or
+         *     withheld for privacy and **both hashes are omitted**, because they commit
+         *     to the exact values; `match` is then the server's own comparison.
+         */
+        StageVerificationOut: {
+            /** Anchor Status */
+            anchor_status: ("pending" | "anchored" | "confirmed") | null;
+            /** Audit Id */
+            audit_id: number | null;
+            /** Match */
+            match: boolean;
+            /** Payload */
+            payload: {
+                [key: string]: unknown;
+            } | null;
+            /**
+             * Payload Precision
+             * @enum {string}
+             */
+            payload_precision: "exact" | "reduced";
+            /** Recomputed Hash */
+            recomputed_hash: string | null;
+            /** Recorded Hash */
+            recorded_hash: string | null;
+            /** Redacted Fields */
+            redacted_fields: string[];
+        };
+        /**
+         * StageVerifications
+         * @description `null` means the batch has not reached that stage yet.
+         */
+        StageVerifications: {
+            apiary: components["schemas"]["StageVerificationOut"] | null;
+            distribution: components["schemas"]["StageVerificationOut"] | null;
+            harvest: components["schemas"]["StageVerificationOut"] | null;
+            lab: components["schemas"]["StageVerificationOut"] | null;
+            metadata: components["schemas"]["StageVerificationOut"] | null;
+            packaging: components["schemas"]["StageVerificationOut"] | null;
+            process: components["schemas"]["StageVerificationOut"] | null;
+        };
+        /** StatusResponse */
+        StatusResponse: {
+            /** Status */
+            status: string;
+        };
+        /** TokenPair */
+        TokenPair: {
+            /** Access Token */
+            access_token: string;
+            /** Refresh Token */
+            refresh_token: string;
+            /**
+             * Token Type
+             * @default bearer
+             */
+            token_type: string;
+        };
+        /** ValidationError */
+        ValidationError: {
+            /** Context */
+            ctx?: Record<string, never>;
+            /** Input */
+            input?: unknown;
+            /** Location */
+            loc: (string | number)[];
+            /** Message */
+            msg: string;
+            /** Error Type */
+            type: string;
+        };
+        /** VerificationConfirmRequest */
+        VerificationConfirmRequest: {
+            channel: components["schemas"]["CommChannel"];
+            /** Code */
+            code: string;
+        };
+        /** VerificationConfirmedResponse */
+        VerificationConfirmedResponse: {
+            channel: components["schemas"]["CommChannel"];
+            /**
+             * Verified At
+             * Format: date-time
+             */
+            verified_at: string;
+        };
+        /** VerificationSendRequest */
+        VerificationSendRequest: {
+            channel: components["schemas"]["CommChannel"];
+        };
+        /** VerificationSentResponse */
+        VerificationSentResponse: {
+            channel: components["schemas"]["CommChannel"];
+            /**
+             * Expires At
+             * Format: date-time
+             */
+            expires_at: string;
+            /**
+             * Resend Available At
+             * Format: date-time
+             */
+            resend_available_at: string;
         };
     };
     responses: never;
@@ -89,6 +1207,1354 @@ export interface operations {
             };
         };
     };
+    create_apiary_v2_apiaries_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ApiaryCreateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiaryResponse"];
+                };
+            };
+            /** @description Malformed request body */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    anchor_health_v2_audit_anchor_health_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnchorHealthResponse"];
+                };
+            };
+        };
+    };
+    audit_health_v2_audit_health_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuditHealthResponse"];
+                };
+            };
+        };
+    };
+    login_v2_auth_login_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LoginRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TokenPair"];
+                };
+            };
+            /** @description Malformed request body */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    logout_v2_auth_logout_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LogoutRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StatusResponse"];
+                };
+            };
+            /** @description Malformed request body */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    refresh_v2_auth_refresh_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RefreshRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TokenPair"];
+                };
+            };
+            /** @description Malformed request body */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_batch_v2_batches_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BatchCreateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BatchResponse"];
+                };
+            };
+            /** @description Malformed request body */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    record_distribution_v2_batches__batch_id__distribute_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string | null;
+            };
+            path: {
+                batch_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DistributionRecordRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StageRecordedResponse"];
+                };
+            };
+            /** @description Malformed request body */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    record_harvest_v2_batches__batch_id__harvest_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string | null;
+            };
+            path: {
+                batch_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["HarvestRecordRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StageRecordedResponse"];
+                };
+            };
+            /** @description Malformed request body */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    record_lab_result_v2_batches__batch_id__lab_verify_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string | null;
+            };
+            path: {
+                batch_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LabResultRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StageRecordedResponse"];
+                };
+            };
+            /** @description Malformed request body */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    record_packaging_v2_batches__batch_id__package_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string | null;
+            };
+            path: {
+                batch_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PackagingRecordRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StageRecordedResponse"];
+                };
+            };
+            /** @description Malformed request body */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    record_process_v2_batches__batch_id__process_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string | null;
+            };
+            path: {
+                batch_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProcessRecordRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StageRecordedResponse"];
+                };
+            };
+            /** @description Malformed request body */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    document_download_url_v2_documents__document_id__download_url_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                document_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DownloadUrlResponse"];
+                };
+            };
+            /** @description Malformed request body */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"] | components["schemas"]["RequestValidationErrorResponse"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    enroll_farmer_v2_farmers_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FarmerEnrollRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FarmerResponse"];
+                };
+            };
+            /** @description Malformed request body */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    farmer_consents_v2_farmers__farmer_id__consents_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                farmer_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConsentStateResponse"];
+                };
+            };
+            /** @description Malformed request body */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    record_farmer_consent_v2_farmers__farmer_id__consents_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string | null;
+            };
+            path: {
+                farmer_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ConsentRecordRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConsentResponse"];
+                };
+            };
+            /** @description Malformed request body */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"] | components["schemas"]["RequestValidationErrorResponse"];
+                };
+            };
+        };
+    };
+    list_documents_v2_farmers__farmer_id__documents_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                farmer_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DocumentListResponse"];
+                };
+            };
+            /** @description Malformed request body */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    upload_document_v2_farmers__farmer_id__documents_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                farmer_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_upload_document_v2_farmers__farmer_id__documents_post"];
+            };
+        };
+        responses: {
+            /** @description Already on file for this farmer */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DocumentResponse"];
+                };
+            };
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DocumentResponse"];
+                };
+            };
+            /** @description Malformed request body */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unsupported Media Type */
+            415: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"] | components["schemas"]["RequestValidationErrorResponse"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    send_verification_code_v2_farmers__farmer_id__verifications_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                farmer_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VerificationSendRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VerificationSentResponse"];
+                };
+            };
+            /** @description Malformed request body */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"] | components["schemas"]["RequestValidationErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    confirm_verification_code_v2_farmers__farmer_id__verifications_confirm_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                farmer_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VerificationConfirmRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VerificationConfirmedResponse"];
+                };
+            };
+            /** @description Malformed request body */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"] | components["schemas"]["RequestValidationErrorResponse"];
+                };
+            };
+        };
+    };
     ping_v2_ping_get: {
         parameters: {
             query?: never;
@@ -105,6 +2571,100 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PingResponse"];
+                };
+            };
+        };
+    };
+    batch_anchor_proof_v2_public_batches__public_id__anchor_proof_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                public_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnchorProofResponse"];
+                };
+            };
+            /** @description Malformed request body */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    verify_batch_v2_public_batches__public_id__verify_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                public_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BatchVerifyResponse"];
+                };
+            };
+            /** @description Malformed request body */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
