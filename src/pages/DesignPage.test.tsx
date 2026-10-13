@@ -9,10 +9,14 @@ import '../i18n/i18n'
 import DesignPage from './DesignPage'
 
 describe('design review page', () => {
-  it.each(['light', 'dark'])('has no axe violations (%s)', async (theme) => {
-    document.documentElement.dataset.theme = theme
-    const { container } = render(<DesignPage />)
-    const result = await axe.run(container, { rules: { 'color-contrast': { enabled: false } } })
-    expect(result.violations.map((v) => `${v.id}: ${v.nodes.length}`)).toEqual([])
-  })
+  it.each(['light', 'dark'])(
+    'has no axe violations (%s)',
+    async (theme) => {
+      document.documentElement.dataset.theme = theme
+      const { container } = render(<DesignPage />)
+      const result = await axe.run(container, { rules: { 'color-contrast': { enabled: false } } })
+      expect(result.violations.map((v) => `${v.id}: ${v.nodes.length}`)).toEqual([])
+    },
+    20_000,
+  ) // axe over a long page can pass 5 s when the whole suite runs in parallel
 })

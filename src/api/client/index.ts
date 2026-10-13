@@ -6,7 +6,10 @@ import createClient from 'openapi-fetch'
 
 import type { paths } from './schema'
 
-const baseUrl = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000'
+// Same origin by default (12 D4): the SameSite=Strict refresh cookie only
+// works when the API is reached through this origin (the Vite dev proxy, or
+// the single App Platform app in production).
+const baseUrl = import.meta.env.VITE_API_BASE_URL ?? ''
 
 export const api = createClient<paths>({ baseUrl })
 export type { paths }
