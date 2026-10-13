@@ -28,7 +28,7 @@ registerRoute(
 
 // The one runtime cache: the anonymous jar check. Network first, so an
 // online re-scan always shows the live result; the cache answers only when
-// the network fails or takes over 4 s, and marks itself (D15).
+// the network fails or takes over 8 s, and marks itself (D15).
 registerRoute(
   ({ url, request }) =>
     isCacheableVerify({
@@ -38,7 +38,9 @@ registerRoute(
     }),
   new NetworkFirst({
     cacheName: 'jar-checks',
-    networkTimeoutSeconds: 4,
+    // 8 s: long enough that a slow but working link gets the live answer;
+    // the cache is for real failures (browser walk: /verify took 4.2 s).
+    networkTimeoutSeconds: 8,
     plugins: [
       new ExpirationPlugin({ maxEntries: 50, maxAgeSeconds: 30 * 24 * 3600 }),
       {

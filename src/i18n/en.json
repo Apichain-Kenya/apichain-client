@@ -228,7 +228,7 @@
       "drag": "Drag the pin if it's off.",
       "waitBetter": "Your location is only accurate to about {{m}} m. Wait a moment for a better reading, or use it anyway.",
       "useAnyway": "Use it anyway",
-      "denied": "Location is turned off for this app. Turn it on in your phone's settings, or pick the spot on the map.",
+      "denied": "Location is turned off for this app. Turn it on in your phone's settings, then try again.",
       "noGps": "This phone can't share its location.",
       "mapOffline": "Map will show when you're online. Your location is saved.",
       "pickOnMap": "Tap the map where the apiary is.",
@@ -236,7 +236,8 @@
       "nameHint": "Any name you will recognise",
       "nameRequired": "Name the apiary to continue",
       "hives": "Number of hives",
-      "needLocation": "Add the apiary's location to continue"
+      "needLocation": "Add the apiary's location to continue",
+      "timeout": "Couldn't get your location yet. Step into the open, wait a moment, and try again."
     },
     "what": {
       "title": "What did you harvest?",

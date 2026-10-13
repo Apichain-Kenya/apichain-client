@@ -73,6 +73,10 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
     globals: false,
+    // Whole-flow UI tests (userEvent typing, fake IndexedDB) are slow under
+    // parallel load; on a small machine or CI runner the 5 s default flaked.
+    testTimeout: 15_000,
+    maxWorkers: 2,
     // Process CSS so `tokens.css?raw` is the real file in tokens.test.ts.
     css: true,
   },

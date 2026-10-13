@@ -83,7 +83,7 @@ describe('Register a harvest, offline', () => {
     await next()
 
     await userEvent.click(screen.getByRole('radio', { name: 'Acacia' }))
-    const kg = screen.getByRole('spinbutton', { name: 'Harvested (kg)' })
+    const kg = screen.getByLabelText('Harvested (kg)')
     await userEvent.clear(kg)
     await userEvent.type(kg, '35')
     await next()
@@ -140,7 +140,7 @@ describe('Register a harvest, offline', () => {
     renderAt('/register')
     await userEvent.click(await screen.findByRole('radio', { name: /Mukurwe-ini/ }))
     await next()
-    await userEvent.type(screen.getByRole('spinbutton', { name: 'Harvested (kg)' }), '12')
+    await userEvent.type(screen.getByLabelText('Harvested (kg)'), '12')
     await next()
     await next()
     await userEvent.click(screen.getByRole('button', { name: 'Save harvest' }))
@@ -203,7 +203,7 @@ describe('My harvests', () => {
     const first = renderAt('/register')
     await newApiaryStep()
     await next()
-    await userEvent.type(screen.getByRole('spinbutton', { name: 'Harvested (kg)' }), '12')
+    await userEvent.type(screen.getByLabelText('Harvested (kg)'), '12')
     await next()
     await next()
     await userEvent.click(screen.getByRole('button', { name: 'Save harvest' }))
@@ -296,5 +296,55 @@ describe('review fixes', () => {
     await vi.waitFor(() => expect(batchCalls()).toBe(1))
     await services.outbox.replay(11, services.session, services.now) // the harvest is sent
     await vi.waitFor(() => expect(batchCalls()).toBe(2))
+  })
+})
+
+describe('browser-walk fixes', () => {
+  it('a GPS timeout says to try again, not that the phone cannot share location', async () => {
+    await setup({
+      locate: async () => Promise.reject(Object.assign(new Error('timeout'), { code: 3 })),
+    })
+    renderAt('/register')
+    await userEvent.click(await screen.findByRole('radio', { name: 'Add a new apiary' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Use my location' }))
+    expect(await screen.findByText(/Couldn't get your location yet/)).toBeInTheDocument()
+  })
+
+  it('the denied message only offers what the screen can do', async () => {
+    await setup({
+      locate: async () => Promise.reject(Object.assign(new Error('denied'), { code: 1 })),
+    })
+    renderAt('/register')
+    await userEvent.click(await screen.findByRole('radio', { name: 'Add a new apiary' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Use my location' }))
+    const msg = await screen.findByText(/Location is turned off/)
+    expect(msg.textContent).not.toMatch(/map/)
+  })
+
+  it('kg fields are plain decimal fields, not spinbuttons with a 0..0 range', async () => {
+    renderAt('/register')
+    await newApiaryStep()
+    await next()
+    const kg = screen.getByLabelText('Harvested (kg)')
+    expect(kg).not.toHaveAttribute('role', 'spinbutton')
+    expect(kg).toHaveAttribute('inputmode', 'decimal')
+  })
+
+  it('online with no snapshot yet, "No harvests yet" waits for the server list', async () => {
+    await setup({ online: true })
+    let release: () => void = () => {}
+    vi.spyOn(services.session, 'authFetch').mockImplementation(
+      () =>
+        new Promise(
+          (r) =>
+            (release = () =>
+              r(new Response(JSON.stringify({ items: [], next_cursor: null }), { status: 200 }))),
+        ),
+    )
+    renderAt('/')
+    await screen.findByRole('heading', { name: 'My harvests' })
+    await new Promise((r) => setTimeout(r, 300)) // snapshot read; server still answering
+    expect(screen.queryByText('No harvests yet. Register your first one.')).not.toBeInTheDocument()
+    release()
   })
 })

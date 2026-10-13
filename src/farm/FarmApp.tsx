@@ -72,7 +72,7 @@ function FarmGate() {
 
 export function FarmRoutes({ signedInAs: me }: { signedInAs: Me }) {
   const { t } = useTranslation()
-  const { waiting } = useSync()
+  const { waiting, paused } = useSync()
 
   // Fetch the map chunk while online, so the service worker has it for later
   // (it is not in the precache; 12 §9).
@@ -91,7 +91,7 @@ export function FarmRoutes({ signedInAs: me }: { signedInAs: Me }) {
       status={<SyncChip waiting={waiting} />}
     >
       <div className="farm-banner">
-        <OfflineBanner />
+        <OfflineBanner unreachable={paused === 'offline'} />
       </div>
       <Switch>
         <Route path="/">

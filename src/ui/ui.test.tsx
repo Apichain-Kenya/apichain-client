@@ -159,3 +159,11 @@ describe('Sync', () => {
     expect(screen.getByRole('status')).toHaveTextContent('All sent')
   })
 })
+
+describe('OfflineBanner', () => {
+  it('also shows when the network is unreachable though the browser says online', async () => {
+    const { OfflineBanner } = await import('./OfflineBanner')
+    render(<OfflineBanner unreachable />)
+    expect(screen.getByRole('status')).toHaveTextContent("You're offline")
+  })
+})

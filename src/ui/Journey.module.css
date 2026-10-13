@@ -61,7 +61,7 @@
   font-variant-numeric: tabular-nums;
 }
 
-@container (min-width: 34rem) {
+@container (min-width: 30rem) {
   .list {
     grid-template-columns: repeat(6, 1fr);
   }

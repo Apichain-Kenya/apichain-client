@@ -79,7 +79,13 @@ export function RegisterHarvest({ me }: { me: Me }) {
       }
     } catch (e) {
       const code = (e as { code?: number }).code
-      setLocError(code === 1 ? t('farm.where.denied') : t('farm.where.noGps'))
+      setLocError(
+        code === 1
+          ? t('farm.where.denied')
+          : code === 3
+            ? t('farm.where.timeout')
+            : t('farm.where.noGps'),
+      )
     } finally {
       setLocating(false)
     }
@@ -353,8 +359,6 @@ function KgInput({
       {(p) => (
         <input
           {...p}
-          role="spinbutton"
-          aria-valuenow={value}
           inputMode="decimal"
           autoComplete="off"
           value={text}

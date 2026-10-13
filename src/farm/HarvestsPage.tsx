@@ -55,7 +55,10 @@ export function HarvestsPage({ me }: { me: Me }) {
       </Link>
 
       <h2 className={styles.title}>{t('farm.harvests.title')}</h2>
-      {unsent.length === 0 && (batches?.length ?? 0) === 0 && apiaries !== null ? (
+      {unsent.length === 0 &&
+      (batches?.length ?? 0) === 0 &&
+      apiaries !== null &&
+      (fresh || batches !== null || !farm.online()) ? (
         <p className={styles.empty}>{t('farm.harvests.empty')}</p>
       ) : null}
       <ul className={styles.list}>
