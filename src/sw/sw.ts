@@ -9,9 +9,9 @@ import {
   precacheAndRoute,
 } from 'workbox-precaching'
 import { NavigationRoute, registerRoute } from 'workbox-routing'
-import { NetworkFirst } from 'workbox-strategies'
+import { CacheFirst, NetworkFirst } from 'workbox-strategies'
 
-import { isCacheableVerify, markCachedFallback, stampStored } from './rules'
+import { isAppChunk, isCacheableVerify, markCachedFallback, stampStored } from './rules'
 
 declare const self: ServiceWorkerGlobalScope
 
@@ -48,6 +48,17 @@ registerRoute(
           cachedResponse ? markCachedFallback(cachedResponse) : null,
       },
     ],
+  }),
+)
+
+// Build chunks not in the precache (the farmer app, the QR fallback): cached
+// on first use. Hashed names never change, so cache-first is safe.
+registerRoute(
+  ({ url, request }) =>
+    isAppChunk({ url, method: request.method, sameOrigin: url.origin === self.location.origin }),
+  new CacheFirst({
+    cacheName: 'app-chunks',
+    plugins: [new ExpirationPlugin({ maxEntries: 80, purgeOnQuotaError: true })],
   }),
 )
 

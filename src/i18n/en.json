@@ -8,12 +8,77 @@
     "DISTRIBUTED": "Distributed"
   },
   "scan": {
-    "authConsistent": "Origin signals consistent",
-    "authUnderReview": "Authenticity: under review",
-    "authUnknown": "Authenticity: not yet available",
-    "producer": "Producer",
-    "from": "Honey from",
-    "unknownPlace": "Kenya"
+    "authConsistent": "Lab test meets the international honey standard.",
+    "authUnderReview": "Lab results are being reviewed.",
+    "authUnknown": "No lab result yet.",
+    "harvestedNear": "Harvested near",
+    "harvestedIn": "Harvested in Kenya",
+    "lot": "{{honey}} honey, harvested {{when}}",
+    "scanAnother": "Scan another",
+    "checkAnother": "Check another jar",
+    "how": "How this was checked",
+    "unchanged": "Unchanged",
+    "changed": "Doesn't match",
+    "explain": {
+      "sealed": "Each step was saved with a fingerprint, and they all still match. Their combined fingerprint is recorded in public on Bitcoin.",
+      "sealing": "Each step was saved with a fingerprint, and they all still match. They are bundled into a public record on Bitcoin, which is still being confirmed.",
+      "in_progress": "Each step recorded so far was saved with a fingerprint, and they all still match.",
+      "mismatch": "Each step was saved with a fingerprint. At least one no longer matches what was saved."
+    },
+    "publicRecord": "View the public record",
+    "cachedOn": "Checked on {{date}}. Connect to check again.",
+    "mismatchAdvice": "If you bought this jar, keep it and its receipt. Show this page to the shop.",
+    "checkAgain": "Check again",
+    "notFound": "We couldn't find this jar. Check the code and try again.",
+    "offline": "Connect to the internet to check this jar.",
+    "error": "The check didn't finish. Try again in a moment.",
+    "tryAgain": "Try again",
+    "lab": {
+      "title": "Lab measures",
+      "measure": "Lab measure",
+      "result": "Result",
+      "standard": "Codex standard",
+      "pass": "Meets it",
+      "fail": "Outside it",
+      "not_measured": "Not measured",
+      "atMost": "at most {{limit}} {{unit}}",
+      "atLeast": "at least {{limit}} {{unit}}",
+      "names": {
+        "moisture": "Moisture",
+        "fructose_glucose": "Fructose + glucose",
+        "sucrose": "Sucrose",
+        "hmf": "HMF (freshness)",
+        "diastase": "Diastase",
+        "free_acidity": "Free acidity"
+      }
+    },
+    "stages": {
+      "apiary": "Apiary",
+      "metadata": "Registration",
+      "harvest": "Harvest",
+      "process": "Processing",
+      "lab": "Lab test",
+      "packaging": "Packing",
+      "distribution": "Sent to shops"
+    },
+    "honey": {
+      "acacia": "Acacia",
+      "wildflower": "Wildflower",
+      "eucalyptus": "Eucalyptus",
+      "sunflower": "Sunflower",
+      "mixed": "Mixed"
+    },
+    "scanTitle": "Check a jar",
+    "scanLead": "Point your camera at the code on the jar's label.",
+    "useCamera": "Use the camera",
+    "cameraHelp": "Your camera is only used while this page is open, to read the code.",
+    "cameraDenied": "The camera isn't available. Type the code from the label instead.",
+    "typeCode": "Or type the code from the label",
+    "codeLabel": "Code on the label",
+    "codeHint": "32 letters and numbers, printed under the QR code",
+    "codeInvalid": "That isn't a jar code. Check it and try again.",
+    "check": "Check this jar",
+    "stopCamera": "Stop the camera"
   },
   "ui": {
     "seal": {

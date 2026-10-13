@@ -3,7 +3,7 @@
 // tiles (OpenStreetMap forbids offline use of its tiles).
 import { describe, expect, it } from 'vitest'
 
-import { isCacheableVerify, markCachedFallback, stampStored } from './rules'
+import { isAppChunk, isCacheableVerify, markCachedFallback, stampStored } from './rules'
 
 const ORIGIN = 'https://apichain.example'
 const ID = '9f2c4e7a1b6d8053c2e94fa710bd3e68'
@@ -55,5 +55,18 @@ describe('cached-result marking', () => {
     const served = await markCachedFallback(stored)
     expect(served.headers.get('X-ApiChain-Cached-At')).toBe('2026-10-12T09:00:00.000Z')
     expect(await served.json()).toEqual({ state: 'DISTRIBUTED' })
+  })
+})
+
+describe('isAppChunk', () => {
+  it('runtime-caches our own hashed build files, which never change', () => {
+    expect(isAppChunk(req('/assets/farm-RegisterHarvest-Ab12Cd34.js'))).toBe(true)
+    expect(isAppChunk(req('/assets/qr-scanner-worker.min-Ab12Cd34.js'))).toBe(true)
+  })
+  it('never anything else', () => {
+    expect(isAppChunk(req('/v2/batches'))).toBe(false)
+    expect(isAppChunk(req('/index.html'))).toBe(false)
+    expect(isAppChunk({ ...req('/assets/x-Ab12Cd34.js'), sameOrigin: false })).toBe(false)
+    expect(isAppChunk(req('/assets/x-Ab12Cd34.js', 'POST'))).toBe(false)
   })
 })

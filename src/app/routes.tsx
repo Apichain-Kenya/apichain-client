@@ -6,6 +6,8 @@ import { Route, Switch } from 'wouter'
 // lazy chunk, so the consumer bundle never carries farmer code (12 D13).
 const Landing = lazy(() => import('../pages/Landing'))
 const NotFound = lazy(() => import('../pages/NotFound'))
+const ScanPage = lazy(() => import('../consumer/ScanPage'))
+const VerifyPage = lazy(() => import('../consumer/VerifyPage'))
 const DesignPage = import.meta.env.DEV ? lazy(() => import('../pages/DesignPage')) : null
 
 function Loading() {
@@ -22,6 +24,12 @@ export function AppRoutes() {
     <Suspense fallback={<Loading />}>
       <Switch>
         <Route path="/" component={Landing} />
+        <Route path="/scan">
+          <ScanPage />
+        </Route>
+        <Route path="/v/:publicId">
+          <VerifyPage />
+        </Route>
         {DesignPage ? <Route path="/design" component={DesignPage} /> : null}
         <Route component={NotFound} />
       </Switch>

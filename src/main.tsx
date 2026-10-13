@@ -5,16 +5,14 @@ import { registerSW } from 'virtual:pwa-register'
 import './design/tokens.css'
 import './design/base.css'
 import './i18n/i18n'
-import { Providers } from './app/Providers'
 import { AppRoutes } from './app/routes'
 import { UpdatePrompt } from './app/UpdatePrompt'
-import { outbox, session, sync } from './app/services'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <Providers session={session} outbox={outbox} sync={sync}>
-      <AppRoutes />
-      <UpdatePrompt register={registerSW} />
-    </Providers>
+    {/* No session here: a shopper scanning a jar never needs one, and must not
+        pay for it (12 D13). The farmer routes mount their own (src/farm). */}
+    <AppRoutes />
+    <UpdatePrompt register={registerSW} />
   </StrictMode>,
 )

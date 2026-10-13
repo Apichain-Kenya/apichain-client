@@ -1,0 +1,126 @@
+.label {
+  display: grid;
+  gap: var(--space-5);
+  max-width: 34rem;
+  margin: 0 auto;
+}
+.left,
+.right {
+  display: grid;
+  gap: var(--space-5);
+  align-content: start;
+  min-width: 0;
+}
+.place {
+  display: grid;
+  gap: var(--space-1);
+}
+.place h1 {
+  margin: 0;
+  font-size: var(--text-place);
+  line-height: 1.12;
+}
+.near,
+.lot {
+  margin: 0;
+  color: var(--ink-2);
+}
+.lot {
+  font-size: var(--text-sm);
+}
+.cached {
+  margin: 0;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  background: var(--tint-sealing);
+  font-size: var(--text-sm);
+}
+.quality {
+  display: flex;
+  gap: var(--space-3);
+  align-items: flex-start;
+  margin: 0;
+}
+.quality svg {
+  flex: none;
+  margin-top: 2px;
+}
+.positive svg {
+  color: var(--sealed);
+}
+.neutral svg {
+  color: var(--ink-2);
+}
+.advice {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--ink-2);
+}
+.checks {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-2);
+}
+.checks li {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--line);
+}
+.ok,
+.bad {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+.ok {
+  color: var(--sealed);
+}
+.bad {
+  color: var(--alert);
+}
+.tableWrap {
+  overflow-x: auto;
+}
+.params {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+.params th,
+.params td {
+  text-align: left;
+  padding: var(--space-2) var(--space-1);
+  border-bottom: 1px solid var(--line);
+  font-weight: 400;
+  vertical-align: top;
+}
+.params thead th {
+  color: var(--ink-2);
+  font-size: 0.8rem;
+}
+.explain {
+  margin: 0;
+  color: var(--ink-2);
+}
+.record {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--touch);
+  font-weight: 500;
+}
+
+@media (min-width: 1024px) {
+  .label {
+    max-width: 70rem;
+    grid-template-columns: 1fr 1.15fr;
+    gap: var(--space-12);
+  }
+  .place h1 {
+    font-size: 2.9rem;
+  }
+}

@@ -17,6 +17,9 @@ export default defineConfig({
       injectRegister: false,
       injectManifest: {
         globPatterns: ['**/*.{js,css,html,woff2,svg}'],
+        // Shoppers never download the farmer app or the QR fallback up front
+        // (03 §4 data cost); those are cached on first use (src/sw/rules.ts).
+        globIgnores: ['**/assets/farm-*', '**/assets/qr-scanner*'],
       },
       manifest: {
         name: 'ApiChain',
@@ -42,7 +45,18 @@ export default defineConfig({
     }),
   ],
   // The manifest feeds scripts/bundle-report.mjs, the D13 budget gate.
-  build: { manifest: true },
+  build: {
+    manifest: true,
+    rollupOptions: {
+      output: {
+        // Name every farmer chunk farm-*, so the precache can leave it out.
+        chunkFileNames: (chunk) =>
+          chunk.facadeModuleId?.includes('/src/farm/')
+            ? 'assets/farm-[name]-[hash].js'
+            : 'assets/[name]-[hash].js',
+      },
+    },
+  },
   // Same-origin in dev too (12 D4): the refresh cookie is SameSite=Strict and
   // scoped to /v2/auth, so the API must be reached through this origin.
   server: { proxy: { '/v2': 'http://localhost:8000' } },
