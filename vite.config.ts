@@ -17,9 +17,11 @@ export default defineConfig({
       injectRegister: false,
       injectManifest: {
         globPatterns: ['**/*.{js,css,html,woff2,svg}'],
-        // Shoppers never download the farmer app or the QR fallback up front
-        // (03 §4 data cost); those are cached on first use (src/sw/rules.ts).
-        globIgnores: ['**/assets/farm-*', '**/assets/qr-scanner*'],
+        // The farmer app's own chunk is precached, so offline capture survives
+        // an app update (the new shell must find its farm chunk with no
+        // network; review). Only the online-only map (Leaflet) and the QR
+        // fallback stay out: about 16 KB gzip for shoppers instead of ~60.
+        globIgnores: ['**/assets/farm-MapPicker*', '**/assets/qr-scanner*'],
       },
       manifest: {
         name: 'ApiChain',

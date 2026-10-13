@@ -258,7 +258,7 @@ export class Session {
   }
 }
 
-function browserLocks(): LockManagerLike {
+export function browserLocks(): LockManagerLike {
   if (typeof navigator !== 'undefined' && navigator.locks) {
     return {
       request: <T>(name: string, fn: () => Promise<T>) =>

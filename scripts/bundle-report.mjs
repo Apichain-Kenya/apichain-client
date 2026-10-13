@@ -57,12 +57,25 @@ const fonts = readdirSync(assets)
 rows.push(['fonts (woff2, all)', fonts, FONT_BUDGET])
 if (fonts > FONT_BUDGET) failed = true
 
+// The service worker precache (12 §9): offline capture needs the farmer app
+// chunk after an update; the online-only map must not be downloaded up front.
+const sw = readFileSync(join(DIST, 'sw.js'), 'utf8')
+const precached = (re) => re.test(sw)
+const precacheChecks = [
+  ['precache holds the farmer app', precached(/assets\/farm-FarmApp-[^"]+\.js/)],
+  ['precache leaves out the map', !precached(/assets\/farm-MapPicker-/)],
+  ['precache leaves out the QR fallback', !precached(/assets\/qr-scanner/)],
+]
+for (const [, ok] of precacheChecks) if (!ok) failed = true
+
 const fmt = (n) => (n === null ? 'not built' : `${(n / KB).toFixed(1)} KB`)
 console.log('| Budget item | Size (gzip) | Budget |\n|---|---:|---:|')
 for (const [label, size, budget] of rows) {
   const over = size !== null && budget !== null && size > budget ? ' **OVER**' : ''
   console.log(`| ${label} | ${fmt(size)}${over} | ${budget === null ? '-' : fmt(budget)} |`)
 }
+for (const [label, ok] of precacheChecks)
+  console.log(`| ${label} | ${ok ? 'yes' : '**NO**'} | required |`)
 if (failed) {
   console.error('\nBundle budget exceeded (12 D13).')
   process.exit(1)

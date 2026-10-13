@@ -14,7 +14,7 @@ import { memoryLocation } from 'wouter/memory-location'
 
 import '../i18n/i18n'
 import { Session } from '../auth/session'
-import { Outbox } from '../offline/outbox'
+import { Outbox, harvestDrafts } from '../offline/outbox'
 import { SyncRunner } from '../offline/runner'
 import { Snapshots } from '../offline/snapshots'
 import { FakeBackend, FakeBus, FakeLocks } from '../test/fakeBackend'
@@ -263,4 +263,38 @@ it('refuses to continue with nothing harvested', async () => {
   await next()
   await next()
   expect(screen.getByText('Enter how much you harvested')).toBeInTheDocument()
+})
+
+describe('review fixes', () => {
+  it('server lists are fetched for the signed-in farmer only (asUser)', async () => {
+    await setup({ online: true })
+    const spy = vi
+      .spyOn(services.session, 'authFetch')
+      .mockImplementation(async () => new Response('[]', { status: 200 }))
+    renderAt('/')
+    await vi.waitFor(() => expect(spy).toHaveBeenCalledTimes(2))
+    for (const call of spy.mock.calls) expect(call[2]).toEqual({ asUser: 11 })
+  })
+
+  it('the sent list is fetched again when a harvest finishes sending', async () => {
+    await setup({ online: true })
+    server.apiaries.push({ id: 101, farmer_id: 7 })
+    const spy = vi.spyOn(services.session, 'authFetch') // passes through to the fake server
+    await services.outbox.enqueue(
+      11,
+      harvestDrafts({
+        farmerId: 7,
+        apiaryId: 101,
+        metadata: { honey_type: 'acacia' },
+        harvest: { harvest_date: TODAY, quantity_kg: '1.00', hive_ids: [] },
+      }),
+      services.now(),
+    )
+    renderAt('/')
+    const batchCalls = () =>
+      spy.mock.calls.filter((c) => String(c[0]).startsWith('/v2/batches?')).length
+    await vi.waitFor(() => expect(batchCalls()).toBe(1))
+    await services.outbox.replay(11, services.session, services.now) // the harvest is sent
+    await vi.waitFor(() => expect(batchCalls()).toBe(2))
+  })
 })

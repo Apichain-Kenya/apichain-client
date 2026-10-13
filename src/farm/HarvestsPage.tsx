@@ -7,7 +7,7 @@ import type { Me } from '../auth/SessionContext'
 import type { ActionRecord } from '../offline/outbox'
 import { Button } from '../ui/Button'
 import { SyncBadge } from '../ui/Sync'
-import { dayLabel } from './dayLabel'
+import { dayLabel, localDay } from './dayLabel'
 import { useFarm } from './FarmServices'
 import styles from './HarvestsPage.module.css'
 import { useFarmData, type Apiary } from './useFarmData'
@@ -74,7 +74,7 @@ export function HarvestsPage({ me }: { me: Me }) {
                   : b.batch_code}
               </span>
               <span className={styles.sub}>
-                {b.apiary_name}, {dayLabel(b.created_at.slice(0, 10), today, t)}
+                {b.apiary_name}, {dayLabel(localDay(b.created_at), today, t)}
               </span>
               <SyncBadge
                 status="sent"

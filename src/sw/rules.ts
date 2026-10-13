@@ -14,10 +14,9 @@ export function isCacheableVerify({ url, method, sameOrigin }: RouteRequest): bo
 }
 
 // Vite's hashed build output: immutable, so cache-first is always correct.
-// The precache deliberately holds only the shell and the consumer chunks, so
-// a shopper scanning one jar never downloads the farmer app; farmer chunks
-// are cached here on first use, and the farmer app fetches all of its own
-// chunks at sign-in so a farmer still has full offline capture (12 §9).
+// The precache holds the shell, the consumer and farmer app chunks and the
+// fonts; only the online-only map (Leaflet) and the QR fallback are left out
+// and cached here on first use (12 §9, pre-merge review).
 const ASSET = /^\/assets\/[^/]+-[A-Za-z0-9_-]{8}\.(?:js|css|woff2)$/
 
 export function isAppChunk({ url, method, sameOrigin }: RouteRequest): boolean {

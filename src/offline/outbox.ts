@@ -19,7 +19,7 @@
 
 import { openDB, type IDBPDatabase } from 'idb'
 
-import { OfflineError, type Session } from '../auth/session'
+import { browserLocks, OfflineError, type Session } from '../auth/session'
 
 type Json = Record<string, unknown>
 export type Ref = { $ref: string }
@@ -36,6 +36,9 @@ export type ActionRecord = Draft & {
   idempotency_key: string
   status: Status
   attempts: number
+  // In-progress idempotency conflicts only, counted apart from network
+  // failures, so a flaky link never uses up the conflict retries (review).
+  conflicts?: number
   next_attempt_at: number
   created_at: number
   resolved: boolean
@@ -58,7 +61,14 @@ const KINDS: Record<Kind, { request: (body: Json) => { path: string; json: Json 
 const MAX_CONFLICT_RETRIES = 5
 const BACKOFF_BASE_MS = 2_000
 const BACKOFF_MAX_MS = 5 * 60_000
-let seqCounter = 0
+// Capture order: strictly increasing within this page's life, and roughly
+// time-ordered across reloads. (The old `now*100 + counter%100` wrapped inside
+// a single save, ordering a harvest before the batch it depends on.)
+let lastSeq = 0
+function nextSeq(now: number): number {
+  lastSeq = Math.max(lastSeq + 1, now * 1000)
+  return lastSeq
+}
 
 const uuid = () => globalThis.crypto.randomUUID()
 const isRef = (v: unknown): v is Ref =>
@@ -113,7 +123,9 @@ export class Outbox {
 
   private readonly locks: Locks
 
-  constructor(name = 'apichain-outbox', locks: Locks = navigator.locks as unknown as Locks) {
+  // Web Locks where the browser has them; Session's per-tab fallback where it
+  // does not (old WebViews), rather than a silent TypeError (review).
+  constructor(name = 'apichain-outbox', locks: Locks = browserLocks()) {
     this.locks = locks
     this.db = openDB(name, 1, {
       upgrade(db) {
@@ -134,7 +146,7 @@ export class Outbox {
       ...d,
       id: uuid(),
       user_id: userId,
-      seq: now * 100 + (seqCounter++ % 100),
+      seq: nextSeq(now),
       depends_on: refsIn(d.body),
       idempotency_key: uuid(),
       status: 'queued',
@@ -267,8 +279,9 @@ export class Outbox {
           await this.backoff(row, now())
           return { sent, paused: 'offline' }
         }
-        if (conflict && row.attempts + 1 < MAX_CONFLICT_RETRIES) {
+        if (conflict && (row.conflicts ?? 0) + 1 < MAX_CONFLICT_RETRIES) {
           // Most likely the previous attempt is still running server-side.
+          row.conflicts = (row.conflicts ?? 0) + 1
           await this.backoff(row, now())
           continue
         }

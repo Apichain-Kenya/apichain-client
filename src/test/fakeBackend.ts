@@ -10,6 +10,9 @@ export class FakeBackend {
   offline = false
   /** The server commits the next write, then the reply never arrives. */
   loseNextResponse = false
+  /** Answer the next write with 409 "in use", as when an earlier attempt
+   *  under the same key is still running server-side. */
+  conflictNext = false
   /** As `loseNextResponse`, but only for the next write to this path. */
   loseResponseFor: string | null = null
   /** The server rotates the next refresh, then the reply never arrives. */
@@ -70,6 +73,10 @@ export class FakeBackend {
 
     const key = headers.get('Idempotency-Key')
     this.requests.push({ path, key, body })
+    if (this.conflictNext) {
+      this.conflictNext = false
+      return json(409, { code: 'idempotency_conflict', message: 'Idempotency-Key is in use' })
+    }
     if (!key) return json(422, { detail: [{ loc: ['header', 'Idempotency-Key'] }] })
     const idemKey = `${userId}:${key}`
     const fingerprint = JSON.stringify(body)

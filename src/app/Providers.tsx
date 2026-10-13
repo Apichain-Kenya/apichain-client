@@ -44,7 +44,9 @@ export function Providers({
         .then(setPersistent)
         .catch(() => setPersistent(false))
     })
-    void session.restore()
+    // Only on a fresh page load: moving between /sign-in and /farm remounts
+    // this, and a second restore right after login wasted a refresh (review).
+    if (session.state.status === 'restoring') void session.restore()
     sync.start()
     return () => {
       offSession()

@@ -118,7 +118,7 @@ export function VerifyView({
                       <th scope="row">
                         {t(`scan.lab.names.${p.parameter}`, { defaultValue: p.parameter })}
                       </th>
-                      <td>{p.measured ? `${p.measured} ${p.unit}` : '—'}</td>
+                      <td>{p.measured ? `${p.measured} ${p.unit}` : t('scan.lab.not_measured')}</td>
                       <td>
                         {t(p.comparator === '<=' ? 'scan.lab.atMost' : 'scan.lab.atLeast', {
                           limit: p.limit,

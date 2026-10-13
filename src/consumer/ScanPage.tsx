@@ -22,12 +22,22 @@ export default function ScanPage({ startCamera = realStartCamera }: { startCamer
   const video = useRef<HTMLVideoElement>(null)
   const stop = useRef<(() => void) | null>(null)
   const done = useRef(false)
+  // True while the shopper wants the camera. A camera that finishes starting
+  // after they pressed Stop, or left the page, is stopped at once instead of
+  // running in a hidden video (review).
+  const wanted = useRef(false)
   const [cameraOn, setCameraOn] = useState(false)
   const [cameraError, setCameraError] = useState(false)
   const [code, setCode] = useState('')
   const [codeError, setCodeError] = useState<string | undefined>()
 
-  useEffect(() => () => stop.current?.(), [])
+  useEffect(
+    () => () => {
+      wanted.current = false
+      stop.current?.()
+    },
+    [],
+  )
 
   const go = (raw: string): boolean => {
     const id = extractPublicId(raw)
@@ -43,17 +53,26 @@ export default function ScanPage({ startCamera = realStartCamera }: { startCamer
   const openCamera = async () => {
     setCameraError(false)
     setCameraOn(true)
+    wanted.current = true
     try {
-      stop.current = await startCamera(video.current as HTMLVideoElement, (raw) => {
+      const stopNow = await startCamera(video.current as HTMLVideoElement, (raw) => {
         go(raw)
       })
+      if (!wanted.current) stopNow()
+      else {
+        stop.current?.()
+        stop.current = stopNow
+      }
     } catch {
-      setCameraOn(false)
-      setCameraError(true)
+      if (wanted.current) {
+        setCameraOn(false)
+        setCameraError(true)
+      }
     }
   }
 
   const closeCamera = () => {
+    wanted.current = false
     stop.current?.()
     stop.current = null
     setCameraOn(false)
