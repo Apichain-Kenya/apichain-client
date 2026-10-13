@@ -42,6 +42,9 @@ jobs:
           VITE_API_BASE_URL: 'http://localhost:8000'
         run: npm run build
 
+      - name: Bundle budget (12 D13)
+        run: npm run bundle:report >> "$GITHUB_STEP_SUMMARY"
+
       - name: Dependency audit
         run: npm audit --audit-level=high
 

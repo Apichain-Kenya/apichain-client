@@ -28,7 +28,15 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /**
+         * List Apiaries
+         * @description A farmer's apiaries, with exact coordinates (12 §6, D17).
+         *
+         *     Only the owning farmer, field officers and admins reach this
+         *     (`apiary.read`), because the exact hive point is sensitive personal data
+         *     (03 §8.1). A farmer defaults to themselves; staff must name the farmer.
+         */
+        get: operations["list_apiaries_v2_apiaries_get"];
         put?: never;
         /** Create Apiary */
         post: operations["create_apiary_v2_apiaries_post"];
@@ -136,10 +144,39 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /**
+         * List Batches
+         * @description Newest first. A farmer always sees only their own batches; naming
+         *     another farmer is refused, not silently narrowed.
+         *
+         *     Pages are keyed on `id`, which only grows, so a batch created while the
+         *     client is paging never shifts or repeats a later page.
+         */
+        get: operations["list_batches_v2_batches_get"];
         put?: never;
         /** Create Batch */
         post: operations["create_batch_v2_batches_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v2/batches/{batch_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read Batch
+         * @description The authenticated batch view `10` §10 deferred: exact values, every
+         *     audit row with who acted, and per-entry anchor status.
+         */
+        get: operations["read_batch_v2_batches__batch_id__get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -368,6 +405,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v2/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Me */
+        get: operations["me_v2_me_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v2/ping": {
         parameters: {
             query?: never;
@@ -443,6 +497,22 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /**
+         * AccessTokenResponse
+         * @description Login and refresh return only the short-lived access token. The refresh
+         *     token travels in an HttpOnly cookie and never in a body (12 D3).
+         */
+        AccessTokenResponse: {
+            /** Access Token */
+            access_token: string;
+            /** Expires In */
+            expires_in: number;
+            /**
+             * Token Type
+             * @default bearer
+             */
+            token_type: string;
+        };
         /**
          * AnchorHealthResponse
          * @description Anchor lag, for the uptime check and the Phase 5 alarms (05 §3.6).
@@ -553,6 +623,8 @@ export interface components {
             id: number;
             /** Latitude */
             latitude: string;
+            /** Locality */
+            locality: string | null;
             /** Longitude */
             longitude: string;
             /** Name */
@@ -569,6 +641,28 @@ export interface components {
             /** Rows Checked */
             rows_checked: number;
         };
+        /**
+         * BatchApiaryOut
+         * @description The apiary a batch was recorded against. The exact point is shown only
+         *     to the owner, field officers and admins (12 D17); for everyone else the
+         *     coordinates are null and `location_withheld` says why.
+         */
+        BatchApiaryOut: {
+            /** Apiary Id */
+            apiary_id: number;
+            /** Hive Count */
+            hive_count: number | null;
+            /** Latitude */
+            latitude: string | null;
+            /** Locality */
+            locality: string | null;
+            /** Location Withheld */
+            location_withheld: boolean;
+            /** Longitude */
+            longitude: string | null;
+            /** Name */
+            name: string;
+        };
         /** BatchCreateRequest */
         BatchCreateRequest: {
             /** Apiary Id */
@@ -578,6 +672,40 @@ export interface components {
             /** Farmer Id */
             farmer_id: number;
             metadata: components["schemas"]["BatchMetadataInput"];
+        };
+        /** BatchDetail */
+        BatchDetail: {
+            /**
+             * Anchor Status
+             * @enum {string}
+             */
+            anchor_status: "pending" | "partial" | "anchored" | "confirmed";
+            apiary: components["schemas"]["BatchApiaryOut"] | null;
+            /** Batch Code */
+            batch_code: string;
+            /** Conformance Verdict */
+            conformance_verdict: ("pass" | "fail" | "incomplete") | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Farmer Id */
+            farmer_id: number;
+            /** Id */
+            id: number;
+            metadata: components["schemas"]["BatchMetadataOut"] | null;
+            /** Public Id */
+            public_id: string;
+            /** Stages */
+            stages: components["schemas"]["BatchStageOut"][];
+            /** State */
+            state: string;
+            /**
+             * State Updated At
+             * Format: date-time
+             */
+            state_updated_at: string;
         };
         /**
          * BatchMetadataInput
@@ -606,6 +734,34 @@ export interface components {
             /** Notes */
             notes?: string | null;
         };
+        /** BatchMetadataOut */
+        BatchMetadataOut: {
+            /** Apiary Management Method */
+            apiary_management_method: string;
+            /** Expected Yield Kg */
+            expected_yield_kg: string;
+            /**
+             * Harvest Window End
+             * Format: date
+             */
+            harvest_window_end: string;
+            /**
+             * Harvest Window Start
+             * Format: date
+             */
+            harvest_window_start: string;
+            /** Honey Type */
+            honey_type: string;
+            /** Notes */
+            notes: string | null;
+        };
+        /** BatchPage */
+        BatchPage: {
+            /** Items */
+            items: components["schemas"]["BatchSummary"][];
+            /** Next Cursor */
+            next_cursor: string | null;
+        };
         /** BatchResponse */
         BatchResponse: {
             /** Batch Code */
@@ -619,6 +775,72 @@ export interface components {
             /** State */
             state: string;
         };
+        /**
+         * BatchStageOut
+         * @description One audit row for this batch: what happened, when, and who did it. The
+         *     actor is what lets the console show an admin acting in another role's
+         *     place (03 §13.1).
+         */
+        BatchStageOut: {
+            /** Action */
+            action: string;
+            /** Actor Display Name */
+            actor_display_name: string | null;
+            /** Actor Id */
+            actor_id: number | null;
+            /** Actor Role */
+            actor_role: string;
+            /**
+             * Anchor Status
+             * @enum {string}
+             */
+            anchor_status: "pending" | "anchored" | "confirmed";
+            /** Audit Id */
+            audit_id: number;
+            /** Payload Hash */
+            payload_hash: string;
+            /**
+             * Recorded At
+             * Format: date-time
+             */
+            recorded_at: string;
+        };
+        /**
+         * BatchState
+         * @description The six-state honey batch lifecycle (04 §5.2). No state skipping.
+         * @enum {string}
+         */
+        BatchState: "CREATED" | "HARVESTED" | "PROCESSED" | "LAB_VERIFIED" | "PACKAGED" | "DISTRIBUTED";
+        /**
+         * BatchSummary
+         * @description One row of `GET /v2/batches`. No anchor status here: computing it means
+         *     building Merkle paths per batch, and the list is for finding a batch, not
+         *     proving it. The detail view carries it.
+         */
+        BatchSummary: {
+            /** Apiary Name */
+            apiary_name: string | null;
+            /** Batch Code */
+            batch_code: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Honey Type */
+            honey_type: string | null;
+            /** Id */
+            id: number;
+            /** Public Id */
+            public_id: string;
+            /** State */
+            state: string;
+            /**
+             * State Updated At
+             * Format: date-time
+             */
+            state_updated_at: string;
+        };
         /** BatchVerifyResponse */
         BatchVerifyResponse: {
             /**
@@ -630,6 +852,8 @@ export interface components {
             batch_id: number;
             conformance: components["schemas"]["ConformanceOut"] | null;
             metadata: components["schemas"]["MetadataPublic"] | null;
+            /** Place */
+            place: string | null;
             /** Public Id */
             public_id: string;
             /** State */
@@ -937,10 +1161,19 @@ export interface components {
             /** Password */
             password: string;
         };
-        /** LogoutRequest */
-        LogoutRequest: {
-            /** Refresh Token */
-            refresh_token: string;
+        /**
+         * MeResponse
+         * @description Who the bearer is (12 §5). `farmer_id` is what a farmer's client needs
+         *     to build its own apiary and batch writes; it is null for staff.
+         */
+        MeResponse: {
+            /** Display Name */
+            display_name: string;
+            /** Farmer Id */
+            farmer_id: number | null;
+            role: components["schemas"]["Role"];
+            /** User Id */
+            user_id: number;
         };
         /**
          * MetadataPublic
@@ -1020,11 +1253,6 @@ export interface components {
             /** Sibling */
             sibling: string;
         };
-        /** RefreshRequest */
-        RefreshRequest: {
-            /** Refresh Token */
-            refresh_token: string;
-        };
         /**
          * RequestValidationErrorResponse
          * @description FastAPI's own 422 body for a request that fails schema validation.
@@ -1041,6 +1269,12 @@ export interface components {
                 [key: string]: unknown;
             }[];
         };
+        /**
+         * Role
+         * @description The four canonical actors plus admin (04 §5.3).
+         * @enum {string}
+         */
+        Role: "farmer" | "field_officer" | "operator" | "lab_officer" | "admin";
         /**
          * ScanStatus
          * @description Antivirus outcome for a stored document (04 §5.6, 11 D5).
@@ -1097,6 +1331,8 @@ export interface components {
             recomputed_hash: string | null;
             /** Recorded Hash */
             recorded_hash: string | null;
+            /** Recorded On */
+            recorded_on: string | null;
             /** Redacted Fields */
             redacted_fields: string[];
         };
@@ -1117,18 +1353,6 @@ export interface components {
         StatusResponse: {
             /** Status */
             status: string;
-        };
-        /** TokenPair */
-        TokenPair: {
-            /** Access Token */
-            access_token: string;
-            /** Refresh Token */
-            refresh_token: string;
-            /**
-             * Token Type
-             * @default bearer
-             */
-            token_type: string;
         };
         /** ValidationError */
         ValidationError: {
@@ -1207,11 +1431,67 @@ export interface operations {
             };
         };
     };
+    list_apiaries_v2_apiaries_get: {
+        parameters: {
+            query?: {
+                farmer_id?: number | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiaryResponse"][];
+                };
+            };
+            /** @description Malformed request body */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"] | components["schemas"]["RequestValidationErrorResponse"];
+                };
+            };
+        };
+    };
     create_apiary_v2_apiaries_post: {
         parameters: {
             query?: never;
-            header?: {
-                "Idempotency-Key"?: string | null;
+            header: {
+                "Idempotency-Key": string;
             };
             path?: never;
             cookie?: never;
@@ -1335,7 +1615,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["TokenPair"];
+                    "application/json": components["schemas"]["AccessTokenResponse"];
                 };
             };
             /** @description Malformed request body */
@@ -1368,15 +1648,15 @@ export interface operations {
     logout_v2_auth_logout_post: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "X-ApiChain-Client"?: string | null;
+            };
             path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["LogoutRequest"];
+            cookie?: {
+                "__Secure-apichain_rt"?: string | null;
             };
         };
+        requestBody?: never;
         responses: {
             /** @description Successful Response */
             200: {
@@ -1394,6 +1674,15 @@ export interface operations {
                 };
                 content?: never;
             };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
             /** @description Validation Error */
             422: {
                 headers: {
@@ -1408,15 +1697,15 @@ export interface operations {
     refresh_v2_auth_refresh_post: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "X-ApiChain-Client"?: string | null;
+            };
             path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["RefreshRequest"];
+            cookie?: {
+                "__Secure-apichain_rt"?: string | null;
             };
         };
+        requestBody?: never;
         responses: {
             /** @description Successful Response */
             200: {
@@ -1424,7 +1713,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["TokenPair"];
+                    "application/json": components["schemas"]["AccessTokenResponse"];
                 };
             };
             /** @description Malformed request body */
@@ -1436,6 +1725,74 @@ export interface operations {
             };
             /** @description Unauthorized */
             401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_batches_v2_batches_get: {
+        parameters: {
+            query?: {
+                farmer_id?: number | null;
+                state?: components["schemas"]["BatchState"] | null;
+                limit?: number;
+                cursor?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BatchPage"];
+                };
+            };
+            /** @description Malformed request body */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -1457,8 +1814,8 @@ export interface operations {
     create_batch_v2_batches_post: {
         parameters: {
             query?: never;
-            header?: {
-                "Idempotency-Key"?: string | null;
+            header: {
+                "Idempotency-Key": string;
             };
             path?: never;
             cookie?: never;
@@ -1532,11 +1889,76 @@ export interface operations {
             };
         };
     };
+    read_batch_v2_batches__batch_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                batch_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BatchDetail"];
+                };
+            };
+            /** @description Malformed request body */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     record_distribution_v2_batches__batch_id__distribute_post: {
         parameters: {
             query?: never;
-            header?: {
-                "Idempotency-Key"?: string | null;
+            header: {
+                "Idempotency-Key": string;
             };
             path: {
                 batch_id: number;
@@ -1615,8 +2037,8 @@ export interface operations {
     record_harvest_v2_batches__batch_id__harvest_post: {
         parameters: {
             query?: never;
-            header?: {
-                "Idempotency-Key"?: string | null;
+            header: {
+                "Idempotency-Key": string;
             };
             path: {
                 batch_id: number;
@@ -1695,8 +2117,8 @@ export interface operations {
     record_lab_result_v2_batches__batch_id__lab_verify_post: {
         parameters: {
             query?: never;
-            header?: {
-                "Idempotency-Key"?: string | null;
+            header: {
+                "Idempotency-Key": string;
             };
             path: {
                 batch_id: number;
@@ -1775,8 +2197,8 @@ export interface operations {
     record_packaging_v2_batches__batch_id__package_post: {
         parameters: {
             query?: never;
-            header?: {
-                "Idempotency-Key"?: string | null;
+            header: {
+                "Idempotency-Key": string;
             };
             path: {
                 batch_id: number;
@@ -1855,8 +2277,8 @@ export interface operations {
     record_process_v2_batches__batch_id__process_post: {
         parameters: {
             query?: never;
-            header?: {
-                "Idempotency-Key"?: string | null;
+            header: {
+                "Idempotency-Key": string;
             };
             path: {
                 batch_id: number;
@@ -2018,8 +2440,8 @@ export interface operations {
     enroll_farmer_v2_farmers_post: {
         parameters: {
             query?: never;
-            header?: {
-                "Idempotency-Key"?: string | null;
+            header: {
+                "Idempotency-Key": string;
             };
             path?: never;
             cookie?: never;
@@ -2152,8 +2574,8 @@ export interface operations {
     record_farmer_consent_v2_farmers__farmer_id__consents_post: {
         parameters: {
             query?: never;
-            header?: {
-                "Idempotency-Key"?: string | null;
+            header: {
+                "Idempotency-Key": string;
             };
             path: {
                 farmer_id: number;
@@ -2551,6 +2973,42 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"] | components["schemas"]["RequestValidationErrorResponse"];
+                };
+            };
+        };
+    };
+    me_v2_me_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MeResponse"];
+                };
+            };
+            /** @description Malformed request body */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
         };

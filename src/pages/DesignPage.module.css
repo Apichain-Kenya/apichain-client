@@ -1,0 +1,20 @@
+.page {
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: var(--space-6) var(--space-4) var(--space-12);
+  display: grid;
+  gap: var(--space-8);
+}
+.group {
+  display: grid;
+  gap: var(--space-4);
+}
+.group h2 {
+  margin: 0;
+  font-size: var(--text-lg);
+}
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+}

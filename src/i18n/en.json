@@ -14,5 +14,81 @@
     "producer": "Producer",
     "from": "Honey from",
     "unknownPlace": "Kenya"
+  },
+  "ui": {
+    "seal": {
+      "sealed": {
+        "headline": "Checked and publicly sealed",
+        "detail": "Every step of this jar's journey is on record, unchanged since it was saved.",
+        "label": "Sealed"
+      },
+      "sealing": {
+        "headline": "Checked. Public seal on its way",
+        "detail": "Every step is on record and unchanged. The public seal usually takes a few hours.",
+        "label": "Being sealed"
+      },
+      "in_progress": {
+        "headline": "Still on its journey",
+        "detail": "{{done}} of 6 steps recorded.",
+        "label": "Open, {{done}} of 6 steps"
+      },
+      "mismatch": {
+        "headline": "This record doesn't match",
+        "detail": "Part of this jar's record has changed since it was saved. Don't rely on this label.",
+        "label": "Does not match"
+      }
+    },
+    "journey": {
+      "title": "Its journey",
+      "notYet": "Not yet",
+      "steps": {
+        "CREATED": "Registered by the beekeeper",
+        "HARVESTED": "Harvested",
+        "PROCESSED": "Processed",
+        "LAB_VERIFIED": "Lab tested",
+        "PACKAGED": "Packed",
+        "DISTRIBUTED": "Sent to shops"
+      }
+    },
+    "sync": {
+      "local": "Saved on this phone",
+      "sending": "Sending",
+      "sent": "Sent",
+      "attention": "Needs your attention",
+      "waiting_one": "{{count}} waiting to send",
+      "waiting_other": "{{count}} waiting to send",
+      "allSent": "All sent"
+    },
+    "stepper": {
+      "fewer": "One fewer",
+      "more": "One more"
+    },
+    "dates": {
+      "today": "Today",
+      "yesterday": "Yesterday",
+      "pick": "Pick a date"
+    },
+    "offline": "You're offline. Harvests you save will send when you're back online.",
+    "nav": {
+      "label": "Main"
+    }
+  },
+  "app": {
+    "restoring": "Signing you back in",
+    "wrongRole": {
+      "title": "This page is not for your account",
+      "body": "Your account can't use this page. Go back, or sign in with a different account."
+    },
+    "notFound": {
+      "title": "There's nothing at this address",
+      "back": "Go to the start"
+    },
+    "loading": "Loading"
+  },
+  "landing": {
+    "title": "Where did your honey come from?",
+    "lead": "Scan the code on the jar to see where it was harvested and how it was checked.",
+    "scan": "Check a jar",
+    "signIn": "Beekeepers: sign in"
   }
 }

@@ -1,0 +1,35 @@
+.page {
+  max-width: 32rem;
+  margin: 0 auto;
+  padding: calc(var(--space-6) + env(safe-area-inset-top, 0px)) var(--space-4) var(--space-8);
+  display: grid;
+  gap: var(--space-5);
+}
+.title {
+  margin: var(--space-6) 0 0;
+  font-size: var(--text-place);
+}
+.lead {
+  margin: 0;
+  color: var(--ink-2);
+}
+.primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: var(--touch-lg);
+  border-radius: var(--radius-sm);
+  background: var(--ink);
+  color: var(--on-ink);
+  font-weight: 500;
+  text-decoration: none;
+}
+.quiet {
+  justify-self: center;
+  min-height: var(--touch);
+  display: inline-flex;
+  align-items: center;
+  color: var(--comb-ink);
+  font-weight: 500;
+}

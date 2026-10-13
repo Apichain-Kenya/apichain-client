@@ -5,13 +5,13 @@
 DigitalOcean staging (plan `apichain-v2/07` §9) is **intentionally not activated.**
 Cost is deferred and deployment is not the current focus; **`npm run dev` against the
 local `docker compose` backend on `localhost:8000` is the dev target.** What lives in
-this repo today is the *shape* of the deploy so turning it on later is a checklist,
+this repo today is the _shape_ of the deploy so turning it on later is a checklist,
 not a design exercise:
 
-| File | What it is | State |
-|------|-----------|-------|
-| `.do/app.yaml` | DigitalOcean App Platform static-site spec | Template — backend URL placeholder, untested |
-| `.github/workflows/deploy.yml` | CD workflow, push-to-`main` → DO deploy | Inert — deploy job gated on `vars.DEPLOY_ENABLED == 'true'` (unset) |
+| File                           | What it is                                 | State                                                               |
+| ------------------------------ | ------------------------------------------ | ------------------------------------------------------------------- |
+| `.do/app.yaml`                 | DigitalOcean App Platform static-site spec | Template — backend URL placeholder, untested                        |
+| `.github/workflows/deploy.yml` | CD workflow, push-to-`main` → DO deploy    | Inert — deploy job gated on `vars.DEPLOY_ENABLED == 'true'` (unset) |
 
 Both are safe to have committed: CI stays green with no secret set, and nothing
 deploys. **Do not treat either file as working infrastructure** until the steps
