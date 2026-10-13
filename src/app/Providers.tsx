@@ -29,7 +29,7 @@ export function Providers({
     const count = () => {
       const id = session.userId
       if (id === null) return setWaiting(0)
-      void outbox.waiting(id).then(setWaiting)
+      void outbox.waitingHarvests(id).then(setWaiting)
     }
     const offOutbox = outbox.subscribe(count)
     const offCount = session.subscribe(count)

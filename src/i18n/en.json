@@ -159,5 +159,139 @@
     "lead": "Scan the code on the jar to see where it was harvested and how it was checked.",
     "scan": "Check a jar",
     "signIn": "Beekeepers: sign in"
+  },
+  "farm": {
+    "nav": {
+      "harvests": "Harvests",
+      "register": "Register",
+      "apiaries": "Apiaries",
+      "me": "Me"
+    },
+    "signIn": {
+      "title": "Sign in",
+      "lead": "You need internet to sign in the first time. After that you can save harvests offline.",
+      "identifier": "Phone number or username",
+      "password": "Password",
+      "submit": "Sign in",
+      "invalid": "That phone number or password isn't right. Check them and try again.",
+      "offline": "You're offline. Connect to sign in the first time."
+    },
+    "greeting": {
+      "morning": "Good morning, {{name}}",
+      "afternoon": "Good afternoon, {{name}}",
+      "evening": "Good evening, {{name}}"
+    },
+    "register": "Register a harvest",
+    "harvests": {
+      "title": "My harvests",
+      "empty": "No harvests yet. Register your first one.",
+      "offlineList": "Connect to see harvests you sent before.",
+      "row": "{{honey}}, {{kg}} kg",
+      "at": "{{apiary}}, {{date}}",
+      "newApiary": "New apiary: {{name}}",
+      "sentNow": "Sent. Now {{state}}",
+      "states": {
+        "CREATED": "registered",
+        "HARVESTED": "harvest recorded",
+        "PROCESSED": "at processing",
+        "LAB_VERIFIED": "lab tested",
+        "PACKAGED": "packed",
+        "DISTRIBUTED": "in shops"
+      },
+      "attention": {
+        "title": "This harvest needs your attention",
+        "why": "The server refused it: {{reason}}",
+        "remove": "Remove it from this phone",
+        "confirmRemove": "Remove this harvest? It hasn't been sent and can't be recovered.",
+        "yesRemove": "Yes, remove it",
+        "keep": "Keep it",
+        "unknownReason": "no reason given"
+      }
+    },
+    "steps": {
+      "progress": "Step {{n}} of 4: {{name}}",
+      "where": "where",
+      "what": "what",
+      "when": "when",
+      "check": "check",
+      "back": "Back",
+      "next": "Next"
+    },
+    "where": {
+      "title": "Where is this apiary?",
+      "pick": "One of my apiaries",
+      "new": "Add a new apiary",
+      "noneSaved": "You have no apiaries yet. Add one here.",
+      "useLocation": "Use my location",
+      "locating": "Finding your location",
+      "accuracy": "Your location, within about {{m}} m.",
+      "drag": "Drag the pin if it's off.",
+      "waitBetter": "Your location is only accurate to about {{m}} m. Wait a moment for a better reading, or use it anyway.",
+      "useAnyway": "Use it anyway",
+      "denied": "Location is turned off for this app. Turn it on in your phone's settings, or pick the spot on the map.",
+      "noGps": "This phone can't share its location.",
+      "mapOffline": "Map will show when you're online. Your location is saved.",
+      "pickOnMap": "Tap the map where the apiary is.",
+      "name": "Name this apiary",
+      "nameHint": "Any name you will recognise",
+      "nameRequired": "Name the apiary to continue",
+      "hives": "Number of hives",
+      "needLocation": "Add the apiary's location to continue"
+    },
+    "what": {
+      "title": "What did you harvest?",
+      "honey": "What honey is it mostly?",
+      "harvested": "Harvested (kg)",
+      "expected": "Expected yield (kg)",
+      "method": "How are the hives kept?",
+      "methods": {
+        "organic": "Organic",
+        "conventional": "Conventional",
+        "regenerative": "Regenerative"
+      },
+      "quantityRequired": "Enter how much you harvested"
+    },
+    "when": {
+      "title": "When did you harvest?",
+      "legend": "Harvest day"
+    },
+    "check": {
+      "title": "Check and save",
+      "apiary": "Apiary",
+      "honey": "Honey",
+      "harvested": "Harvested",
+      "day": "Day",
+      "save": "Save harvest",
+      "kgOn": "{{kg}} kg, {{day}}",
+      "newApiary_one": "{{name}} (new), {{count}} hive",
+      "newApiary_other": "{{name}} (new), {{count}} hives"
+    },
+    "saved": {
+      "local": "Saved on this phone",
+      "localBody": "It will send by itself when you're back online. You can close the app.",
+      "sent": "Sent",
+      "sentBody": "Your harvest is recorded.",
+      "done": "Done",
+      "another": "Register another"
+    },
+    "apiaries": {
+      "title": "My apiaries",
+      "empty": "No apiaries yet. You add one when you register a harvest.",
+      "noPlace": "Place name not found yet",
+      "hives_one": "{{count}} hive",
+      "hives_other": "{{count}} hives"
+    },
+    "me": {
+      "title": "Me",
+      "storageOk": "This phone keeps your saved harvests even when it is low on space.",
+      "storageAsk": "This phone may clear saved harvests when it is low on space. Send them when you can.",
+      "signOut": "Sign out",
+      "signOutWaiting_one": "{{count}} harvest is still on this phone. It will send when you sign back in.",
+      "signOutWaiting_other": "{{count}} harvests are still on this phone. They will send when you sign back in."
+    },
+    "dates": {
+      "today": "today",
+      "yesterday": "yesterday"
+    }
   }
 }

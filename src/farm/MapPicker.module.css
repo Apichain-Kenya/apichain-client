@@ -1,0 +1,21 @@
+.map {
+  height: 14.5rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--line);
+  overflow: hidden;
+  background: var(--map-land);
+}
+.pinWrap {
+  background: none;
+  border: 0;
+}
+.pin {
+  display: block;
+  width: 28px;
+  height: 28px;
+  margin-top: 2px;
+  background: var(--ink);
+  border: 3px solid var(--comb);
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg);
+}

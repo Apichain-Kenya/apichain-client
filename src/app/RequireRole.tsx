@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Redirect, useLocation, useSearch } from 'wouter'
+import { Redirect, useLocation, useRouter, useSearch } from 'wouter'
 
 import { useSession, type Me } from '../auth/SessionContext'
 
@@ -11,6 +11,7 @@ export function RequireRole({ roles, children }: { roles: Me['role'][]; children
   const session = useSession()
   const [location] = useLocation()
   const search = useSearch()
+  const { base } = useRouter() // inside the nested /farm router, paths are relative
 
   if (session.status === 'restoring') {
     return (
@@ -20,8 +21,9 @@ export function RequireRole({ roles, children }: { roles: Me['role'][]; children
     )
   }
   if (session.status === 'anonymous') {
-    const next = encodeURIComponent(location + (search ? `?${search}` : ''))
-    return <Redirect to={`/sign-in?next=${next}`} replace />
+    const next = encodeURIComponent(base + location + (search ? `?${search}` : ''))
+    // `~` makes the path absolute even from inside a nested router.
+    return <Redirect to={`~/sign-in?next=${next}`} replace />
   }
   if (!roles.includes(session.me.role)) {
     return (

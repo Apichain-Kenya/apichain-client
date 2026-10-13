@@ -8,6 +8,7 @@ const Landing = lazy(() => import('../pages/Landing'))
 const NotFound = lazy(() => import('../pages/NotFound'))
 const ScanPage = lazy(() => import('../consumer/ScanPage'))
 const VerifyPage = lazy(() => import('../consumer/VerifyPage'))
+const FarmApp = lazy(() => import('../farm/FarmApp'))
 const DesignPage = import.meta.env.DEV ? lazy(() => import('../pages/DesignPage')) : null
 
 function Loading() {
@@ -26,6 +27,12 @@ export function AppRoutes() {
         <Route path="/" component={Landing} />
         <Route path="/scan">
           <ScanPage />
+        </Route>
+        <Route path="/sign-in">
+          <FarmApp mode="sign-in" />
+        </Route>
+        <Route path="/farm" nest>
+          <FarmApp mode="farm" />
         </Route>
         <Route path="/v/:publicId">
           <VerifyPage />

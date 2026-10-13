@@ -54,6 +54,11 @@ export default defineConfig({
           chunk.facadeModuleId?.includes('/src/farm/')
             ? 'assets/farm-[name]-[hash].js'
             : 'assets/[name]-[hash].js',
+        // Their CSS too (FarmApp, MapPicker incl. Leaflet's stylesheet).
+        assetFileNames: (asset) =>
+          asset.names?.some((n) => /^(FarmApp|MapPicker)\./.test(n))
+            ? 'assets/farm-[name]-[hash][extname]'
+            : 'assets/[name]-[hash][extname]',
       },
     },
   },

@@ -161,6 +161,13 @@ export class Outbox {
     return (await this.list(userId)).filter((r) => r.status !== 'sent').length
   }
 
+  /** What the sync chip counts: harvests, not the actions inside them. */
+  async waitingHarvests(userId: number): Promise<number> {
+    return (await this.list(userId)).filter(
+      (r) => r.kind === 'batch.harvest' && r.status !== 'sent',
+    ).length
+  }
+
   /** "Fix and send": the corrected action is a new action with a new key. */
   async fixAndResend(id: string, body: Json, now: number): Promise<ActionRecord> {
     const db = await this.db
