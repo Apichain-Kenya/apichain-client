@@ -83,7 +83,11 @@
       "title": "There's nothing at this address",
       "back": "Go to the start"
     },
-    "loading": "Loading"
+    "loading": "Loading",
+    "update": {
+      "ready": "A newer version is ready",
+      "reload": "Reload"
+    }
   },
   "landing": {
     "title": "Where did your honey come from?",

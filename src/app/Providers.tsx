@@ -21,6 +21,7 @@ export function Providers({
   const [state, setState] = useState<SessionState>(session.state)
   const [syncState, setSyncState] = useState<SyncState>(sync.state)
   const [waiting, setWaiting] = useState(0)
+  const [persistent, setPersistent] = useState<boolean | null>(null)
 
   useEffect(() => {
     const offSession = session.subscribe(setState)
@@ -32,6 +33,17 @@ export function Providers({
     }
     const offOutbox = outbox.subscribe(count)
     const offCount = session.subscribe(count)
+    // After the first sign-in, ask the browser not to evict the outbox under
+    // storage pressure (12 risk 1). Asking needs no prompt on Chrome Android.
+    let asked = false
+    const offPersist = session.subscribe((s) => {
+      if (asked || s.status !== 'signed_in' || !navigator.storage?.persist) return
+      asked = true
+      void navigator.storage
+        .persist()
+        .then(setPersistent)
+        .catch(() => setPersistent(false))
+    })
     void session.restore()
     sync.start()
     return () => {
@@ -39,13 +51,16 @@ export function Providers({
       offSync()
       offOutbox()
       offCount()
+      offPersist()
       sync.stop()
     }
   }, [session, outbox, sync])
 
   return (
     <SessionContext.Provider value={state}>
-      <SyncContext.Provider value={{ ...syncState, waiting }}>{children}</SyncContext.Provider>
+      <SyncContext.Provider value={{ ...syncState, waiting, persistent }}>
+        {children}
+      </SyncContext.Provider>
     </SessionContext.Provider>
   )
 }

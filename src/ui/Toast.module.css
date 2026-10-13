@@ -1,0 +1,32 @@
+.toast {
+  position: fixed;
+  left: var(--space-4);
+  right: var(--space-4);
+  bottom: calc(var(--space-4) + 3.5rem + env(safe-area-inset-bottom, 0px));
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  max-width: 30rem;
+  margin: 0 auto;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--ink);
+  color: var(--on-ink);
+}
+.toast button {
+  min-height: var(--touch);
+  padding: 0 var(--space-3);
+  border: 1.5px solid var(--on-ink);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--on-ink);
+  font-weight: 500;
+  cursor: pointer;
+}
+@media (min-width: 1024px) {
+  .toast {
+    bottom: var(--space-6);
+  }
+}
