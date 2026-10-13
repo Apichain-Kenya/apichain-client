@@ -195,4 +195,39 @@ describe('user scoping', () => {
     expect(await outbox.waiting(11)).toBe(3)
     expect(await outbox.waiting(12)).toBe(0)
   })
+
+  it("never sends one person's queue after the session renews as someone else", async () => {
+    // Farmer A captured offline and the app reopened as A from the remembered
+    // identity, with no token. The cookie in the jar, though, is B's (B signed
+    // in on this phone last). Renewing online would make the session B.
+    const device = new Map<string, string>([
+      [
+        'apichain-last-me',
+        JSON.stringify({ user_id: 11, role: 'farmer', display_name: 'A', farmer_id: 7 }),
+      ],
+    ])
+    const storage = {
+      getItem: (k: string) => device.get(k) ?? null,
+      setItem: (k: string, v: string) => void device.set(k, v),
+      removeItem: (k: string) => void device.delete(k),
+    }
+    await outbox.enqueue(11, newApiaryHarvest(7), clock)
+    await new Session({
+      fetch: server.fetch,
+      locks: new FakeLocks(),
+      channel: null,
+      storage: null,
+    }).signIn('+254700000002', 'hunter2') // B's cookie is now the jar's
+    server.offline = true
+    const a = new Session({ fetch: server.fetch, locks: new FakeLocks(), channel: null, storage })
+    await a.restore()
+    expect(a.userId).toBe(11) // offline session as A
+    server.offline = false
+
+    const result = await outbox.replay(11, a, () => clock)
+    expect(result.sent).toBe(0)
+    expect(result.paused).toBe('signed_out')
+    expect(server.apiaries).toHaveLength(0)
+    expect((await outbox.list(11)).every((r) => r.status === 'queued')).toBe(true)
+  })
 })

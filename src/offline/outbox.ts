@@ -228,13 +228,23 @@ export class Outbox {
           await this.put(row) // before the first send: retries are identical
         }
         const { path, json } = KINDS[row.kind].request(row.body)
+        // Re-checked before every send: a refresh mid-replay can renew the
+        // session as someone else, and this queue is only ever theirs (D6).
+        if (session.userId !== userId) return { sent, paused: 'signed_out' }
         let res: Response
         try {
-          res = await session.authFetch(path, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Idempotency-Key': row.idempotency_key },
-            body: JSON.stringify(json),
-          })
+          res = await session.authFetch(
+            path,
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Idempotency-Key': row.idempotency_key,
+              },
+              body: JSON.stringify(json),
+            },
+            { asUser: userId },
+          )
         } catch (e) {
           if (!(e instanceof OfflineError)) throw e
           await this.backoff(row, now())

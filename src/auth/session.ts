@@ -134,8 +134,17 @@ export class Session {
   /**
    * An authenticated request. On a 401 it refreshes once and retries once.
    * Throws OfflineError when the server cannot be reached.
+   *
+   * `asUser`: the person this request is on behalf of. If renewing the
+   * session turns it into someone else (the cookie in the jar belongs to
+   * another farmer than the one this phone reopened as), the request is not
+   * retried: it would put one person's work under another's name (03 §13.1).
    */
-  async authFetch(path: string, init: RequestInit = {}): Promise<Response> {
+  async authFetch(
+    path: string,
+    init: RequestInit = {},
+    opts: { asUser?: number } = {},
+  ): Promise<Response> {
     const attempt = async () => {
       const headers = new Headers(init.headers)
       if (this.token) headers.set('Authorization', `Bearer ${this.token}`)
@@ -145,10 +154,12 @@ export class Session {
         throw new OfflineError()
       }
     }
+    if (opts.asUser !== undefined && this.userId !== opts.asUser) return unauthorized()
     const first = await attempt()
     if (first.status !== 401) return first
     const renewed = await this.refreshOnce()
     if (!renewed) return first
+    if (opts.asUser !== undefined && this.userId !== opts.asUser) return first
     return attempt()
   }
 
@@ -263,6 +274,13 @@ function browserLocks(): LockManagerLike {
       return run
     },
   }
+}
+
+function unauthorized(): Response {
+  return new Response(JSON.stringify({ code: 'identity_changed' }), {
+    status: 401,
+    headers: { 'Content-Type': 'application/json' },
+  })
 }
 
 function browserStorage(): StorageLike | null {
