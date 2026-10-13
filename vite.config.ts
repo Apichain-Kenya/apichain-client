@@ -65,6 +65,8 @@ export default defineConfig({
   // Same-origin in dev too (12 D4): the refresh cookie is SameSite=Strict and
   // scoped to /v2/auth, so the API must be reached through this origin.
   server: { proxy: { '/v2': 'http://localhost:8000' } },
+  // `npm run preview` serves the built PWA (service worker included) the same way.
+  preview: { proxy: { '/v2': 'http://localhost:8000' } },
   test: {
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],

@@ -8,10 +8,10 @@ local `docker compose` backend on `localhost:8000` is the dev target.** What liv
 this repo today is the _shape_ of the deploy so turning it on later is a checklist,
 not a design exercise:
 
-| File                           | What it is                                 | State                                                               |
-| ------------------------------ | ------------------------------------------ | ------------------------------------------------------------------- |
-| `.do/app.yaml`                 | DigitalOcean App Platform static-site spec | Template — backend URL placeholder, untested                        |
-| `.github/workflows/deploy.yml` | CD workflow, push-to-`main` → DO deploy    | Inert — deploy job gated on `vars.DEPLOY_ENABLED == 'true'` (unset) |
+| File                           | What it is                                                                                                              | State                                                               |
+| ------------------------------ | ----------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| (none here)                    | The App Platform spec moved to `apichain-backend/.do/app.yaml`: **one app**, this site at `/`, the API at `/v2` (12 D4) | Template, untested                                                  |
+| `.github/workflows/deploy.yml` | CD workflow, push-to-`main` → DO deploy                                                                                 | Inert — deploy job gated on `vars.DEPLOY_ENABLED == 'true'` (unset) |
 
 Both are safe to have committed: CI stays green with no secret set, and nothing
 deploys. **Do not treat either file as working infrastructure** until the steps
@@ -21,7 +21,7 @@ below are done and verified.
 
 - **The build is proven.** CI runs `npm run build` and `docker build` on every push
   (`.github/workflows/ci.yml`), so the static bundle and the nginx image both build.
-- **The backend URL is a build-time input, not hardcoded.** `VITE_API_BASE_URL` is
+- **There is no backend URL.** Since Phase 4a the PWA always calls its own origin, because the refresh cookie is SameSite=Strict and `ondigitalocean.app` is on the Public Suffix List (two apps would be two sites). Historical note: `VITE_API_BASE_URL` was
   read by Vite at build and defaulted (overridably) to `localhost:8000` in the
   Dockerfile — the correct pattern. Staging just supplies the real URL.
 - **Two deploy paths exist.** Default: DO App Platform static site (free tier, builds
@@ -40,7 +40,7 @@ The client is **free tier** on App Platform. Do this together with the backend
    gh variable set DEPLOY_ENABLED --body true --repo Apichain-Kenya/apichain-client
    ```
    The variable is the master switch: with it unset, `deploy.yml` skips.
-3. **Set the backend URL in `.do/app.yaml`.** Replace
+3. **Deploy from the backend's spec.** (Superseded step: replace
    `https://REPLACE-with-staging-backend-url` with the live backend URL from step 1.
 4. **Verify the CD action.** `deploy.yml` uses `digitalocean/app_action/deploy@v2`;
    confirm its current input names (`token`, `app_spec_location`) against the action's
