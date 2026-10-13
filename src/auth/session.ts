@@ -12,6 +12,11 @@
 //   access token so other tabs usually skip their refresh entirely.
 // - Offline is not signed out. A failed network call leaves the session as
 //   it was; only a 401 from the server ends it.
+// - A reload with no signal reopens as the last farmer (an "offline session"),
+//   so capture still works at the apiary. Only who they are is remembered on
+//   the device (ids, role, name), never a token: the first request back online
+//   gets a 401 and renews from the cookie as usual. Signing out, or the server
+//   ending the session, forgets them.
 
 import type { Me, SessionState } from './SessionContext'
 
@@ -30,17 +35,24 @@ type ChannelLike = {
 }
 type Message = { type: 'token'; token: string; me: Me } | { type: 'signed_out' }
 
+type StorageLike = Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>
+
 export type SessionDeps = {
   fetch?: typeof fetch
   baseUrl?: string
   locks?: LockManagerLike
   channel?: ChannelLike
+  storage?: StorageLike | null
 }
+
+const LAST_ME = 'apichain-last-me'
 
 const CLIENT_HEADER = { 'X-ApiChain-Client': 'pwa' }
 
 export class Session {
   state: SessionState = { status: 'restoring', me: null }
+  /** Signed in from the remembered identity, with no token yet (offline reload). */
+  offlineSession = false
   private token: string | null = null
   private version = 0
   private inflight: Promise<boolean> | null = null
@@ -49,12 +61,14 @@ export class Session {
   private readonly baseUrl: string
   private readonly locks: LockManagerLike
   private readonly channel: ChannelLike | null
+  private readonly storage: StorageLike | null
 
   constructor(deps: SessionDeps = {}) {
     this.fetchImpl = deps.fetch ?? ((...a) => fetch(...a))
     this.baseUrl = deps.baseUrl ?? ''
     this.locks = deps.locks ?? browserLocks()
     this.channel = deps.channel ?? browserChannel()
+    this.storage = deps.storage === undefined ? browserStorage() : deps.storage
     this.channel?.subscribe((data) => this.onMessage(data as Message))
   }
 
@@ -73,9 +87,16 @@ export class Session {
       const ok = await this.refreshOnce()
       if (!ok) this.set({ status: 'anonymous', me: null })
     } catch {
-      // Offline at startup with no token in memory: we cannot prove who this
-      // is yet. Anonymous for now; the outbox keeps everything, locked.
-      if (this.state.status === 'restoring') this.set({ status: 'anonymous', me: null })
+      // Offline at startup: reopen as the last farmer on this phone, if any,
+      // so capture works. Nothing can be sent until a token is renewed.
+      if (this.state.status !== 'restoring') return
+      const me = this.remembered()
+      if (me) {
+        this.offlineSession = true
+        this.set({ status: 'signed_in', me })
+      } else {
+        this.set({ status: 'anonymous', me: null })
+      }
     }
   }
 
@@ -106,8 +127,7 @@ export class Session {
       // Offline sign-out still forgets the session on this device; the
       // cookie is revoked server-side the next time anything reaches it.
     }
-    this.token = null
-    this.set({ status: 'anonymous', me: null })
+    this.forget()
     this.channel?.postMessage({ type: 'signed_out' } satisfies Message)
   }
 
@@ -151,8 +171,7 @@ export class Session {
           // failing, which must not sign a farmer out.
           if (!res.ok && res.status !== 401) throw new OfflineError()
           if (!res.ok) {
-            this.token = null
-            this.set({ status: 'anonymous', me: null })
+            this.forget()
             return false
           }
           const { access_token } = (await res.json()) as { access_token: string }
@@ -179,17 +198,41 @@ export class Session {
 
   private adopt(token: string, me: Me, broadcast: boolean) {
     this.token = token
+    this.offlineSession = false
     this.version++
+    try {
+      this.storage?.setItem(LAST_ME, JSON.stringify(me))
+    } catch {
+      // Storage refused (private mode, quota): offline reloads just won't
+      // reopen signed in. Never fatal.
+    }
     this.set({ status: 'signed_in', me })
     if (broadcast) this.channel?.postMessage({ type: 'token', token, me } satisfies Message)
   }
 
   private onMessage(msg: Message) {
     if (msg.type === 'token') this.adopt(msg.token, msg.me, false)
-    if (msg.type === 'signed_out') {
-      this.token = null
-      this.set({ status: 'anonymous', me: null })
+    if (msg.type === 'signed_out') this.forget()
+  }
+
+  private remembered(): Me | null {
+    try {
+      const raw = this.storage?.getItem(LAST_ME)
+      return raw ? (JSON.parse(raw) as Me) : null
+    } catch {
+      return null
     }
+  }
+
+  private forget() {
+    this.token = null
+    this.offlineSession = false
+    try {
+      this.storage?.removeItem(LAST_ME)
+    } catch {
+      // see adopt()
+    }
+    this.set({ status: 'anonymous', me: null })
   }
 
   private raw(path: string, init: RequestInit): Promise<Response> {
@@ -219,6 +262,14 @@ function browserLocks(): LockManagerLike {
       tail = run.catch(() => undefined)
       return run
     },
+  }
+}
+
+function browserStorage(): StorageLike | null {
+  try {
+    return typeof window !== 'undefined' && window.localStorage ? window.localStorage : null
+  } catch {
+    return null
   }
 }
 

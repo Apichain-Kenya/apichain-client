@@ -9,12 +9,23 @@ import { Session } from './session'
 let server: FakeBackend
 let locks: FakeLocks
 let bus: FakeBus
+let device: Map<string, string> // this phone's storage, shared by its tabs
 
 function tab() {
-  return new Session({ fetch: server.fetch, locks, channel: bus.channel() })
+  return new Session({
+    fetch: server.fetch,
+    locks,
+    channel: bus.channel(),
+    storage: {
+      getItem: (k) => device.get(k) ?? null,
+      setItem: (k, v) => void device.set(k, v),
+      removeItem: (k) => void device.delete(k),
+    },
+  })
 }
 
 beforeEach(() => {
+  device = new Map()
   server = new FakeBackend()
   server.addFarmer('+254700000001', 'hunter2', 11, 7)
   locks = new FakeLocks()
@@ -29,7 +40,7 @@ describe('Session', () => {
       status: 'signed_in',
       me: { user_id: 11, role: 'farmer', display_name: 'Wanjiru K', farmer_id: 7 },
     })
-    expect(JSON.stringify({ ...localStorage })).not.toContain('at-')
+    expect(JSON.stringify([...device.values()])).not.toContain('at-')
   })
 
   it('reports wrong credentials and an unreachable server differently', async () => {
@@ -102,5 +113,53 @@ describe('Session', () => {
     await a.signOut()
     await new Promise((r) => setTimeout(r, 0))
     expect(b.state.status).toBe('anonymous')
+  })
+
+  it('a reload with no signal reopens for capture as the same farmer, then renews online', async () => {
+    await tab().signIn('+254700000001', 'hunter2')
+    server.offline = true
+    const reloaded = tab()
+    await reloaded.restore()
+    expect(reloaded.state).toMatchObject({ status: 'signed_in', me: { user_id: 11, farmer_id: 7 } })
+    expect(reloaded.offlineSession).toBe(true)
+
+    server.offline = false
+    const res = await reloaded.authFetch('/v2/me')
+    expect(res.status).toBe(200)
+    expect(reloaded.offlineSession).toBe(false)
+  })
+
+  it('remembers who, never a token', async () => {
+    await tab().signIn('+254700000001', 'hunter2')
+    const stored = [...device.values()].join(' ')
+    expect(stored).toContain('"user_id":11')
+    expect(stored).not.toMatch(/at-\d|rt-\d/)
+  })
+
+  it('a reload with no signal and nobody remembered stays signed out', async () => {
+    server.offline = true
+    const s = tab()
+    await s.restore()
+    expect(s.state.status).toBe('anonymous')
+  })
+
+  it('signing out, or the server ending the session, forgets the farmer on this phone', async () => {
+    const a = tab()
+    await a.signIn('+254700000001', 'hunter2')
+    await a.signOut()
+    server.offline = true
+    const b = tab()
+    await b.restore()
+    expect(b.state.status).toBe('anonymous')
+
+    server.offline = false
+    const c = tab()
+    await c.signIn('+254700000001', 'hunter2')
+    server.revokeAllSessions()
+    await c.authFetch('/v2/me')
+    server.offline = true
+    const d = tab()
+    await d.restore()
+    expect(d.state.status).toBe('anonymous')
   })
 })
