@@ -1,6 +1,7 @@
 import { createContext, useContext } from 'react'
 
 import type { components } from '../api/client/schema'
+import type { Session } from './session'
 
 export type Me = components['schemas']['MeResponse']
 
@@ -15,4 +16,14 @@ export const SessionContext = createContext<SessionState>({ status: 'restoring',
 
 export function useSession(): SessionState {
   return useContext(SessionContext)
+}
+
+// The session object itself, for the screens that act on it (sign in, change
+// password, sign out) in both the capture app and the console.
+export const SessionApiContext = createContext<Session | null>(null)
+
+export function useSessionApi(): Session {
+  const s = useContext(SessionApiContext)
+  if (!s) throw new Error('useSessionApi outside Providers')
+  return s
 }

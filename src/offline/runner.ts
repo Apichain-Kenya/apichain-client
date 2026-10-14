@@ -4,6 +4,11 @@
 // honoured). Background Sync is deliberately not used in 4a: a service worker
 // woken by `sync` has no signed-in user in memory, and replaying from there
 // could send one person's work under another's cookie (12 D6).
+//
+// Nothing replays while `/me.must_change_password` is true (13 §7 step 3):
+// every write would be refused until the change, and a refusal must not turn
+// a farmer's saved harvests into "needs your attention". The change adopts a
+// fresh session, whose sign-in event starts the replay.
 
 import type { Session } from '../auth/session'
 import type { Outbox, ReplayResult } from './outbox'
@@ -60,6 +65,10 @@ export class SyncRunner {
   async kick(opts: { force?: boolean } = {}): Promise<void> {
     const userId = this.session.userId
     if (userId === null) return
+    if (this.session.state.me?.must_change_password) {
+      this.set({ ...this.state, paused: 'password_change' })
+      return
+    }
     if (this.state.running) {
       this.queued = true
       this.queuedForce ||= !!opts.force

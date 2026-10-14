@@ -17,6 +17,13 @@
 //   the device (ids, role, name), never a token: the first request back online
 //   gets a 401 and renews from the cookie as usual. Signing out, or the server
 //   ending the session, forgets them.
+// - Only a farmer is remembered (13 D15). A console is often a shared office
+//   laptop, and reopening offline as the last staff member would let the next
+//   person act under their name. A staff sign-in also forgets any farmer
+//   remembered before it, so an offline reload never reopens as someone else.
+// - A password someone else set is changed at first sign-in (13 D5):
+//   `changePassword` sends it, and the fresh session that comes back clears
+//   `me.must_change_password` in every tab.
 
 import type { Me, SessionState } from './SessionContext'
 
@@ -48,6 +55,14 @@ export type SessionDeps = {
 const LAST_ME = 'apichain-last-me'
 
 const CLIENT_HEADER = { 'X-ApiChain-Client': 'pwa' }
+
+export type ChangeResult =
+  | { ok: true }
+  | {
+      ok: false
+      reason: 'wrong_password' | 'unchanged' | 'too_short' | 'too_long' | 'offline' | 'signed_out'
+      minLength?: number
+    }
 
 export class Session {
   state: SessionState = { status: 'restoring', me: null }
@@ -91,7 +106,7 @@ export class Session {
       // so capture works. Nothing can be sent until a token is renewed.
       if (this.state.status !== 'restoring') return
       const me = this.remembered()
-      if (me) {
+      if (me?.role === 'farmer') {
         this.offlineSession = true
         this.set({ status: 'signed_in', me })
       } else {
@@ -129,6 +144,43 @@ export class Session {
     }
     this.forget()
     this.channel?.postMessage({ type: 'signed_out' } satisfies Message)
+  }
+
+  /**
+   * Choose a new password (`POST /v2/auth/password`). The server ends every
+   * session of this person and returns a fresh one, adopted here. Neither
+   * password is kept anywhere after this call returns.
+   */
+  async changePassword(current: string, next: string): Promise<ChangeResult> {
+    let res: Response
+    try {
+      res = await this.authFetch('/v2/auth/password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...CLIENT_HEADER },
+        body: JSON.stringify({ current_password: current, new_password: next }),
+      })
+    } catch {
+      return { ok: false, reason: 'offline' }
+    }
+    if (res.ok) {
+      const { access_token } = (await res.json()) as { access_token: string }
+      const me = await this.loadMe(access_token)
+      if (!me) return { ok: false, reason: 'offline' }
+      this.adopt(access_token, me, true)
+      return { ok: true }
+    }
+    if (res.status === 401) return { ok: false, reason: 'signed_out' }
+    const err = (await res.json().catch(() => ({}))) as {
+      code?: string
+      details?: { min_length?: number }
+    }
+    if (err.code === 'wrong_password') return { ok: false, reason: 'wrong_password' }
+    if (err.code === 'password_unchanged') return { ok: false, reason: 'unchanged' }
+    if (err.code === 'password_too_long') return { ok: false, reason: 'too_long' }
+    if (err.code === 'password_too_short') {
+      return { ok: false, reason: 'too_short', minLength: err.details?.min_length }
+    }
+    return { ok: false, reason: 'offline' }
   }
 
   /**
@@ -212,7 +264,8 @@ export class Session {
     this.offlineSession = false
     this.version++
     try {
-      this.storage?.setItem(LAST_ME, JSON.stringify(me))
+      if (me.role === 'farmer') this.storage?.setItem(LAST_ME, JSON.stringify(me))
+      else this.storage?.removeItem(LAST_ME)
     } catch {
       // Storage refused (private mode, quota): offline reloads just won't
       // reopen signed in. Never fatal.
@@ -229,7 +282,10 @@ export class Session {
   private remembered(): Me | null {
     try {
       const raw = this.storage?.getItem(LAST_ME)
-      return raw ? (JSON.parse(raw) as Me) : null
+      if (!raw) return null
+      // Remembered by 4a, before /me said whether a change is forced.
+      const me = JSON.parse(raw) as Partial<Me> & Omit<Me, 'must_change_password'>
+      return { ...me, must_change_password: me.must_change_password ?? false }
     } catch {
       return null
     }

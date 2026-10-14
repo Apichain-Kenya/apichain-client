@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react'
 
-import { SessionContext, type SessionState } from '../auth/SessionContext'
+import { SessionApiContext, SessionContext, type SessionState } from '../auth/SessionContext'
 import type { Session } from '../auth/session'
 import type { Outbox } from '../offline/outbox'
 import type { SyncRunner, SyncState } from '../offline/runner'
@@ -33,6 +33,9 @@ export function Providers({
     }
     const offOutbox = outbox.subscribe(count)
     const offCount = session.subscribe(count)
+    // Also now: after sign-in this mounts with the session already signed in,
+    // so no event would come and the count read 0 until something changed.
+    count()
     // After the first sign-in, ask the browser not to evict the outbox under
     // storage pressure (12 risk 1). Asking needs no prompt on Chrome Android.
     let asked = false
@@ -59,10 +62,12 @@ export function Providers({
   }, [session, outbox, sync])
 
   return (
-    <SessionContext.Provider value={state}>
-      <SyncContext.Provider value={{ ...syncState, waiting, persistent }}>
-        {children}
-      </SyncContext.Provider>
-    </SessionContext.Provider>
+    <SessionApiContext.Provider value={session}>
+      <SessionContext.Provider value={state}>
+        <SyncContext.Provider value={{ ...syncState, waiting, persistent }}>
+          {children}
+        </SyncContext.Provider>
+      </SessionContext.Provider>
+    </SessionApiContext.Provider>
   )
 }

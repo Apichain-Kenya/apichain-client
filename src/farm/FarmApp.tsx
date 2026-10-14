@@ -7,6 +7,7 @@ import { Providers } from '../app/Providers'
 import { RequireRole } from '../app/RequireRole'
 import { outbox, session, sync } from '../app/services'
 import { useSync } from '../app/useSync'
+import { ChangePasswordPage } from '../auth/ChangePasswordPage'
 import { useSession, type Me } from '../auth/SessionContext'
 import { Snapshots } from '../offline/snapshots'
 import { AppShell } from '../ui/AppShell'
@@ -16,7 +17,6 @@ import { FarmServicesContext, type FarmServices, type Fix } from './FarmServices
 import { HarvestsPage } from './HarvestsPage'
 import { RegisterHarvest } from './RegisterHarvest'
 import { SavedPage } from './SavedPage'
-import { SignInPage } from './SignInPage'
 import { ApiariesPage, MePage } from './SimplePages'
 
 // The farmer capture app (12 §11): its own lazy chunk, holding the session,
@@ -37,7 +37,7 @@ function locate(): Promise<Fix> {
 
 let snapshots: Snapshots | null = null
 
-export default function FarmApp({ mode }: { mode: 'sign-in' | 'farm' }) {
+export default function FarmApp() {
   const services = useMemo<FarmServices>(
     () => ({
       session,
@@ -55,7 +55,7 @@ export default function FarmApp({ mode }: { mode: 'sign-in' | 'farm' }) {
   return (
     <FarmServicesContext.Provider value={services}>
       <Providers session={session} outbox={outbox} sync={sync}>
-        {mode === 'sign-in' ? <SignInPage /> : <FarmGate />}
+        <FarmGate />
       </Providers>
     </FarmServicesContext.Provider>
   )
@@ -108,6 +108,9 @@ export function FarmRoutes({ signedInAs: me }: { signedInAs: Me }) {
         </Route>
         <Route path="/me">
           <MePage me={me} />
+        </Route>
+        <Route path="/password">
+          <ChangePasswordPage me={me} forced={false} />
         </Route>
       </Switch>
     </AppShell>

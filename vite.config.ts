@@ -21,7 +21,9 @@ export default defineConfig({
         // an app update (the new shell must find its farm chunk with no
         // network; review). Only the online-only map (Leaflet) and the QR
         // fallback stay out: about 16 KB gzip for shoppers instead of ~60.
-        globIgnores: ['**/assets/farm-MapPicker*', '**/assets/qr-scanner*'],
+        // The console stays out too (13 §7): staff never reopen offline (D15),
+        // so a cached console would only cost every shopper its download.
+        globIgnores: ['**/assets/farm-MapPicker*', '**/assets/qr-scanner*', '**/assets/console-*'],
       },
       manifest: {
         name: 'ApiChain',
@@ -51,16 +53,27 @@ export default defineConfig({
     manifest: true,
     rollupOptions: {
       output: {
-        // Name every farmer chunk farm-*, so the precache can leave it out.
+        // Name every farmer chunk farm-* and console chunk console-*, so the
+        // precache can leave out what it must. The chunk the capture app and
+        // the console share, holding the session and the outbox (13 §7 step
+        // 2), is named `session` so bundle-report can prove the jar page
+        // never loads it. The bundler draws that chunk itself: forcing it
+        // with manualChunks pulled shared code into it, and the entry with it.
         chunkFileNames: (chunk) =>
           chunk.facadeModuleId?.includes('/src/farm/')
             ? 'assets/farm-[name]-[hash].js'
-            : 'assets/[name]-[hash].js',
+            : chunk.facadeModuleId?.includes('/src/console/')
+              ? 'assets/console-[name]-[hash].js'
+              : chunk.moduleIds.some((id) => id.endsWith('/src/auth/session.ts'))
+                ? 'assets/session-[hash].js'
+                : 'assets/[name]-[hash].js',
         // Their CSS too (FarmApp, MapPicker incl. Leaflet's stylesheet).
         assetFileNames: (asset) =>
           asset.names?.some((n) => /^(FarmApp|MapPicker)\./.test(n))
             ? 'assets/farm-[name]-[hash][extname]'
-            : 'assets/[name]-[hash][extname]',
+            : asset.names?.some((n) => /^ConsoleApp\./.test(n))
+              ? 'assets/console-[name]-[hash][extname]'
+              : 'assets/[name]-[hash][extname]',
       },
     },
   },
