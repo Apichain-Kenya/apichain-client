@@ -17,7 +17,12 @@ export function Timeline({ stages }: { stages: BatchStage[] }) {
   const steps = timeline(stages)
   const firstOpen = steps.findIndex((s) => s.stage === null)
   const records = steps.flatMap((s) => s.records)
-  const sealed = records.filter((r) => r.anchor_status === 'confirmed').length
+  // Counted by step, as the list under it shows: a step is sealed only when
+  // every record in it is confirmed (the Registered step holds three).
+  const recorded = steps.filter((s) => s.stage)
+  const sealed = recorded.filter((s) =>
+    s.records.every((r) => r.anchor_status === 'confirmed'),
+  ).length
 
   return (
     <section className={styles.wrap} aria-labelledby="timeline-title">
@@ -60,7 +65,7 @@ export function Timeline({ stages }: { stages: BatchStage[] }) {
         <Disclosure
           summary={t('console.integrity.summary', {
             sealed,
-            sealing: records.length - sealed,
+            sealing: recorded.length - sealed,
           })}
         >
           <ul className={styles.integrity}>

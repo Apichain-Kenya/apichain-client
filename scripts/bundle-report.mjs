@@ -79,7 +79,7 @@ const precacheChecks = [
   ['precache leaves out the map', !precached(/assets\/farm-MapPicker-/)],
   ['precache leaves out the QR fallback', !precached(/assets\/qr-scanner/)],
   ['precache holds the session', precached(/assets\/session-[^"]+\.js/)],
-  ['precache leaves out the console', !precached(/assets\/console-/)],
+  ['precache holds the console', precached(/assets\/console-ConsoleApp-[^"]+\.js/)],
 ]
 for (const [, ok] of precacheChecks) if (!ok) failed = true
 

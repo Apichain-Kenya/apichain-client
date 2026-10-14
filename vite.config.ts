@@ -7,7 +7,7 @@ import { VitePWA } from 'vite-plugin-pwa'
 export default defineConfig({
   plugins: [
     react(),
-    // The installable PWA (12 �9). injectManifest: the worker is our own
+    // The installable PWA (12 §9). injectManifest: the worker is our own
     // src/sw/sw.ts; the plugin only builds it and injects the precache list.
     VitePWA({
       strategies: 'injectManifest',
@@ -21,9 +21,11 @@ export default defineConfig({
         // an app update (the new shell must find its farm chunk with no
         // network; review). Only the online-only map (Leaflet) and the QR
         // fallback stay out: about 16 KB gzip for shoppers instead of ~60.
-        // The console stays out too (13 §7): staff never reopen offline (D15),
-        // so a cached console would only cost every shopper its download.
-        globIgnores: ['**/assets/farm-MapPicker*', '**/assets/qr-scanner*', '**/assets/console-*'],
+        // The console's own chunk is precached too (about 6 KB gzip): with
+        // `prompt` updates, an old shell must still find its matching console
+        // after a deploy has removed the old hashed files. Heavy lazy chunks
+        // (map, QR) stay out.
+        globIgnores: ['**/assets/farm-MapPicker*', '**/assets/qr-scanner*'],
       },
       manifest: {
         name: 'ApiChain',

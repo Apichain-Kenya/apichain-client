@@ -17,8 +17,8 @@ import styles from './ConsoleApp.module.css'
 
 // The staff and admin console (13 §7 step 6): its own lazy chunk, one shell
 // for every staff role, with sections by role (03 §5.2). It shares the
-// session chunk with the capture app. Not in the service worker precache:
-// staff do not reopen offline (D15), and shoppers should not pay for it.
+// session chunk with the capture app. Precached, so an old shell still finds
+// its own console after a deploy; staff still never reopen offline (D15).
 
 const STAFF: Me['role'][] = ['field_officer', 'operator', 'lab_officer', 'admin']
 

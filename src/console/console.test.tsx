@@ -161,6 +161,8 @@ describe('A batch record', () => {
     expect(screen.getByText('Recorded by Jane Mwende, operator')).toBeInTheDocument()
     expect(screen.getByText('Recorded by Achieng Odhiambo, lab officer')).toBeInTheDocument()
     expect(screen.getByText('Recorded by Peter Otieno, as admin')).toBeInTheDocument()
+    // Counted by step (five recorded), not by audit row (seven).
+    expect(screen.getByText('Integrity · 0 sealed, 5 sealing')).toBeInTheDocument()
     // Six steps: the three S0 rows are one "Registered" step; the open one is next.
     const timeline = screen.getByRole('region', { name: 'Its record' })
     expect(within(timeline).getAllByRole('listitem').slice(0, 6)).toHaveLength(6)
@@ -306,4 +308,15 @@ describe('Accessibility', () => {
       expect(result.violations.map((v) => v.id)).toEqual([])
     })
   }
+})
+
+describe('Integrity, by step', () => {
+  it('a step is sealed only when every record in it is confirmed', async () => {
+    const env = await staff('operator')
+    const b = env.server.batchDetails[3] as { stages: { action: string; anchor_status: string }[] }
+    // Two of the three S0 rows and the harvest confirmed: only Harvested is sealed.
+    b.stages = b.stages.map((s, i) => (i < 2 || i === 3 ? { ...s, anchor_status: 'confirmed' } : s))
+    renderConsole(env, '/batches/4183')
+    expect(await screen.findByText('Integrity · 1 sealed, 4 sealing')).toBeInTheDocument()
+  })
 })
