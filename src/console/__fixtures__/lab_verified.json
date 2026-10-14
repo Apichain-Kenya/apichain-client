@@ -1,0 +1,96 @@
+{
+  "anchor_status": "pending",
+  "apiary": {
+    "apiary_id": 1,
+    "hive_count": 12,
+    "latitude": null,
+    "locality": null,
+    "location_withheld": true,
+    "longitude": null,
+    "name": "Ridge apiary"
+  },
+  "batch_code": "B-997383D6DF",
+  "conformance_verdict": "pass",
+  "created_at": "2026-10-14T20:57:51.319854",
+  "farmer_display_name": "Wanjiru Kamau",
+  "farmer_id": 1,
+  "id": 1,
+  "metadata": {
+    "apiary_management_method": "organic",
+    "expected_yield_kg": "50.00",
+    "harvest_window_end": "2026-04-01",
+    "harvest_window_start": "2026-03-01",
+    "honey_type": "acacia",
+    "notes": null
+  },
+  "next_action": {
+    "action": "batch.package",
+    "allowed": true,
+    "target_state": "PACKAGED"
+  },
+  "public_id": "58e8e2216f64de5b62f74b900b65368d",
+  "stages": [
+    {
+      "action": "batch.created",
+      "actor_display_name": "Wanjiru Kamau",
+      "actor_id": 1,
+      "actor_role": "farmer",
+      "anchor_status": "pending",
+      "audit_id": 1,
+      "payload_hash": "5a94a84befd1a48fef010e330d78cfc9b57ce42125ba1b92a88aebc9ac1ad08c",
+      "recorded_at": "2026-10-14T17:57:51.428706"
+    },
+    {
+      "action": "batch.apiary_recorded",
+      "actor_display_name": "Wanjiru Kamau",
+      "actor_id": 1,
+      "actor_role": "farmer",
+      "anchor_status": "pending",
+      "audit_id": 2,
+      "payload_hash": "aa5790d9a8af5927c730dda1b7587184399f49f73c8864fcc2fd90937b5d7d64",
+      "recorded_at": "2026-10-14T17:57:51.444945"
+    },
+    {
+      "action": "batch.metadata_recorded",
+      "actor_display_name": "Wanjiru Kamau",
+      "actor_id": 1,
+      "actor_role": "farmer",
+      "anchor_status": "pending",
+      "audit_id": 3,
+      "payload_hash": "8d441f01441b8c31a4e79d422687e4d0b29ac1b22242c24fa3ddf4c496b2911f",
+      "recorded_at": "2026-10-14T17:57:51.450730"
+    },
+    {
+      "action": "batch.harvest_recorded",
+      "actor_display_name": "Wanjiru Kamau",
+      "actor_id": 1,
+      "actor_role": "farmer",
+      "anchor_status": "pending",
+      "audit_id": 4,
+      "payload_hash": "2dee9ef6c20ccccf41849e9c59cd7dd3616f98e82ca95e4659b7a2b9f063361d",
+      "recorded_at": "2026-10-14T17:57:51.624535"
+    },
+    {
+      "action": "batch.process_recorded",
+      "actor_display_name": "Jane Mwende",
+      "actor_id": 2,
+      "actor_role": "operator",
+      "anchor_status": "pending",
+      "audit_id": 5,
+      "payload_hash": "cc37ecea6c09554ddaa941b9ca4e12c54eea21c19d8fb738db8ee71f615d42e9",
+      "recorded_at": "2026-10-14T17:57:51.740487"
+    },
+    {
+      "action": "batch.lab_verified",
+      "actor_display_name": "Achieng Odhiambo",
+      "actor_id": 3,
+      "actor_role": "lab_officer",
+      "anchor_status": "pending",
+      "audit_id": 6,
+      "payload_hash": "8981808e56f9f95d618842d3d44ecca6a7913fffe717311935af8e8121263256",
+      "recorded_at": "2026-10-14T17:57:51.817488"
+    }
+  ],
+  "state": "LAB_VERIFIED",
+  "state_updated_at": "2026-10-14T17:57:51.817488"
+}

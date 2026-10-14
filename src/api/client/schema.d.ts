@@ -120,6 +120,37 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v2/auth/password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Change Password
+         * @description Choose your own password (13 §5 item 9, D5).
+         *
+         *     Under `/v2/auth`, like refresh, so the session cookie can be re-set on the
+         *     path it lives on, and it needs the same `X-ApiChain-Client` header. It
+         *     admits an account that must change its password, which is the point.
+         *
+         *     Every refresh token the account holds is revoked and one fresh session is
+         *     issued to this caller: they stay signed in here, and every other device
+         *     (perhaps the one of whoever chose the old password) is signed out. Access
+         *     tokens already issued elsewhere expire on their own within the access TTL.
+         *     Wrong-password guessing needs a live session for the account; per-IP
+         *     limits on this and on login are Phase 5 (04 §5.8).
+         */
+        post: operations["change_password_v2_auth_password_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v2/auth/refresh": {
         parameters: {
             query?: never;
@@ -151,6 +182,11 @@ export interface paths {
          *
          *     Pages are keyed on `id`, which only grows, so a batch created while the
          *     client is paging never shifts or repeats a later page.
+         *
+         *     `state` repeats (`?state=HARVESTED&state=LAB_VERIFIED`), which is how a
+         *     console work queue spanning several steps is one request (13 §6). `q`
+         *     finds a batch by the start of its code (as printed on a tub) or by its
+         *     exact public id (as in a jar's QR).
          */
         get: operations["list_batches_v2_batches_get"];
         put?: never;
@@ -313,10 +349,38 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /**
+         * List Farmers
+         * @description Every farmer, newest first, for field officers and admins (D7): an
+         *     officer covering a colleague's area must find that colleague's farmers.
+         *     `q` matches the start of a first name, a last name or the full name, or
+         *     the end of a phone number, ignoring case.
+         */
+        get: operations["list_farmers_v2_farmers_get"];
         put?: never;
         /** Enroll Farmer */
         post: operations["enroll_farmer_v2_farmers_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v2/farmers/{farmer_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read Farmer
+         * @description A farmer's profile. A farmer reads only their own (ownership check);
+         *     operators and lab officers never reach it (D7).
+         */
+        get: operations["read_farmer_v2_farmers__farmer_id__get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -412,7 +476,11 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Me */
+        /**
+         * Me
+         * @description Answers even while the password must still be changed: it is how the
+         *     client learns that it must ask for the change (13 D5).
+         */
         get: operations["me_v2_me_get"];
         put?: never;
         post?: never;
@@ -487,6 +555,76 @@ export interface paths {
         get: operations["verify_batch_v2_public_batches__public_id__verify_get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v2/users": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Users
+         * @description Staff accounts, newest first. Farmers are listed under `/v2/farmers`.
+         */
+        get: operations["list_users_v2_users_get"];
+        put?: never;
+        /** Create User */
+        post: operations["create_user_v2_users_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v2/users/{user_id}/deactivate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Deactivate User */
+        post: operations["deactivate_user_v2_users__user_id__deactivate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v2/users/{user_id}/reset-password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Reset Password
+         * @description Set a new starting password for someone else, a farmer included (a
+         *     farmer who forgot theirs asks an admin). The owner must change it at their
+         *     next sign-in, and every session they hold ends now.
+         *
+         *     A reset needs no current password, so three targets are refused. Without
+         *     these refusals a reset would let one admin take over another account: they
+         *     could reset it, sign in before the owner does, and complete the forced
+         *     change themselves.
+         *     - Your own account: a stolen access token must not let anyone skip the
+         *       current password that `/v2/auth/password` asks for.
+         *     - The root admin: recovered only from the server (`scripts/reset_root.py`).
+         *     - Another admin, unless you are the root admin: otherwise any admin could
+         *       take over a fellow admin's account.
+         */
+        post: operations["reset_password_v2_users__user_id__reset_password_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -690,11 +828,14 @@ export interface components {
              * Format: date-time
              */
             created_at: string;
+            /** Farmer Display Name */
+            farmer_display_name: string | null;
             /** Farmer Id */
             farmer_id: number;
             /** Id */
             id: number;
             metadata: components["schemas"]["BatchMetadataOut"] | null;
+            next_action: components["schemas"]["NextAction"] | null;
             /** Public Id */
             public_id: string;
             /** Stages */
@@ -827,6 +968,8 @@ export interface components {
              * Format: date-time
              */
             created_at: string;
+            /** Farmer Display Name */
+            farmer_display_name: string | null;
             /** Honey Type */
             honey_type: string | null;
             /** Id */
@@ -1038,6 +1181,52 @@ export interface components {
             /** Message */
             message: string;
         };
+        /**
+         * FarmerDetail
+         * @description `GET /v2/farmers/{id}`: the profile with its verification state. A
+         *     farmer may read only their own. Consents stay on their own endpoint.
+         */
+        FarmerDetail: {
+            /** Address */
+            address: string | null;
+            /** Apiaries Count */
+            apiaries_count: number;
+            /** Display Name */
+            display_name: string;
+            /** Documents Count */
+            documents_count: number;
+            /** Email */
+            email: string | null;
+            /** Email Verified */
+            email_verified: boolean;
+            /** Email Verified At */
+            email_verified_at: string | null;
+            /**
+             * Enrolled At
+             * Format: date-time
+             */
+            enrolled_at: string;
+            /** Enrolled By Display Name */
+            enrolled_by_display_name: string | null;
+            /** First Name */
+            first_name: string;
+            /** Has Email */
+            has_email: boolean;
+            /** Id */
+            id: number;
+            /** Last Name */
+            last_name: string;
+            /** Number Of Hives */
+            number_of_hives: number | null;
+            /** Phone */
+            phone: string;
+            /** Phone Verified */
+            phone_verified: boolean;
+            /** Phone Verified At */
+            phone_verified_at: string | null;
+            /** User Id */
+            user_id: number | null;
+        };
         /** FarmerEnrollRequest */
         FarmerEnrollRequest: {
             /** Address */
@@ -1059,6 +1248,13 @@ export interface components {
             /** Phone */
             phone: string;
         };
+        /** FarmerPage */
+        FarmerPage: {
+            /** Items */
+            items: components["schemas"]["FarmerSummary"][];
+            /** Next Cursor */
+            next_cursor: string | null;
+        };
         /** FarmerResponse */
         FarmerResponse: {
             /** First Name */
@@ -1071,6 +1267,32 @@ export interface components {
             phone: string;
             /** User Id */
             user_id: number | null;
+        };
+        /**
+         * FarmerSummary
+         * @description One row of `GET /v2/farmers`: field officers and admins only (D7), so
+         *     the phone is in it. No `data_access` audit row yet (Phase 5, 12 D17).
+         */
+        FarmerSummary: {
+            /** Display Name */
+            display_name: string;
+            /** Email Verified */
+            email_verified: boolean;
+            /**
+             * Enrolled At
+             * Format: date-time
+             */
+            enrolled_at: string;
+            /** Enrolled By Display Name */
+            enrolled_by_display_name: string | null;
+            /** Id */
+            id: number;
+            /** Number Of Hives */
+            number_of_hives: number | null;
+            /** Phone */
+            phone: string;
+            /** Phone Verified */
+            phone_verified: boolean;
         };
         /**
          * GrantedVia
@@ -1171,6 +1393,8 @@ export interface components {
             display_name: string;
             /** Farmer Id */
             farmer_id: number | null;
+            /** Must Change Password */
+            must_change_password: boolean;
             role: components["schemas"]["Role"];
             /** User Id */
             user_id: number;
@@ -1201,6 +1425,21 @@ export interface components {
             honey_type: string;
         };
         /**
+         * NextAction
+         * @description The one step this batch can take next, and whether the caller may take
+         *     it (13 D10). Computed on the server from the lifecycle and the RBAC table,
+         *     so the client keeps no copy of either. `allowed` is advice for the screen;
+         *     the write route still checks.
+         */
+        NextAction: {
+            /** Action */
+            action: string;
+            /** Allowed */
+            allowed: boolean;
+            /** Target State */
+            target_state: string;
+        };
+        /**
          * PackagingRecordRequest
          * @description S4. One QR per batch, so v1's per-jar `qr_codes` is gone; `unit_count`
          *     already equals the jar count.
@@ -1215,6 +1454,22 @@ export interface components {
             notes?: string | null;
             /** Unit Count */
             unit_count: number;
+        };
+        /**
+         * PasswordChangeRequest
+         * @description Change your own password (13 §5 item 9). Length is checked by the
+         *     shared policy for the caller's role, so the error is one envelope.
+         */
+        PasswordChangeRequest: {
+            /** Current Password */
+            current_password: string;
+            /** New Password */
+            new_password: string;
+        };
+        /** PasswordResetRequest */
+        PasswordResetRequest: {
+            /** Password */
+            password: string;
         };
         /**
          * PingResponse
@@ -1353,6 +1608,48 @@ export interface components {
         StatusResponse: {
             /** Status */
             status: string;
+        };
+        /** UserCreateRequest */
+        UserCreateRequest: {
+            /** Full Name */
+            full_name: string;
+            /** Password */
+            password: string;
+            /**
+             * Role
+             * @enum {string}
+             */
+            role: "field_officer" | "operator" | "lab_officer" | "admin";
+            /** Username */
+            username: string;
+        };
+        /** UserOut */
+        UserOut: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Full Name */
+            full_name: string | null;
+            /** Id */
+            id: number;
+            /** Is Active */
+            is_active: boolean;
+            /** Is Root */
+            is_root: boolean;
+            /** Must Change Password */
+            must_change_password: boolean;
+            role: components["schemas"]["Role"];
+            /** Username */
+            username: string | null;
+        };
+        /** UserPage */
+        UserPage: {
+            /** Items */
+            items: components["schemas"]["UserOut"][];
+            /** Next Cursor */
+            next_cursor: string | null;
         };
         /** ValidationError */
         ValidationError: {
@@ -1694,6 +1991,66 @@ export interface operations {
             };
         };
     };
+    change_password_v2_auth_password_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-ApiChain-Client"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PasswordChangeRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccessTokenResponse"];
+                };
+            };
+            /** @description Malformed request body */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"] | components["schemas"]["RequestValidationErrorResponse"];
+                };
+            };
+        };
+    };
     refresh_v2_auth_refresh_post: {
         parameters: {
             query?: never;
@@ -1756,7 +2113,8 @@ export interface operations {
         parameters: {
             query?: {
                 farmer_id?: number | null;
-                state?: components["schemas"]["BatchState"] | null;
+                state?: components["schemas"]["BatchState"][] | null;
+                q?: string | null;
                 limit?: number;
                 cursor?: string | null;
             };
@@ -2437,6 +2795,64 @@ export interface operations {
             };
         };
     };
+    list_farmers_v2_farmers_get: {
+        parameters: {
+            query?: {
+                q?: string | null;
+                limit?: number;
+                cursor?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FarmerPage"];
+                };
+            };
+            /** @description Malformed request body */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     enroll_farmer_v2_farmers_post: {
         parameters: {
             query?: never;
@@ -2488,6 +2904,71 @@ export interface operations {
             };
             /** @description Conflict */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"] | components["schemas"]["RequestValidationErrorResponse"];
+                };
+            };
+        };
+    };
+    read_farmer_v2_farmers__farmer_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                farmer_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FarmerDetail"];
+                };
+            };
+            /** @description Malformed request body */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -3123,6 +3604,290 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_users_v2_users_get: {
+        parameters: {
+            query?: {
+                role?: components["schemas"]["Role"] | null;
+                active?: boolean | null;
+                limit?: number;
+                cursor?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserPage"];
+                };
+            };
+            /** @description Malformed request body */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_user_v2_users_post: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UserCreateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserOut"];
+                };
+            };
+            /** @description Malformed request body */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"] | components["schemas"]["RequestValidationErrorResponse"];
+                };
+            };
+        };
+    };
+    deactivate_user_v2_users__user_id__deactivate_post: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path: {
+                user_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserOut"];
+                };
+            };
+            /** @description Malformed request body */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reset_password_v2_users__user_id__reset_password_post: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path: {
+                user_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PasswordResetRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserOut"];
+                };
+            };
+            /** @description Malformed request body */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"] | components["schemas"]["RequestValidationErrorResponse"];
                 };
             };
         };

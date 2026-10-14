@@ -38,7 +38,13 @@ describe('Session', () => {
     expect(await s.signIn('+254700000001', 'hunter2')).toBe('ok')
     expect(s.state).toEqual({
       status: 'signed_in',
-      me: { user_id: 11, role: 'farmer', display_name: 'Wanjiru K', farmer_id: 7 },
+      me: {
+        user_id: 11,
+        role: 'farmer',
+        display_name: 'Wanjiru K',
+        farmer_id: 7,
+        must_change_password: false,
+      },
     })
     expect(JSON.stringify([...device.values()])).not.toContain('at-')
   })

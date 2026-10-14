@@ -33,7 +33,13 @@ function renderAt(path: string, session: SessionState) {
 
 const farmer = {
   status: 'signed_in' as const,
-  me: { user_id: 1, role: 'farmer' as const, display_name: 'A B', farmer_id: 7 },
+  me: {
+    user_id: 1,
+    role: 'farmer' as const,
+    display_name: 'A B',
+    farmer_id: 7,
+    must_change_password: false,
+  },
 }
 
 describe('RequireRole', () => {
@@ -51,7 +57,13 @@ describe('RequireRole', () => {
   it('refuses a signed-in user with the wrong role, saying so', () => {
     renderAt('/farm', {
       status: 'signed_in',
-      me: { user_id: 2, role: 'operator', display_name: 'op', farmer_id: null },
+      me: {
+        user_id: 2,
+        role: 'operator',
+        display_name: 'op',
+        farmer_id: null,
+        must_change_password: false,
+      },
     })
     expect(screen.queryByText('farmer home')).not.toBeInTheDocument()
     expect(screen.getByRole('heading', { name: /not for your account/i })).toBeInTheDocument()

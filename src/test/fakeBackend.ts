@@ -68,6 +68,7 @@ export class FakeBackend {
         role: 'farmer',
         display_name: 'Wanjiru K',
         farmer_id: user.farmerId,
+        must_change_password: false,
       })
     }
 
