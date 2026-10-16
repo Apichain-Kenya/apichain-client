@@ -15,6 +15,7 @@ const manifest = JSON.parse(readFileSync(join(DIST, '.vite', 'manifest.json'), '
 const ROUTES = {
   consumer: { module: 'src/consumer/VerifyPage.tsx', budget: 110 * KB },
   farmer: { module: 'src/farm/FarmApp.tsx', budget: 150 * KB },
+  console: { module: 'src/console/ConsoleApp.tsx', budget: 160 * KB }, // 13 D14
 }
 const FONT_BUDGET = 70 * KB
 
@@ -50,6 +51,18 @@ for (const [name, { module, budget }] of Object.entries(ROUTES)) {
   if (total > budget) failed = true
 }
 
+// The shared session chunk (13 §7 step 2): reported on its own, and never in
+// the jar page's closure, since a shopper never signs in (12 D13).
+const sessionKey = Object.keys(manifest).find((k) => /^assets\/session-/.test(manifest[k].file))
+const consumerClosure = staticClosure(ROUTES.consumer.module, new Set(entryFiles))
+const sessionChecks = [
+  ['session chunk is built', Boolean(sessionKey)],
+  ['the app entry does not load the session', !entryFiles.has(sessionKey)],
+  ['the jar page does not load the session', !consumerClosure.has(sessionKey)],
+]
+if (sessionKey) rows.push(['session chunk (farmer and console)', sizeOf([sessionKey]), null])
+for (const [, ok] of sessionChecks) if (!ok) failed = true
+
 const assets = join(DIST, 'assets')
 const fonts = readdirSync(assets)
   .filter((f) => f.endsWith('.woff2'))
@@ -65,6 +78,8 @@ const precacheChecks = [
   ['precache holds the farmer app', precached(/assets\/farm-FarmApp-[^"]+\.js/)],
   ['precache leaves out the map', !precached(/assets\/farm-MapPicker-/)],
   ['precache leaves out the QR fallback', !precached(/assets\/qr-scanner/)],
+  ['precache holds the session', precached(/assets\/session-[^"]+\.js/)],
+  ['precache holds the console', precached(/assets\/console-ConsoleApp-[^"]+\.js/)],
 ]
 for (const [, ok] of precacheChecks) if (!ok) failed = true
 
@@ -74,7 +89,7 @@ for (const [label, size, budget] of rows) {
   const over = size !== null && budget !== null && size > budget ? ' **OVER**' : ''
   console.log(`| ${label} | ${fmt(size)}${over} | ${budget === null ? '-' : fmt(budget)} |`)
 }
-for (const [label, ok] of precacheChecks)
+for (const [label, ok] of [...sessionChecks, ...precacheChecks])
   console.log(`| ${label} | ${ok ? 'yes' : '**NO**'} | required |`)
 if (failed) {
   console.error('\nBundle budget exceeded (12 D13).')

@@ -55,7 +55,13 @@ function renderAt(path: string) {
     <FarmServicesContext.Provider value={services}>
       <Router hook={memory.hook} searchHook={memory.searchHook}>
         <FarmRoutes
-          signedInAs={{ user_id: 11, role: 'farmer', display_name: 'Wanjiru K', farmer_id: 7 }}
+          signedInAs={{
+            user_id: 11,
+            role: 'farmer',
+            display_name: 'Wanjiru K',
+            farmer_id: 7,
+            must_change_password: false,
+          }}
         />
       </Router>
     </FarmServicesContext.Provider>,

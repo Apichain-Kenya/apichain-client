@@ -1,0 +1,175 @@
+/* The desk density (13 §4): quieter and denser than the farmer app, body text
+   still 16 px on a phone. Inputs drop to 44 px; phone forms keep 52 px. */
+.split {
+  display: grid;
+  grid-template-columns: minmax(0, 26.25rem) minmax(0, 1fr);
+  gap: var(--space-6);
+  align-items: start;
+}
+.list {
+  display: grid;
+  gap: var(--space-3);
+  min-width: 0;
+}
+.h1 {
+  margin: 0;
+  font-size: var(--text-xl);
+}
+.search {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--touch);
+  padding: 0 var(--space-3);
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--ink-2);
+}
+.search input {
+  flex: 1;
+  min-width: 0;
+  min-height: calc(var(--touch) - 4px);
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+}
+.search input:focus {
+  outline: none;
+}
+.search:focus-within {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+.chips {
+  display: flex;
+  gap: var(--space-2);
+  overflow-x: auto;
+  padding-bottom: var(--space-1);
+  scrollbar-width: thin;
+}
+.chip {
+  flex: none;
+  min-height: var(--touch);
+  padding: 0 var(--space-4);
+  border: 1.5px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--text-sm);
+}
+.chip[aria-pressed='true'] {
+  border-color: var(--ink);
+  background: var(--ink);
+  color: var(--on-ink);
+  font-weight: 600;
+}
+.status {
+  margin: 0;
+  color: var(--ink-2);
+}
+.rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-2);
+}
+.row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  column-gap: var(--space-3);
+  row-gap: 2px;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--line);
+  border-left: 4px solid transparent;
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--ink);
+  text-decoration: none;
+}
+/* The selected row: a bar and a tint, not tint alone (board, laptop). */
+.selected {
+  border-left-color: var(--ink);
+  background: var(--paper);
+}
+.code {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.verb {
+  grid-row: 1 / span 3;
+  grid-column: 2;
+  align-self: center;
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+.sub,
+.since {
+  font-size: var(--text-sm);
+  color: var(--ink-2);
+}
+.more {
+  min-height: var(--touch);
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+}
+.pick {
+  margin: var(--space-12) 0 0;
+  text-align: center;
+  color: var(--ink-2);
+}
+.detail {
+  display: grid;
+  gap: var(--space-5);
+  min-width: 0;
+  max-width: 40rem;
+}
+.back {
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--touch);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+}
+.head {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: var(--space-2) var(--space-3);
+  align-items: baseline;
+}
+.h2 {
+  margin: 0;
+  font-size: var(--text-xl);
+  font-variant-numeric: tabular-nums;
+}
+.state {
+  padding: 2px var(--space-3);
+  border: 1.5px solid var(--ink-2);
+  border-radius: 999px;
+  font-size: var(--text-sm);
+}
+.facts {
+  grid-column: 1 / -1;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-6);
+}
+.facts dt {
+  font-size: var(--text-sm);
+  color: var(--ink-2);
+}
+.facts dd {
+  margin: 0;
+}

@@ -5,6 +5,15 @@
 // offline — no network, and a response lost after the server committed.
 
 type Json = Record<string, unknown>
+type Role = 'farmer' | 'field_officer' | 'operator' | 'lab_officer' | 'admin'
+type FakeUser = {
+  id: number
+  password: string
+  farmerId: number | null
+  role: Role
+  displayName: string
+  mustChange: boolean
+}
 
 export class FakeBackend {
   offline = false
@@ -23,15 +32,57 @@ export class FakeBackend {
   batches: Json[] = []
   harvests: Json[] = []
   requests: { path: string; key: string | null; body: Json }[] = []
+  /** Batch details as the console reads them (the backend's console fixtures). */
+  batchDetails: Json[] = []
+  /** Every GET, in order, for tests of what a screen asked for. */
+  reads: string[] = []
 
-  private users = new Map<string, { id: number; password: string; farmerId: number }>()
+  private users = new Map<string, FakeUser>()
   private tokens = new Map<string, number>() // access token -> user id
   private refresh = new Map<string, { userId: number; rotatedTo: string | null }>()
   private idem = new Map<string, { fingerprint: string; status: number; body: Json }>()
   private seq = { token: 0, refresh: 0, apiary: 100, batch: 500 }
 
-  addFarmer(identifier: string, password: string, id: number, farmerId: number) {
-    this.users.set(identifier, { id, password, farmerId })
+  addFarmer(
+    identifier: string,
+    password: string,
+    id: number,
+    farmerId: number,
+    opts: { mustChange?: boolean } = {},
+  ) {
+    this.users.set(identifier, {
+      id,
+      password,
+      farmerId,
+      role: 'farmer',
+      displayName: 'Wanjiru K',
+      mustChange: opts.mustChange ?? false,
+    })
+  }
+
+  addStaff(
+    identifier: string,
+    password: string,
+    id: number,
+    role: Exclude<Role, 'farmer'>,
+    displayName: string,
+    opts: { mustChange?: boolean } = {},
+  ) {
+    this.users.set(identifier, {
+      id,
+      password,
+      farmerId: null,
+      role,
+      displayName,
+      mustChange: opts.mustChange ?? false,
+    })
+  }
+
+  /** As an admin reset does: a new password someone else knows, to be changed. */
+  resetPassword(identifier: string, password: string) {
+    const user = this.users.get(identifier)!
+    user.password = password
+    user.mustChange = true
   }
 
   revokeAllSessions() {
@@ -65,10 +116,22 @@ export class FakeBackend {
     if (path === '/v2/me') {
       return json(200, {
         user_id: user.id,
-        role: 'farmer',
-        display_name: 'Wanjiru K',
+        role: user.role,
+        display_name: user.displayName,
         farmer_id: user.farmerId,
+        must_change_password: user.mustChange,
       })
+    }
+    if (path === '/v2/auth/password' && method === 'POST')
+      return this.changePassword(user, headers, body)
+    // The server's forced change (13 D5): everything but /me and the change
+    // itself is refused until the person has chosen their own password.
+    if (user.mustChange) {
+      return json(403, { code: 'password_change_required', message: 'Choose a new password' })
+    }
+    if (method === 'GET') {
+      this.reads.push(path)
+      return this.read(path)
     }
 
     const key = headers.get('Idempotency-Key')
@@ -124,6 +187,66 @@ export class FakeBackend {
       throw new TypeError('Failed to fetch')
     }
     return json(result[0], result[1])
+  }
+
+  private read(path: string): Response {
+    const url = new URL(path, 'http://fake')
+    const detail = url.pathname.match(/^\/v2\/batches\/(\d+)$/)
+    if (detail) {
+      const row = this.batchDetails.find((b) => b.id === Number(detail[1]))
+      return row ? json(200, row) : json(404, { code: 'batch_not_found' })
+    }
+    if (url.pathname === '/v2/batches') {
+      const states = url.searchParams.getAll('state')
+      const q = url.searchParams.get('q')?.toLowerCase()
+      const items = this.batchDetails
+        .filter((b) => states.length === 0 || states.includes(String(b.state)))
+        .filter((b) => !q || String(b.batch_code).toLowerCase().startsWith(q))
+        .sort((a, b) => Number(b.id) - Number(a.id))
+        .map((b) => ({
+          id: b.id,
+          public_id: b.public_id,
+          batch_code: b.batch_code,
+          state: b.state,
+          state_updated_at: b.state_updated_at,
+          created_at: b.created_at,
+          honey_type: (b.metadata as Json | null)?.honey_type ?? null,
+          apiary_name: (b.apiary as Json | null)?.name ?? null,
+          farmer_display_name: b.farmer_display_name,
+        }))
+      return json(200, { items, next_cursor: null })
+    }
+    return json(404, { code: 'not_found' })
+  }
+
+  private changePassword(user: FakeUser, headers: Headers, body: Json): Response {
+    if (headers.get('X-ApiChain-Client') !== 'pwa')
+      return json(403, { code: 'client_header_required' })
+    if (body.current_password !== user.password) {
+      return json(403, { code: 'wrong_password', message: 'The current password is not right' })
+    }
+    const next = String(body.new_password ?? '')
+    if (next === user.password) return json(422, { code: 'password_unchanged', message: 'Same' })
+    const min = user.role === 'farmer' ? 8 : 15
+    if (next.length < min) {
+      return json(422, {
+        code: 'password_too_short',
+        message: 'Too short',
+        details: { min_length: min },
+      })
+    }
+    user.password = next
+    user.mustChange = false
+    // As the server does: every session of this person ends, and this one
+    // gets a fresh pair.
+    for (const [raw, row] of this.refresh) if (row.userId === user.id) this.refresh.delete(raw)
+    for (const [token, id] of this.tokens) if (id === user.id) this.tokens.delete(token)
+    this.cookieJar = this.issueRefresh(user.id)
+    return json(200, {
+      access_token: this.issueAccess(user.id),
+      token_type: 'bearer',
+      expires_in: 900,
+    })
   }
 
   private login(body: Json) {

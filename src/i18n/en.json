@@ -142,7 +142,8 @@
     "restoring": "Signing you back in",
     "wrongRole": {
       "title": "This page is not for your account",
-      "body": "Your account can't use this page. Go back, or sign in with a different account."
+      "body": "Your account can't use this page. Go back, or sign in with a different account.",
+      "yours": "Go to your own pages"
     },
     "notFound": {
       "title": "There's nothing at this address",
@@ -166,15 +167,6 @@
       "register": "Register",
       "apiaries": "Apiaries",
       "me": "Me"
-    },
-    "signIn": {
-      "title": "Sign in",
-      "lead": "You need internet to sign in the first time. After that you can save harvests offline.",
-      "identifier": "Phone number or username",
-      "password": "Password",
-      "submit": "Sign in",
-      "invalid": "That phone number or password isn't right. Check them and try again.",
-      "offline": "You're offline. Connect to sign in the first time."
     },
     "greeting": {
       "morning": "Good morning, {{name}}",
@@ -294,5 +286,133 @@
       "today": "today",
       "yesterday": "yesterday"
     }
+  },
+  "signIn": {
+    "title": "Sign in",
+    "lead": "You need internet to sign in. After that, farmers can save harvests offline.",
+    "identifier": "Phone number or username",
+    "password": "Password",
+    "submit": "Sign in",
+    "invalid": "That phone number or password isn't right. Check them and try again.",
+    "offline": "You're offline. Connect to sign in the first time."
+  },
+  "password": {
+    "forced": {
+      "title": "Choose your own password",
+      "lead": {
+        "staff": "An admin set your first password, so they know it. Choose one only you know. Every step you record will carry your name.",
+        "farmer": "Your officer helped you pick your first password. Now choose one only you know."
+      },
+      "current": {
+        "staff": "The password you were given",
+        "farmer": "The password you used just now"
+      },
+      "waiting_one": "Your saved harvest is safe on this phone. It will send as soon as you save your password.",
+      "waiting_other": "Your {{count}} saved harvests are safe on this phone. They will send as soon as you save your password."
+    },
+    "change": {
+      "title": "Change my password",
+      "lead": "Choose a new password only you know. You stay signed in here, and you're signed out everywhere else.",
+      "current": "Your current password"
+    },
+    "new": "New password",
+    "again": "Type it again",
+    "rule": {
+      "staff": "At least 15 characters. A short sentence works well.",
+      "farmer": "At least 8 characters"
+    },
+    "show": "Show password",
+    "save": "Save my password",
+    "errors": {
+      "currentMissing": "Type the password you have now.",
+      "wrong": {
+        "given": "That isn't the password you were given. Check it and try again.",
+        "current": "That isn't your current password. Check it and try again."
+      },
+      "tooShort_one": "Use at least {{count}} character.",
+      "tooShort_other": "Use at least {{count}} characters.",
+      "tooLong": "That's too long. Use a shorter password.",
+      "mismatch": "The two new passwords don't match. Type it again.",
+      "unchanged": "Choose a password that's different from the one you have now.",
+      "offline": "You're offline. Saving your password needs a connection."
+    }
+  },
+  "console": {
+    "nav": {
+      "batches": "Batches",
+      "farmers": "Farmers",
+      "people": "People",
+      "me": "Me"
+    },
+    "roles": {
+      "farmer": "farmer",
+      "field_officer": "field officer",
+      "operator": "operator",
+      "lab_officer": "lab officer",
+      "admin": "admin"
+    },
+    "states": {
+      "CREATED": "Registered",
+      "HARVESTED": "Harvested",
+      "PROCESSED": "Processed",
+      "LAB_VERIFIED": "Lab tested",
+      "PACKAGED": "Packed",
+      "DISTRIBUTED": "Sent to shops"
+    },
+    "steps": {
+      "CREATED": "Registered",
+      "HARVESTED": "Harvested",
+      "PROCESSED": "Processed",
+      "LAB_VERIFIED": "Lab tested",
+      "PACKAGED": "Packed",
+      "DISTRIBUTED": "Sent to shops"
+    },
+    "waitingFor": {
+      "process": "Process",
+      "labTest": "Lab test",
+      "package": "Package",
+      "distribute": "Send to shops"
+    },
+    "batches": {
+      "title": "Batches",
+      "search": "Find by batch code",
+      "filter": "Show",
+      "todo": "To do",
+      "all": "All",
+      "since": "{{state}} · since {{date}}",
+      "waitingSince": "{{state}} · waiting since {{date}}",
+      "nothingToDo": "Nothing is waiting for you.",
+      "none": "No batches here.",
+      "more": "Show more",
+      "pick": "Choose a batch to see its record."
+    },
+    "batch": {
+      "honey": "Honey",
+      "farmer": "Farmer",
+      "apiary": "Apiary",
+      "notFound": "There's no batch with this number."
+    },
+    "timeline": {
+      "title": "Its record",
+      "next": "Next",
+      "notYet": "Not yet",
+      "by": "Recorded by {{name}}, {{role}}",
+      "byAdmin": "Recorded by {{name}}, as admin"
+    },
+    "integrity": {
+      "summary": "Integrity · {{sealed}} sealed, {{sealing}} sealing",
+      "sealed": "Sealed",
+      "sealing": "Sealing",
+      "note": "Sealed means the record is fixed in a public Bitcoin timestamp. Sealing usually takes a few hours."
+    },
+    "me": {
+      "shared": "On a shared computer, sign out when you're done. This device doesn't keep you signed in offline.",
+      "signOut": "Sign out",
+      "signOutWaiting_one": "1 step is waiting to send. It will send the next time you sign in here.",
+      "signOutWaiting_other": "{{count}} steps are waiting to send. They will send the next time you sign in here."
+    },
+    "offline": "You're offline. The console needs a connection to show batches.",
+    "offlineBanner": "You're offline. Steps you save will send when you're back online.",
+    "loadFailed": "This didn't load. Try again in a moment."
   }
 }

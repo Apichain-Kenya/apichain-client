@@ -1,0 +1,28 @@
+.page {
+  max-width: 35rem;
+  display: grid;
+  gap: var(--space-3);
+  justify-items: start;
+}
+.page h1 {
+  margin: 0;
+  font-size: var(--text-2xl);
+}
+.role,
+.shared {
+  margin: 0;
+  color: var(--ink-2);
+}
+.link {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--touch);
+  color: var(--ink);
+  font-weight: 500;
+}
+.note {
+  margin: 0;
+  padding: var(--space-3);
+  border-radius: var(--radius-sm);
+  background: var(--tint-sealing);
+}

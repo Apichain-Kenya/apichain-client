@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import { useLocation } from 'wouter'
+import { Link, useLocation } from 'wouter'
 
 import type { Me } from '../auth/SessionContext'
 import { useSync } from '../app/useSync'
@@ -43,6 +43,9 @@ export function MePage({ me }: { me: Me }) {
       {persistent !== null ? (
         <p>{persistent ? t('farm.me.storageOk') : t('farm.me.storageAsk')}</p>
       ) : null}
+      <Link href="/password" className={styles.link}>
+        {t('password.change.title')}
+      </Link>
       {waiting > 0 ? (
         <p className={styles.note} role="status">
           {t('farm.me.signOutWaiting', { count: waiting })}

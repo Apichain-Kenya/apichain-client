@@ -46,7 +46,12 @@ export type ActionRecord = Draft & {
   last_error: { status: number; code?: string; message?: string } | null
 }
 
-export type ReplayResult = { sent: number; paused: null | 'offline' | 'signed_out' }
+// `password_change`: the server refuses everything until this person has
+// chosen their own password (13 D5). Like a 401, it pauses; it never marks.
+export type ReplayResult = {
+  sent: number
+  paused: null | 'offline' | 'signed_out' | 'password_change'
+}
 
 // How each kind becomes a request, and which field of the reply is the id a
 // dependant refers to.
@@ -274,6 +279,9 @@ export class Outbox {
         if (res.status === 401) return { sent, paused: 'signed_out' }
 
         const err = (await res.json().catch(() => ({}))) as { code?: string; message?: string }
+        if (res.status === 403 && err.code === 'password_change_required') {
+          return { sent, paused: 'password_change' }
+        }
         const conflict = res.status === 409 && err.code === 'idempotency_conflict'
         if (res.status >= 500 || res.status === 429) {
           await this.backoff(row, now())

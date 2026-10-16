@@ -38,3 +38,10 @@
   border-radius: var(--radius-sm);
   background: var(--tint-sealing);
 }
+.link {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--touch-lg);
+  color: var(--ink);
+  font-weight: 500;
+}
