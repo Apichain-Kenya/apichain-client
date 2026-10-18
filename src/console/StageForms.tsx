@@ -177,20 +177,20 @@ export function LabForm({ onSave, note, today }: FormProps & { today: string }) 
     words(body, 'notes', values.notes ?? '')
     return onSave(body)
   }
-  const measureField = (key: Measure) => (
+  const measureField = (name: Measure) => (
     <Field
-      key={key}
-      label={t(`console.forms.lab.${key}`)}
-      error={errors[key]}
-      invalid={swapped && key === 'fructose_glucose_g_100g'}
+      key={name}
+      label={t(`console.forms.lab.${name}`)}
+      error={errors[name]}
+      invalid={swapped && name === 'fructose_glucose_g_100g'}
     >
       {(p) => (
         <input
           {...p}
           inputMode="decimal"
           autoComplete="off"
-          value={values[key] ?? ''}
-          onChange={(e) => set(key)(e.target.value)}
+          value={values[name] ?? ''}
+          onChange={(e) => set(name)(e.target.value)}
         />
       )}
     </Field>
