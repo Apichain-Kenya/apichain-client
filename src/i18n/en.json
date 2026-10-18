@@ -81,6 +81,7 @@
     "stopCamera": "Stop the camera"
   },
   "ui": {
+    "optional": "(optional)",
     "seal": {
       "sealed": {
         "headline": "Checked and publicly sealed",
@@ -413,6 +414,165 @@
     },
     "offline": "You're offline. The console needs a connection to show batches.",
     "offlineBanner": "You're offline. Steps you save will send when you're back online.",
-    "loadFailed": "This didn't load. Try again in a moment."
+    "loadFailed": "This didn't load. Try again in a moment.",
+    "next": {
+      "title": "Next step",
+      "do": {
+        "PROCESSED": "Record processing",
+        "LAB_VERIFIED": "Record the lab result",
+        "PACKAGED": "Record packaging",
+        "DISTRIBUTED": "Record sending to shops"
+      },
+      "wait": {
+        "HARVESTED": "Waiting for the harvest",
+        "PROCESSED": "Waiting for processing",
+        "LAB_VERIFIED": "Waiting for the lab",
+        "PACKAGED": "Waiting for packaging",
+        "DISTRIBUTED": "Waiting to be sent to shops"
+      },
+      "waitNote": "It will show here once it's recorded.",
+      "harvestNote": "The farmer records the harvest from their phone.",
+      "asAdmin": "You're recording this as an admin. The batch record will show \"Recorded by {{name}}, as admin\".",
+      "savesHere": "It saves on this device first and sends by itself.",
+      "local": "Saved on this device",
+      "sending": "Sending",
+      "conflict": {
+        "title": "This step was already recorded",
+        "body": "Someone recorded this step before yours reached the server, so yours was not saved. The record above is the record now.",
+        "remove": "Remove mine and reload"
+      },
+      "refused": {
+        "title": "This step wasn't accepted",
+        "forbidden": "Your account can't record this step.",
+        "invalid": "Something in it wasn't accepted. Remove it, then record the step again.",
+        "remove": "Remove it"
+      }
+    },
+    "forms": {
+      "number": {
+        "invalid": "Use a number, like 18.4.",
+        "range": "Use a number from 0 to 100.",
+        "decimals": "Use a number with at most 2 decimals."
+      },
+      "process": {
+        "method": "How was it extracted?",
+        "centrifugal": "Centrifuge",
+        "crush_and_strain": "Crush and strain",
+        "cold_extraction": "Cold extraction",
+        "other": "Other",
+        "otherText": "How, in a few words",
+        "otherMissing": "Say how it was extracted.",
+        "moisture": "Moisture after processing (%)",
+        "notes": "Handling notes",
+        "save": "Save processing"
+      },
+      "lab": {
+        "blank": "Leave a box empty if it wasn't measured.",
+        "measurements": "Measurements",
+        "test": "The test",
+        "moisture_pct": "Moisture (%)",
+        "hmf_mg_kg": "HMF (mg/kg)",
+        "fructose_glucose_g_100g": "Fructose + glucose (g/100 g)",
+        "sucrose_g_100g": "Sucrose (g/100 g)",
+        "diastase_schade": "Diastase (Schade)",
+        "free_acidity_meq_kg": "Free acidity (meq/kg)",
+        "pollen_density": "Pollen density",
+        "laboratory_name": "Laboratory",
+        "analyst_name": "Analyst",
+        "certificate_number": "Certificate number",
+        "tested": "Tested on",
+        "notes": "Notes",
+        "swapped": "Sucrose is higher than fructose + glucose. These two may be swapped.",
+        "save": "Save lab result"
+      },
+      "package": {
+        "jars": "Jars packed",
+        "none": "Pack at least one jar.",
+        "jarIds": "Jar numbers",
+        "jarIdsHint": "One code goes on every jar from this batch, so these are only for your own stock count.",
+        "notes": "Notes",
+        "save": "Save packaging"
+      },
+      "distribute": {
+        "retailer": "Shop or buyer",
+        "retailerMissing": "Name the shop or buyer.",
+        "transport": "Transport reference",
+        "handover": "Handover notes",
+        "save": "Save"
+      }
+    },
+    "people": {
+      "title": "People",
+      "add": "Add a person",
+      "filter": "Show",
+      "active": "Active",
+      "all": "All",
+      "row": "{{username}} · {{role}}",
+      "none": "No one here yet.",
+      "pick": "Choose a person to see their account.",
+      "added": "Added {{name}}. They'll choose their own password when they first sign in.",
+      "roles": {
+        "field_officer": "Field officer",
+        "operator": "Operator",
+        "lab_officer": "Lab officer",
+        "admin": "Admin"
+      },
+      "status": {
+        "active": "Active",
+        "mustChange": "Hasn't chosen a password",
+        "inactive": "Deactivated"
+      },
+      "form": {
+        "fullName": "Full name",
+        "fullNameHint": "Shown on every step they record.",
+        "username": "Username",
+        "usernameHint": "What they type to sign in.",
+        "role": "Role",
+        "rootOnly": "Only the first admin can add another admin.",
+        "password": "Starting password",
+        "passwordHint": "At least 15 characters. Give it to them in person. They'll choose their own the first time they sign in.",
+        "save": "Add person",
+        "online": "Adding people needs internet."
+      },
+      "errors": {
+        "name": "Write their full name.",
+        "username": "Use 3 to 40 lower-case letters, numbers, dots, dashes or underscores, starting with a letter.",
+        "role": "Choose a role.",
+        "tooShort": "Use at least 15 characters.",
+        "tooLong": "That's too long. Use a shorter password.",
+        "taken": "That username is taken. Try another.",
+        "rootRequired": "Only the first admin can add another admin.",
+        "offline": "You're offline. Adding people needs internet.",
+        "failed": "That didn't work. Try again in a moment."
+      },
+      "person": {
+        "first": "first admin",
+        "notFound": "There's no one with this account.",
+        "reset": {
+          "title": "Reset password",
+          "note": "Set a new starting password. They'll have to choose their own at their next sign-in, and they'll be signed out everywhere now.",
+          "password": "New starting password",
+          "save": "Reset password",
+          "done": "Password reset. Give them the new one in person.",
+          "offline": "You're offline. Resetting a password needs internet.",
+          "own": "Change your own password from Me, with your current one.",
+          "root": "The first admin's password can't be reset from the console.",
+          "rootRequired": "Only the first admin can reset another admin's password."
+        },
+        "deactivate": {
+          "title": "Deactivate",
+          "note": "They'll be signed out everywhere and can't sign in again. Every step they recorded stays on the record.",
+          "start": "Deactivate",
+          "confirm": "Yes, deactivate",
+          "cancel": "Keep the account",
+          "done": "Deactivated. They can no longer sign in.",
+          "refused": "Can't deactivate this account",
+          "root": "This is the first admin's account. It can't be deactivated from the console.",
+          "self": "You can't deactivate your own account. Another admin can.",
+          "last": "This is the last active admin. Add another admin first.",
+          "offline": "You're offline. Deactivating needs internet."
+        }
+      }
+    }
   }
 }

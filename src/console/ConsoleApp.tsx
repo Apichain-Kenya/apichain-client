@@ -1,6 +1,7 @@
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Redirect, Route, Switch, useParams } from 'wouter'
-import { Layers, UserRound } from 'lucide-react'
+import { Layers, UserRound, UsersRound } from 'lucide-react'
 
 import { Providers } from '../app/Providers'
 import { RequireRole } from '../app/RequireRole'
@@ -13,6 +14,7 @@ import { OfflineBanner } from '../ui/OfflineBanner'
 import { SyncChip } from '../ui/Sync'
 import { BatchesPage } from './BatchesPage'
 import { ConsoleMePage } from './ConsoleMePage'
+import { PeoplePage } from './PeoplePage'
 import styles from './ConsoleApp.module.css'
 
 // The staff and admin console (13 §7 step 6): its own lazy chunk, one shell
@@ -42,10 +44,15 @@ export function ConsoleGate() {
 export function ConsoleRoutes({ me }: { me: Me }) {
   const { t } = useTranslation()
   const { waiting, paused } = useSync()
-  // Sections appear by role (13 §4.2). Farmers (field officers, admins) and
-  // People (admins) arrive with their work packages.
+  // What the People list says after an account is added; kept here because
+  // adding and listing are different routes.
+  const [notice, setNotice] = useState<string | null>(null)
+  const admin = me.role === 'admin'
+  // Sections appear by role (13 §4.2). People is the admin's (P4b-D); Farmers
+  // arrives with enrolment (P4b-E), so no tab points at a page not yet built.
   const nav: NavItem[] = [
     { to: '/batches', label: t('console.nav.batches'), icon: Layers },
+    ...(admin ? [{ to: '/people', label: t('console.nav.people'), icon: UsersRound }] : []),
     { to: '/me', label: t('console.nav.me'), icon: UserRound },
   ]
   return (
@@ -68,6 +75,16 @@ export function ConsoleRoutes({ me }: { me: Me }) {
         <Route path="/batches/:id">
           <BatchRoute me={me} />
         </Route>
+        {admin ? (
+          <Route path="/people">
+            <PeoplePage me={me} id={null} notice={notice} setNotice={setNotice} />
+          </Route>
+        ) : null}
+        {admin ? (
+          <Route path="/people/:id">
+            <PersonRoute me={me} notice={notice} setNotice={setNotice} />
+          </Route>
+        ) : null}
         <Route path="/me">
           <ConsoleMePage me={me} />
         </Route>
@@ -80,6 +97,15 @@ export function ConsoleRoutes({ me }: { me: Me }) {
       </Switch>
     </AppShell>
   )
+}
+
+function PersonRoute(props: {
+  me: Me
+  notice: string | null
+  setNotice: (n: string | null) => void
+}) {
+  const { id } = useParams<{ id: string }>()
+  return <PeoplePage {...props} id={id === 'new' ? 'new' : Number(id) || null} />
 }
 
 function BatchRoute({ me }: { me: Me }) {

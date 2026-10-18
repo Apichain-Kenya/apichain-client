@@ -23,7 +23,16 @@ import { browserLocks, OfflineError, type Session } from '../auth/session'
 
 type Json = Record<string, unknown>
 export type Ref = { $ref: string }
-export type Kind = 'apiary.create' | 'batch.create' | 'batch.harvest'
+export type Kind =
+  | 'apiary.create'
+  | 'batch.create'
+  | 'batch.harvest'
+  | 'batch.process'
+  | 'batch.lab_verify'
+  | 'batch.package'
+  | 'batch.distribute'
+/** A staff step on a batch the server already has (13 §8). */
+export type StageKind = 'batch.process' | 'batch.lab_verify' | 'batch.package' | 'batch.distribute'
 export type Status = 'queued' | 'sent' | 'needs_attention'
 
 export type Draft = { kind: Kind; local_ref: string; body: Json }
@@ -55,13 +64,33 @@ export type ReplayResult = {
 
 // How each kind becomes a request, and which field of the reply is the id a
 // dependant refers to.
+const step =
+  (route: string) =>
+  ({ batch_id, ...rest }: Json) => ({
+    path: `/v2/batches/${String(batch_id)}/${route}`,
+    json: rest,
+  })
+
 const KINDS: Record<Kind, { request: (body: Json) => { path: string; json: Json } }> = {
   'apiary.create': { request: (body) => ({ path: '/v2/apiaries', json: body }) },
   'batch.create': { request: (body) => ({ path: '/v2/batches', json: body }) },
-  'batch.harvest': {
-    request: ({ batch_id, ...rest }) => ({ path: `/v2/batches/${batch_id}/harvest`, json: rest }),
-  },
+  'batch.harvest': { request: step('harvest') },
+  // Staff steps (13 §8): no references, since the batch already has its id.
+  'batch.process': { request: step('process') },
+  'batch.lab_verify': { request: step('lab-verify') },
+  'batch.package': { request: step('package') },
+  'batch.distribute': { request: step('distribute') },
 }
+
+/** What the sync chip counts: a harvest or a staff step, not the actions
+ *  inside a harvest (its apiary and batch). */
+const COUNTED: ReadonlySet<Kind> = new Set<Kind>([
+  'batch.harvest',
+  'batch.process',
+  'batch.lab_verify',
+  'batch.package',
+  'batch.distribute',
+])
 
 const MAX_CONFLICT_RETRIES = 5
 const BACKOFF_BASE_MS = 2_000
@@ -83,6 +112,11 @@ function refsIn(body: Json): string[] {
   return Object.values(body)
     .filter(isRef)
     .map((r) => r.$ref)
+}
+
+/** The draft for one staff step on a batch (13 §8). */
+export function stageDraft(kind: StageKind, batchId: number, body: Json): Draft {
+  return { kind, local_ref: `${kind}-${uuid()}`, body: { batch_id: batchId, ...body } }
 }
 
 /** The drafts for one "Register a harvest": a new apiary only if needed. */
@@ -178,11 +212,11 @@ export class Outbox {
     return (await this.list(userId)).filter((r) => r.status !== 'sent').length
   }
 
-  /** What the sync chip counts: harvests, not the actions inside them. */
-  async waitingHarvests(userId: number): Promise<number> {
-    return (await this.list(userId)).filter(
-      (r) => r.kind === 'batch.harvest' && r.status !== 'sent',
-    ).length
+  /** What the sync chip counts: harvests and staff steps, not the actions
+   *  inside a harvest. */
+  async waitingWork(userId: number): Promise<number> {
+    return (await this.list(userId)).filter((r) => COUNTED.has(r.kind) && r.status !== 'sent')
+      .length
   }
 
   /** "Fix and send": the corrected action is a new action with a new key. */
@@ -278,7 +312,11 @@ export class Outbox {
         }
         if (res.status === 401) return { sent, paused: 'signed_out' }
 
-        const err = (await res.json().catch(() => ({}))) as { code?: string; message?: string }
+        const err = (await res.json().catch(() => ({}))) as {
+          code?: string
+          message?: string
+          detail?: { msg?: string }[]
+        }
         if (res.status === 403 && err.code === 'password_change_required') {
           return { sent, paused: 'password_change' }
         }
@@ -294,7 +332,9 @@ export class Outbox {
           continue
         }
         row.status = 'needs_attention'
-        row.last_error = { status: res.status, code: err.code, message: err.message }
+        // A request-validation 422 has no code, only FastAPI's `detail` list.
+        const message = err.message ?? err.detail?.[0]?.msg
+        row.last_error = { status: res.status, code: err.code, message }
         await this.put(row)
       }
       return { sent, paused: null }

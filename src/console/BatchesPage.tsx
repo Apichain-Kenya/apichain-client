@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useLocation } from 'wouter'
 import { ArrowLeft, Search } from 'lucide-react'
@@ -6,6 +6,7 @@ import { ArrowLeft, Search } from 'lucide-react'
 import type { Me } from '../auth/SessionContext'
 import { useWide } from '../ui/useWide'
 import styles from './BatchesPage.module.css'
+import { NextStep } from './NextStep'
 import { Timeline } from './Timeline'
 import { useRead } from './useRead'
 import {
@@ -23,17 +24,24 @@ type Filter = 'todo' | 'all' | StateKey
 const PAGE = 25
 
 // Batches (13 §4.2): a list that opens on the person's "To do", and the
-// batch as a page on a phone or a side pane on a laptop. Read-only in P4b-C;
-// P4b-D adds the next action at the foot of the timeline.
+// batch as a page on a phone or a side pane on a laptop, with the next action
+// at the foot of its record (P4b-D). A step that settles reloads both, so the
+// batch leaves the person's "To do" as soon as it is done.
 export function BatchesPage({ me, id }: { me: Me; id: number | null }) {
   const wide = useWide()
-  if (!wide && id !== null) return <BatchView id={id} back />
+  const [reload, setReload] = useState(0)
+  const onRecorded = useCallback(() => setReload((n) => n + 1), [])
+  const view = (back: boolean) =>
+    id !== null ? (
+      <BatchView me={me} id={id} back={back} reload={reload} onRecorded={onRecorded} />
+    ) : null
+  if (!wide && id !== null) return view(true)
   return (
     <div className={wide ? styles.split : undefined}>
-      <BatchList me={me} selected={id} />
+      <BatchList me={me} selected={id} reload={reload} />
       {wide ? (
         id !== null ? (
-          <BatchView id={id} />
+          view(false)
         ) : (
           <p className={styles.pick}>
             <PickHint />
@@ -58,7 +66,7 @@ function listPath(filter: Filter, todo: StateKey[] | null, q: string, cursor: st
   return `/v2/batches?${params}`
 }
 
-function BatchList({ me, selected }: { me: Me; selected: number | null }) {
+function BatchList({ me, selected, reload }: { me: Me; selected: number | null; reload: number }) {
   const { t } = useTranslation()
   const todo = todoStates(me.role)
   const [filter, setFilter] = useState<Filter>(todo ? 'todo' : 'all')
@@ -79,7 +87,7 @@ function BatchList({ me, selected }: { me: Me; selected: number | null }) {
     return () => clearTimeout(timer)
   }, [typed, q])
 
-  const page = useRead<BatchPage>(listPath(filter, todo, q, cursor))
+  const page = useRead<BatchPage>(listPath(filter, todo, q, cursor), reload)
   const items = page.status === 'ok' ? [...earlier, ...page.data.items] : earlier
   const chips: Filter[] = [...(todo ? (['todo'] as const) : []), 'all', ...STATES]
 
@@ -200,10 +208,22 @@ function Row({
   )
 }
 
-function BatchView({ id, back = false }: { id: number; back?: boolean }) {
+function BatchView({
+  me,
+  id,
+  back,
+  reload,
+  onRecorded,
+}: {
+  me: Me
+  id: number
+  back: boolean
+  reload: number
+  onRecorded: () => void
+}) {
   const { t } = useTranslation()
   const [, navigate] = useLocation()
-  const read = useRead<BatchDetail>(`/v2/batches/${id}`)
+  const read = useRead<BatchDetail>(`/v2/batches/${id}`, reload)
 
   return (
     <article className={styles.detail} aria-labelledby="batch-title">
@@ -222,13 +242,21 @@ function BatchView({ id, back = false }: { id: number; back?: boolean }) {
           {read.code === 404 ? t('console.batch.notFound') : t('console.loadFailed')}
         </p>
       ) : (
-        <BatchBody batch={read.data} />
+        <BatchBody batch={read.data} me={me} onRecorded={onRecorded} />
       )}
     </article>
   )
 }
 
-function BatchBody({ batch: b }: { batch: BatchDetail }) {
+function BatchBody({
+  batch: b,
+  me,
+  onRecorded,
+}: {
+  batch: BatchDetail
+  me: Me
+  onRecorded: () => void
+}) {
   const { t } = useTranslation()
   const honey = b.metadata?.honey_type
   return (
@@ -260,6 +288,7 @@ function BatchBody({ batch: b }: { batch: BatchDetail }) {
         </dl>
       </header>
       <Timeline stages={b.stages} />
+      <NextStep key={b.id} batch={b} me={me} onRecorded={onRecorded} />
     </>
   )
 }

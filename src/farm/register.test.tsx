@@ -214,7 +214,7 @@ describe('My harvests', () => {
     await next()
     await userEvent.click(screen.getByRole('button', { name: 'Save harvest' }))
     await screen.findByRole('heading', { name: 'Saved on this phone' })
-    expect(await services.outbox.waitingHarvests(11)).toBe(1)
+    expect(await services.outbox.waitingWork(11)).toBe(1)
 
     first.unmount()
     renderAt('/')
