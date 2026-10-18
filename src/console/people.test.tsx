@@ -122,6 +122,12 @@ describe('Adding a person', () => {
     ).toHaveAttribute('role', 'status')
     // Online only: nothing of it, least of all the password, goes to the outbox.
     expect(await env.outbox.list(21)).toEqual([])
+
+    // The notice is for this moment only: leaving People clears it.
+    await userEvent.click(within(nav()).getByRole('link', { name: 'Batches' }))
+    await userEvent.click(within(nav()).getByRole('link', { name: 'People' }))
+    await screen.findByRole('link', { name: /Mark Kamau/ })
+    expect(screen.queryByText(/^Added Mark Kamau/)).not.toBeInTheDocument()
   })
 
   it('says plainly when the username is taken', async () => {
@@ -240,6 +246,18 @@ describe('Accessibility', () => {
       const { container } = renderConsole(env, '/people/new')
       await screen.findByRole('link', { name: /Otieno Mark/ })
       await screen.findByRole('radio', { name: 'Operator' })
+      const result = await axe.run(container, { rules: { 'color-contrast': { enabled: false } } })
+      expect(result.violations.map((v) => v.id)).toEqual([])
+    })
+
+    it(`a person, with a refusal showing, has no axe violations (${theme})`, async () => {
+      document.documentElement.setAttribute('data-theme', theme)
+      const env = await admin()
+      const { container } = renderConsole(env, '/people/1')
+      await screen.findByRole('heading', { name: 'Grace Njeri' })
+      await userEvent.click(screen.getByRole('button', { name: 'Deactivate' }))
+      await userEvent.click(screen.getByRole('button', { name: 'Yes, deactivate' }))
+      await screen.findByText("Can't deactivate this account")
       const result = await axe.run(container, { rules: { 'color-contrast': { enabled: false } } })
       expect(result.violations.map((v) => v.id)).toEqual([])
     })

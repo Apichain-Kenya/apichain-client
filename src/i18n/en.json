@@ -410,7 +410,9 @@
       "shared": "On a shared computer, sign out when you're done. This device doesn't keep you signed in offline.",
       "signOut": "Sign out",
       "signOutWaiting_one": "1 step is waiting to send. It will send the next time you sign in here.",
-      "signOutWaiting_other": "{{count}} steps are waiting to send. They will send the next time you sign in here."
+      "signOutWaiting_other": "{{count}} steps are waiting to send. They will send the next time you sign in here.",
+      "refused": "Not accepted. Open the batch to remove it:",
+      "refusedStep": "{{step}}, batch {{id}}"
     },
     "offline": "You're offline. The console needs a connection to show batches.",
     "offlineBanner": "You're offline. Steps you save will send when you're back online.",
@@ -435,6 +437,7 @@
       "asAdmin": "You're recording this as an admin. The batch record will show \"Recorded by {{name}}, as admin\".",
       "savesHere": "It saves on this device first and sends by itself.",
       "local": "Saved on this device",
+      "yourStep": "Your step: {{step}}",
       "sending": "Sending",
       "conflict": {
         "title": "This step was already recorded",

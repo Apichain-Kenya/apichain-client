@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useLocation } from 'wouter'
 import { AlertCircle, ArrowLeft, Plus } from 'lucide-react'
@@ -180,6 +180,8 @@ function AddPerson({
   const { t } = useTranslation()
   const [, navigate] = useLocation()
   const { post, fresh } = usePress()
+  // A new add starts clean: the last "Added …" notice is for the list.
+  useEffect(() => setNotice(null), [setNotice])
   // Only the first admin may add another admin. /me does not say who that
   // is, so read it from the admins list; until it says so, "Admin" is hidden.
   const admins = useRead<UserPage>('/v2/users?role=admin&limit=100')

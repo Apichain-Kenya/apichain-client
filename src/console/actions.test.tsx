@@ -275,6 +275,49 @@ describe('When the step was already taken (409 invalid_transition)', () => {
   })
 })
 
+describe('A refused step is never stranded (review)', () => {
+  it('keeps an older refusal visible and removable after a later step', async () => {
+    const env = await staff('admin', { name: 'Peter Otieno' })
+    await open(env, 4180, 'B-000000')
+    ;(env.server.batchDetails[0] as { state: string }).state = 'PROCESSED'
+    await userEvent.click(screen.getByRole('button', { name: 'Save processing' }))
+    await screen.findByText('This step was already recorded')
+    // Now past processing, the admin records the lab result on the same batch.
+    await within(card()).findByRole('heading', { name: 'Record the lab result' })
+    await userEvent.type(screen.getByLabelText('Moisture (%)'), '18.4')
+    await userEvent.click(screen.getByRole('button', { name: 'Save lab result' }))
+    await eventually(() => expect(env.server.stageWrites).toHaveLength(1))
+
+    const alert = await screen.findByRole('alert')
+    expect(alert).toHaveTextContent('Your step: Processed')
+    await userEvent.click(within(alert).getByRole('button', { name: 'Remove mine and reload' }))
+    await eventually(() => expect(screen.queryByRole('alert')).not.toBeInTheDocument())
+    expect((await env.outbox.list(21)).map((r) => r.status)).toEqual(['sent'])
+  })
+})
+
+describe('Me: what is waiting, and what was refused (review)', () => {
+  it('promises to send only queued steps, and links each refused one to its batch', async () => {
+    const env = await staff('operator')
+    // A refused step: processing a batch already past it.
+    await env.outbox.enqueue(21, [stageDraft('batch.process', 4181, { extraction_method: 'x' })], 1)
+    await env.outbox.replay(21, env.session, Date.now)
+    // A queued one, saved while offline.
+    env.server.offline = true
+    await env.outbox.enqueue(21, [stageDraft('batch.package', 4182, { unit_count: 3 })], 2)
+    renderConsole(env, '/me')
+    expect(
+      await screen.findByText(
+        '1 step is waiting to send. It will send the next time you sign in here.',
+      ),
+    ).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Processed, batch 4181' })).toHaveAttribute(
+      'href',
+      '/batches/4181',
+    )
+  })
+})
+
 describe('Offline', () => {
   it('saves on this device, hides the form, counts it, and sends when back', async () => {
     const env = await staff('operator')
@@ -303,6 +346,18 @@ describe('Accessibility', () => {
       const env = await staff('admin')
       const { container } = await open(env, 4181, 'B-000001')
       await screen.findByText('B-000004')
+      const result = await axe.run(container, { rules: { 'color-contrast': { enabled: false } } })
+      expect(result.violations.map((v) => v.id)).toEqual([])
+    })
+
+    it(`a refused step and the waiting card have no axe violations (${theme})`, async () => {
+      document.documentElement.setAttribute('data-theme', theme)
+      const env = await staff('operator')
+      const { container } = await open(env, 4180, 'B-000000')
+      ;(env.server.batchDetails[0] as { state: string }).state = 'PROCESSED'
+      await userEvent.click(screen.getByRole('button', { name: 'Save processing' }))
+      await screen.findByText('This step was already recorded')
+      await within(card()).findByRole('heading', { name: 'Waiting for the lab' })
       const result = await axe.run(container, { rules: { 'color-contrast': { enabled: false } } })
       expect(result.violations.map((v) => v.id)).toEqual([])
     })

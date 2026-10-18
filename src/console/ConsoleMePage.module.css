@@ -26,3 +26,18 @@
   border-radius: var(--radius-sm);
   background: var(--tint-sealing);
 }
+.refused {
+  display: grid;
+  gap: var(--space-1);
+  padding: var(--space-3);
+  border: 1.5px solid var(--alert);
+  border-radius: var(--radius-sm);
+  background: var(--tint-alert);
+}
+.refused p,
+.refused ul {
+  margin: 0;
+}
+.refused ul {
+  padding-left: var(--space-5);
+}

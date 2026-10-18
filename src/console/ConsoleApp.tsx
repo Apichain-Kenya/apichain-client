@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Redirect, Route, Switch, useParams } from 'wouter'
+import { Redirect, Route, Switch, useLocation, useParams } from 'wouter'
 import { Layers, UserRound, UsersRound } from 'lucide-react'
 
 import { Providers } from '../app/Providers'
@@ -47,6 +47,10 @@ export function ConsoleRoutes({ me }: { me: Me }) {
   // What the People list says after an account is added; kept here because
   // adding and listing are different routes.
   const [notice, setNotice] = useState<string | null>(null)
+  const [location] = useLocation()
+  useEffect(() => {
+    if (!location.startsWith('/people')) setNotice(null)
+  }, [location])
   const admin = me.role === 'admin'
   // Sections appear by role (13 §4.2). People is the admin's (P4b-D); Farmers
   // arrives with enrolment (P4b-E), so no tab points at a page not yet built.

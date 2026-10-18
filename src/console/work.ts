@@ -1,5 +1,6 @@
 import type { components } from '../api/client/schema'
 import type { Me } from '../auth/SessionContext'
+import type { StageKind } from '../offline/outbox'
 
 export type BatchSummary = components['schemas']['BatchSummary']
 export type BatchPage = components['schemas']['BatchPage']
@@ -78,3 +79,19 @@ const dayMonth = new Intl.DateTimeFormat('en-KE', { day: 'numeric', month: 'shor
 export function shortDay(ts: string): string {
   return dayMonth.format(serverDate(ts))
 }
+
+// The state each staff kind moves a batch to, and back. Which form a step
+// takes; never who may take it, which is the server's `next_action` (D10).
+export const KIND_FOR: Partial<Record<StateKey, StageKind>> = {
+  PROCESSED: 'batch.process',
+  LAB_VERIFIED: 'batch.lab_verify',
+  PACKAGED: 'batch.package',
+  DISTRIBUTED: 'batch.distribute',
+}
+const TARGET_OF = Object.fromEntries(Object.entries(KIND_FOR).map(([s, k]) => [k, s])) as Record<
+  string,
+  StateKey | undefined
+>
+
+/** The step a saved staff action records, or undefined for any other kind. */
+export const targetOf = (kind: string): StateKey | undefined => TARGET_OF[kind]

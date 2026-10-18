@@ -10,20 +10,7 @@ import { Button } from '../ui/Button'
 import { SyncBadge } from '../ui/Sync'
 import styles from './NextStep.module.css'
 import { DistributeForm, LabForm, PackageForm, ProcessForm, type FormProps } from './StageForms'
-import { STATES, type BatchDetail, type StateKey } from './work'
-
-// The state each staff kind moves a batch to, and back. Which form a step
-// takes; never who may take it, which is the server's `next_action` (D10).
-const KIND_FOR: Partial<Record<StateKey, StageKind>> = {
-  PROCESSED: 'batch.process',
-  LAB_VERIFIED: 'batch.lab_verify',
-  PACKAGED: 'batch.package',
-  DISTRIBUTED: 'batch.distribute',
-}
-const TARGET_OF = Object.fromEntries(Object.entries(KIND_FOR).map(([s, k]) => [k, s])) as Record<
-  string,
-  StateKey | undefined
->
+import { KIND_FOR, STATES, targetOf, type BatchDetail, type StateKey } from './work'
 
 const reached = (state: string, target: StateKey) =>
   STATES.indexOf(state as StateKey) >= STATES.indexOf(target)
@@ -39,7 +26,7 @@ function useSteps(userId: number, batchId: number) {
         if (!live) return
         setRows(
           all
-            .filter((r) => TARGET_OF[r.kind] && r.body.batch_id === batchId)
+            .filter((r) => targetOf(r.kind) && r.body.batch_id === batchId)
             .sort((a, b) => a.seq - b.seq),
         )
       })
@@ -85,9 +72,12 @@ export function NextStep({
     seen.current = settled
   }, [settled, onRecorded])
 
-  const latest = rows?.at(-1)
-  const target = latest ? TARGET_OF[latest.kind] : undefined
-  const problem = latest?.status === 'needs_attention' ? latest : null
+  // Every refused step keeps its card until the person removes it: a later
+  // step on the same batch must not hide an older refusal, which would then
+  // sit in the outbox with no way to clear it (review).
+  const problems = rows?.filter((r) => r.status === 'needs_attention') ?? []
+  const latest = rows?.filter((r) => r.status !== 'needs_attention').at(-1)
+  const target = latest ? targetOf(latest.kind) : undefined
   const pending =
     latest &&
     target &&
@@ -106,7 +96,9 @@ export function NextStep({
 
   return (
     <>
-      {problem ? <Problem row={problem} onRemove={() => void remove(problem)} /> : null}
+      {problems.map((row) => (
+        <Problem key={row.id} row={row} onRemove={() => void remove(row)} />
+      ))}
       {rows === null || (!pending && !next) ? null : (
         <section className={styles.card} aria-label={t('console.next.title')}>
           <p className={styles.eyebrow}>{t('console.next.title')}</p>
@@ -184,12 +176,18 @@ function Step({
 function Problem({ row, onRemove }: { row: ActionRecord; onRemove: () => void }) {
   const { t } = useTranslation()
   const taken = row.last_error?.code === 'invalid_transition'
+  const step = targetOf(row.kind)
   return (
     <div className={`${styles.card} ${styles.problem}`} role="alert">
       <h3 className={styles.h3}>
         <AlertCircle aria-hidden="true" size={20} strokeWidth={2} />
         {t(taken ? 'console.next.conflict.title' : 'console.next.refused.title')}
       </h3>
+      {step ? (
+        <p className={styles.small}>
+          {t('console.next.yourStep', { step: t(`console.steps.${step}`) })}
+        </p>
+      ) : null}
       <p>
         {taken
           ? t('console.next.conflict.body')
