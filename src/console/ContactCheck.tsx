@@ -19,7 +19,15 @@ type Said = { tone: 'status' | 'alert'; text: string } | null
 // resend countdown runs to the server's `resend_available_at`, and a 429
 // holds the button for its `Retry-After`. The code is six digits on the
 // phone's number pad, which can fill it from the text itself.
-export function ContactCheck({ id, channel }: { id: number; channel: 'sms' | 'email' }) {
+export function ContactCheck({
+  id,
+  channel,
+  changed,
+}: {
+  id: number
+  channel: 'sms' | 'email'
+  changed: () => void
+}) {
   const { t } = useTranslation()
   const [, navigate] = useLocation()
   const farmer = useRead<FarmerDetail>(`/v2/farmers/${id}`)
@@ -94,7 +102,10 @@ export function ContactCheck({ id, channel }: { id: number; channel: 'sms' | 'em
     fresh()
     const result = await post(`/v2/farmers/${id}/verifications/confirm`, { channel, code })
     setBusy(false)
-    if (result.kind === 'ok') return navigate(`/farmers/${id}`)
+    if (result.kind === 'ok') {
+      changed() // the list beside it says "Phone confirmed" too
+      return navigate(`/farmers/${id}`)
+    }
     if (result.kind === 'offline') return setCodeError(t('console.farmers.verify.offline'))
     if (result.code === 'invalid_code') {
       return setCodeError(

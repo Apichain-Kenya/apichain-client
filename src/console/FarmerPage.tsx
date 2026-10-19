@@ -147,7 +147,9 @@ export function FarmerPage({
             </p>
           ) : null}
           <Contact farmer={farmer.data} />
-          {consents.status === 'ok' ? (
+          {/* Both wait for the outbox read: until it lands, a choice saved on
+              this device (a withdrawal, say) would not count yet. */}
+          {consents.status === 'ok' && work !== null ? (
             <Choices
               me={me}
               farmerId={id}
@@ -162,7 +164,7 @@ export function FarmerPage({
           <Documents
             me={me}
             farmerId={id}
-            choice={consents.status === 'ok' ? choices.document_upload : null}
+            choice={consents.status === 'ok' && work !== null ? choices.document_upload : null}
             reload={reload}
           />
           <Apiaries
@@ -303,7 +305,8 @@ function Choices({
                   className={styles.switch}
                   aria-checked={c.on}
                   aria-labelledby={label}
-                  disabled={noEmail || (c.locked && !c.on)}
+                  // Held while a refusal for it is showing: remove that first.
+                  disabled={noEmail || (c.locked && !c.on) || problems.length > 0}
                   onClick={() => void toggle(purpose, !c.on)}
                 />
                 <span aria-hidden="true">

@@ -61,7 +61,12 @@ export function FarmersPage({
         changed={changed}
       />
     ) : view.kind === 'verify' ? (
-      <ContactCheck key={`${view.id}-${view.channel}`} id={view.id} channel={view.channel} />
+      <ContactCheck
+        key={`${view.id}-${view.channel}`}
+        id={view.id}
+        channel={view.channel}
+        changed={changed}
+      />
     ) : view.kind === 'apiary' ? (
       <AddApiary key={view.id} me={me} id={view.id} />
     ) : null

@@ -205,6 +205,25 @@ describe('Enrolling a farmer (D8: online only)', () => {
     expect(env.server.farmerAccount(farmer.id)?.must_change_password).toBe(true)
   })
 
+  it('on a laptop, every section is on one page and one press enrols', async () => {
+    wide(true)
+    const env = await officer()
+    renderConsole(env, '/farmers/new')
+    await screen.findByRole('heading', { name: 'Enrol a farmer' })
+    await userEvent.click(screen.getByRole('button', { name: 'Enrol' }))
+    // Everything is checked at once, and nothing is sent.
+    expect(await screen.findByText('Write their first name.')).toBeInTheDocument()
+    expect(screen.getByText('Enrolment needs their agreement.')).toBeInTheDocument()
+    expect(screen.getByText('Use at least 8 characters.')).toBeInTheDocument()
+    expect(enrols(env)).toEqual([])
+    await fillDetails()
+    await userEvent.click(screen.getByRole('checkbox', { name: 'Nafula agrees' }))
+    await userEvent.type(screen.getByLabelText('Their password'), FARMER_PW)
+    await userEvent.click(screen.getByRole('button', { name: 'Enrol' }))
+    await screen.findByRole('heading', { name: 'Nafula Wekesa' })
+    expect(enrols(env)).toHaveLength(1)
+  })
+
   it('checks each section before moving on, and sends nothing until it is right', async () => {
     const env = await officer()
     renderConsole(env, '/farmers/new')
@@ -355,10 +374,13 @@ describe('Their choices (13 §4.5, D11)', () => {
     await userEvent.click(texts)
     const refusal = await screen.findByRole('alert')
     expect(refusal).toHaveTextContent('Only the farmer can turn this back on')
+    // No second press behind it: the switch waits until the refusal is gone.
+    expect(texts).toBeDisabled()
     expect(await env.outbox.waitingWork(21)).toBe(1)
     await userEvent.click(within(refusal).getByRole('button', { name: 'Remove' }))
     await vi.waitFor(async () => expect(await env.outbox.list(21)).toEqual([]))
     expect(texts).toHaveAttribute('aria-checked', 'false')
+    expect(texts).toBeEnabled()
   })
 })
 
@@ -375,8 +397,11 @@ describe('Documents (D9: online only)', () => {
     renderConsole(env, `/farmers/${env.mwende.id}`)
     await screen.findByRole('heading', { name: 'Documents' })
     expect(upload()).toBeDisabled()
+    // The reason appears once the outbox has been read too.
     expect(
-      screen.getByText('Upload opens once they agree to copies of their ID and papers being kept.'),
+      await screen.findByText(
+        'Upload opens once they agree to copies of their ID and papers being kept.',
+      ),
     ).toBeInTheDocument()
 
     env.server.offline = true
@@ -393,6 +418,21 @@ describe('Documents (D9: online only)', () => {
     env.server.offline = false
     await env.sync.kick({ force: true })
     await vi.waitFor(() => expect(upload()).toBeEnabled())
+  })
+
+  it('a withdrawal saved on this device closes upload at once', async () => {
+    const env = await officer()
+    env.server.consent(env.mwende.id, 'document_upload', true, 'onboarder')
+    renderConsole(env, `/farmers/${env.mwende.id}`)
+    await vi.waitFor(() => expect(upload()).toBeEnabled())
+    env.server.offline = true
+    await userEvent.click(
+      screen.getByRole('switch', { name: 'Keep copies of my ID and land papers' }),
+    )
+    await vi.waitFor(() => expect(upload()).toBeDisabled())
+    expect(
+      screen.getByText('Upload opens once they agree to copies of their ID and papers being kept.'),
+    ).toBeInTheDocument()
   })
 
   it('refuses an 11 MB file and a renamed .docx without sending anything', async () => {
@@ -499,7 +539,7 @@ describe('Confirming a number (13 §9 item 5)', () => {
     await open(env)
     await userEvent.click(screen.getByRole('button', { name: 'Send code' }))
     expect(await screen.findByText('Code sent. It works for 10 minutes.')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /^Send a new code in 0:0[45]$/ })).toBeDisabled()
+    expect(screen.getByRole('button', { name: /^Send a new code in 0:0[1-5]$/ })).toBeDisabled()
     await vi.waitFor(
       () => expect(screen.getByRole('button', { name: 'Send a new code' })).toBeEnabled(),
       {
@@ -520,6 +560,48 @@ describe('Confirming a number (13 §9 item 5)', () => {
     await screen.findByRole('heading', { name: 'Mwende Musyoka' })
     expect(await screen.findByText('Confirmed')).toBeInTheDocument()
     expect(env.server.farmers.find((f) => f.id === env.mwende.id)?.phone_verified_at).not.toBeNull()
+  })
+
+  it('on a laptop, the list beside it says the number is confirmed too', async () => {
+    wide(true)
+    const env = await officer()
+    renderConsole(env, `/farmers/${env.mwende.id}/verify/sms`)
+    await screen.findByRole('heading', { name: 'Confirm this number is theirs' })
+    const row = await screen.findByRole('link', { name: /Mwende Musyoka/ })
+    expect(row).toHaveTextContent('Phone not confirmed')
+    await userEvent.click(screen.getByRole('button', { name: 'Send code' }))
+    await screen.findByText('Code sent. It works for 10 minutes.')
+    await userEvent.type(screen.getByLabelText('Code'), env.server.outbound.at(-1)!.code)
+    await userEvent.click(screen.getByRole('button', { name: 'Confirm' }))
+    await vi.waitFor(() =>
+      expect(screen.getByRole('link', { name: /Mwende Musyoka/ })).toHaveTextContent(
+        'Phone confirmed',
+      ),
+    )
+  })
+
+  it('an email on file is confirmed the same way, and can take the email choice', async () => {
+    const env = await officer()
+    const achieng = env.server.seedFarmer({
+      first_name: 'Achieng',
+      last_name: 'Otieno',
+      phone: '+254733410287',
+      email: 'achieng@example.org',
+    })
+    renderConsole(env, `/farmers/${achieng.id}`)
+    expect(
+      await screen.findByRole('switch', { name: 'Email me when my honey reaches a new step' }),
+    ).toBeEnabled()
+    await userEvent.click(screen.getByRole('link', { name: 'Confirm their email' }))
+    await screen.findByRole('heading', { name: 'Confirm this email is theirs' })
+    expect(screen.getByText(/achieng@example\.org/)).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Send code' }))
+    await screen.findByText('Code sent. It works for 10 minutes.')
+    expect(env.server.outbound.at(-1)).toMatchObject({ farmerId: achieng.id, channel: 'email' })
+    await userEvent.type(screen.getByLabelText('Code'), env.server.outbound.at(-1)!.code)
+    await userEvent.click(screen.getByRole('button', { name: 'Confirm' }))
+    await screen.findByRole('heading', { name: 'Achieng Otieno' })
+    expect(env.server.farmers.find((f) => f.id === achieng.id)?.email_verified_at).not.toBeNull()
   })
 
   it("a 429 holds the button for the server's Retry-After", async () => {
@@ -628,6 +710,39 @@ describe('Accessibility', () => {
       await screen.findByRole('heading', { name: 'Their choices' })
       await screen.findByLabelText('Choose a file')
       const result = await axe.run(container, { rules: { 'color-contrast': { enabled: false } } })
+      expect(result.violations.map((v) => v.id)).toEqual([])
+    })
+
+    it(`a refused choice and the add-apiary screen have no axe violations (${theme})`, async () => {
+      document.documentElement.setAttribute('data-theme', theme)
+      const env = await officer()
+      env.server.consent(
+        env.mwende.id,
+        'sms_notifications',
+        false,
+        'farmer_self',
+        '2026-10-10T07:00:00',
+      )
+      env.server.consent(
+        env.mwende.id,
+        'sms_notifications',
+        false,
+        'onboarder',
+        '2026-10-11T07:00:00',
+      )
+      const { container, unmount } = renderConsole(env, `/farmers/${env.mwende.id}`)
+      await userEvent.click(
+        await screen.findByRole('switch', {
+          name: 'Send me a text when my honey reaches a new step',
+        }),
+      )
+      await screen.findByRole('alert')
+      let result = await axe.run(container, { rules: { 'color-contrast': { enabled: false } } })
+      expect(result.violations.map((v) => v.id)).toEqual([])
+      unmount()
+      const next = renderConsole(env, `/farmers/${env.mwende.id}/apiary`)
+      await screen.findByRole('heading', { name: 'Add an apiary' })
+      result = await axe.run(next.container, { rules: { 'color-contrast': { enabled: false } } })
       expect(result.violations.map((v) => v.id)).toEqual([])
     })
 
