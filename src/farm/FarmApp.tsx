@@ -13,8 +13,9 @@ import { Snapshots } from '../offline/snapshots'
 import { AppShell } from '../ui/AppShell'
 import { OfflineBanner } from '../ui/OfflineBanner'
 import { SyncChip } from '../ui/Sync'
-import { FarmServicesContext, type FarmServices, type Fix } from './FarmServices'
+import { FarmServicesContext, type FarmServices } from './FarmServices'
 import { HarvestsPage } from './HarvestsPage'
+import { locate } from './locate'
 import { RegisterHarvest } from './RegisterHarvest'
 import { SavedPage } from './SavedPage'
 import { ApiariesPage, MePage } from './SimplePages'
@@ -22,18 +23,6 @@ import { ApiariesPage, MePage } from './SimplePages'
 // The farmer capture app (12 §11): its own lazy chunk, holding the session,
 // the outbox and every farmer screen, so a shopper scanning a jar never
 // downloads any of it (12 D13).
-
-function locate(): Promise<Fix> {
-  return new Promise((resolve, reject) => {
-    if (!navigator.geolocation) return reject({ code: 2 })
-    navigator.geolocation.getCurrentPosition(
-      (p) =>
-        resolve({ lat: p.coords.latitude, lon: p.coords.longitude, accuracy: p.coords.accuracy }),
-      reject,
-      { enableHighAccuracy: true, timeout: 20_000, maximumAge: 0 },
-    )
-  })
-}
 
 let snapshots: Snapshots | null = null
 

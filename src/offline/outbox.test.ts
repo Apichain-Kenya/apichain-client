@@ -7,7 +7,7 @@ import { beforeEach, describe, expect, it } from 'vitest'
 
 import { Session } from '../auth/session'
 import { FakeBackend, FakeBus, FakeLocks } from '../test/fakeBackend'
-import { Outbox, harvestDrafts, type ActionRecord } from './outbox'
+import { Outbox, apiaryDraft, consentDraft, harvestDrafts, type ActionRecord } from './outbox'
 
 let server: FakeBackend
 let session: Session
@@ -229,5 +229,67 @@ describe('user scoping', () => {
     expect(result.paused).toBe('signed_out')
     expect(server.apiaries).toHaveLength(0)
     expect((await outbox.list(11)).every((r) => r.status === 'queued')).toBe(true)
+  })
+})
+
+describe('consent choices (13 §9 item 3)', () => {
+  async function officer() {
+    server.addStaff('mutua', 'a long staff passphrase', 40, 'field_officer', 'Mutua Kioko')
+    const farmer = server.seedFarmer({
+      first_name: 'Nafula',
+      last_name: 'Wekesa',
+      phone: '+254745220961',
+    })
+    const s = new Session({
+      fetch: server.fetch,
+      locks: new FakeLocks(),
+      channel: null,
+      storage: null,
+    })
+    expect(await s.signIn('mutua', 'a long staff passphrase')).toBe('ok')
+    return { s, farmer }
+  }
+
+  it('sends the farmer in the path and only the three fields the server allows', async () => {
+    const { s, farmer } = await officer()
+    await outbox.enqueue(
+      40,
+      [consentDraft(farmer.id, 'sms_notifications', true, 'en-2026-10')],
+      clock,
+    )
+    expect(await outbox.waitingWork(40)).toBe(1)
+    expect((await outbox.replay(40, s, () => clock)).sent).toBe(1)
+    expect(server.requests.at(-1)).toEqual({
+      path: `/v2/farmers/${farmer.id}/consents`,
+      key: expect.any(String),
+      body: { purpose: 'sms_notifications', granted: true, text_version: 'en-2026-10' },
+    })
+    expect(await outbox.waitingWork(40)).toBe(0)
+  })
+
+  it("a farmer's own withdrawal refuses an officer's grant, and the refusal waits", async () => {
+    const { s, farmer } = await officer()
+    server.consent(farmer.id, 'sms_notifications', false, 'farmer_self')
+    await outbox.enqueue(
+      40,
+      [consentDraft(farmer.id, 'sms_notifications', true, 'en-2026-10')],
+      clock,
+    )
+    await outbox.replay(40, s, () => clock)
+    const [row] = await outbox.list(40)
+    expect(row.status).toBe('needs_attention')
+    expect(row.last_error).toMatchObject({ status: 409, code: 'withdrawn_by_farmer' })
+    // Counted until someone removes it, so it is never forgotten.
+    expect(await outbox.waitingWork(40)).toBe(1)
+  })
+
+  it('an officer may add an apiary for any farmer', async () => {
+    const { s, farmer } = await officer()
+    const apiary = { name: 'Kyuso', latitude: '-0.428713', longitude: '38.212000', hive_count: 6 }
+    await outbox.enqueue(40, [apiaryDraft(farmer.id, apiary)], clock)
+    expect((await outbox.replay(40, s, () => clock)).sent).toBe(1)
+    expect(server.apiaries).toEqual([{ id: 101, farmer_id: farmer.id, ...apiary }])
+    // Not a harvest or a step: the chip does not count an apiary.
+    expect(await outbox.waitingWork(40)).toBe(0)
   })
 })

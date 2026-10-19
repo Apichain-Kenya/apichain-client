@@ -39,7 +39,7 @@ describe('Who sees People', () => {
     expect(env.server.reads.some((p) => p.startsWith('/v2/users'))).toBe(false)
   })
 
-  it('an admin has Batches, People and Me', async () => {
+  it('an admin has Batches, Farmers, People and Me', async () => {
     const env = await admin()
     renderConsole(env, '/batches')
     await screen.findByText('B-000004')
@@ -47,7 +47,7 @@ describe('Who sees People', () => {
       within(nav())
         .getAllByRole('link')
         .map((l) => l.textContent),
-    ).toEqual(['Batches', 'People', 'Me'])
+    ).toEqual(['Batches', 'Farmers', 'People', 'Me'])
   })
 })
 

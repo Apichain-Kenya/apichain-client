@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Redirect, Route, Switch, useLocation, useParams } from 'wouter'
-import { Layers, UserRound, UsersRound } from 'lucide-react'
+import { Layers, Sprout, UserRound, UsersRound } from 'lucide-react'
 
 import { Providers } from '../app/Providers'
 import { RequireRole } from '../app/RequireRole'
@@ -14,6 +14,7 @@ import { OfflineBanner } from '../ui/OfflineBanner'
 import { SyncChip } from '../ui/Sync'
 import { BatchesPage } from './BatchesPage'
 import { ConsoleMePage } from './ConsoleMePage'
+import { FarmersPage, type FarmerNotice, type FarmersView } from './FarmersPage'
 import { PeoplePage } from './PeoplePage'
 import styles from './ConsoleApp.module.css'
 
@@ -47,15 +48,21 @@ export function ConsoleRoutes({ me }: { me: Me }) {
   // What the People list says after an account is added; kept here because
   // adding and listing are different routes.
   const [notice, setNotice] = useState<string | null>(null)
+  // "… is enrolled", shown on that farmer's page after enrolment.
+  const [farmerNotice, setFarmerNotice] = useState<FarmerNotice>(null)
   const [location] = useLocation()
   useEffect(() => {
     if (!location.startsWith('/people')) setNotice(null)
+    if (!location.startsWith('/farmers')) setFarmerNotice(null)
   }, [location])
   const admin = me.role === 'admin'
-  // Sections appear by role (13 §4.2). People is the admin's (P4b-D); Farmers
-  // arrives with enrolment (P4b-E), so no tab points at a page not yet built.
+  // Farmers belong to field officers and admins (D7); operators and lab
+  // officers see a farmer's name on a batch, nothing more.
+  const farmers = me.role === 'field_officer' || admin
+  // Sections appear by role (13 §4.2): Farmers (P4b-E), People (P4b-D).
   const nav: NavItem[] = [
     { to: '/batches', label: t('console.nav.batches'), icon: Layers },
+    ...(farmers ? [{ to: '/farmers', label: t('console.nav.farmers'), icon: Sprout }] : []),
     ...(admin ? [{ to: '/people', label: t('console.nav.people'), icon: UsersRound }] : []),
     { to: '/me', label: t('console.nav.me'), icon: UserRound },
   ]
@@ -79,6 +86,11 @@ export function ConsoleRoutes({ me }: { me: Me }) {
         <Route path="/batches/:id">
           <BatchRoute me={me} />
         </Route>
+        {farmers ? (
+          <Route path="/farmers/*?">
+            <FarmersRoute me={me} notice={farmerNotice} setNotice={setFarmerNotice} />
+          </Route>
+        ) : null}
         {admin ? (
           <Route path="/people">
             <PeoplePage me={me} id={null} notice={notice} setNotice={setNotice} />
@@ -110,6 +122,33 @@ function PersonRoute(props: {
 }) {
   const { id } = useParams<{ id: string }>()
   return <PeoplePage {...props} id={id === 'new' ? 'new' : Number(id) || null} />
+}
+
+// /farmers, /farmers/new, /farmers/:id, /farmers/:id/verify/:channel and
+// /farmers/:id/apiary; anything else goes back to the list.
+function FarmersRoute(props: {
+  me: Me
+  notice: FarmerNotice
+  setNotice: (n: FarmerNotice) => void
+}) {
+  const params = useParams<{ '*'?: string }>()
+  const parts = (params['*'] ?? '').split('/').filter(Boolean)
+  const id = Number(parts[0])
+  let view: FarmersView | null = null
+  if (parts.length === 0) view = { kind: 'list' }
+  else if (parts[0] === 'new' && parts.length === 1) view = { kind: 'new' }
+  else if (Number.isInteger(id) && id > 0) {
+    if (parts.length === 1) view = { kind: 'farmer', id }
+    else if (parts[1] === 'apiary' && parts.length === 2) view = { kind: 'apiary', id }
+    else if (
+      parts[1] === 'verify' &&
+      (parts[2] === 'sms' || parts[2] === 'email') &&
+      parts.length === 3
+    )
+      view = { kind: 'verify', id, channel: parts[2] }
+  }
+  if (!view) return <Redirect to="/farmers" replace />
+  return <FarmersPage {...props} view={view} />
 }
 
 function BatchRoute({ me }: { me: Me }) {

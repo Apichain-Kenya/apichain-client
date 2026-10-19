@@ -250,7 +250,7 @@ describe('A password someone else set (13 D5)', () => {
 })
 
 describe('One sign-in for everyone (13 §7 step 2)', () => {
-  async function signInAt(path: string, who: 'farmer' | 'operator') {
+  async function signInAt(path: string, who: 'farmer' | 'operator', typed?: string) {
     const server = new FakeBackend()
     server.addFarmer('+254700000001', 'hunter2!', 11, 7)
     server.addStaff('jane', STAFF_PW, 21, 'operator', 'Jane Mwende')
@@ -273,7 +273,7 @@ describe('One sign-in for everyone (13 §7 step 2)', () => {
       </Providers>,
     )
     await screen.findByRole('heading', { name: 'Sign in' })
-    const [id, pw] = who === 'farmer' ? ['+254700000001', 'hunter2!'] : ['jane', STAFF_PW]
+    const [id, pw] = who === 'farmer' ? [typed ?? '+254700000001', 'hunter2!'] : ['jane', STAFF_PW]
     await userEvent.type(screen.getByLabelText('Phone number or username'), id)
     await userEvent.type(screen.getByLabelText('Password'), pw)
     await userEvent.click(screen.getByRole('button', { name: 'Sign in' }))
@@ -284,6 +284,13 @@ describe('One sign-in for everyone (13 §7 step 2)', () => {
   it('sends staff to the console and a farmer to the capture app', async () => {
     expect(await signInAt('/sign-in', 'operator')).toBe('/console')
     expect(await signInAt('/sign-in', 'farmer')).toBe('/farm')
+  })
+
+  it('finds a farmer by phone however they type it (ledger, P4b-E)', async () => {
+    // Enrolment stores +254…, and login matches it exactly: sign-in sends
+    // a typed Kenyan number in that same form.
+    expect(await signInAt('/sign-in', 'farmer', '0700 000 001')).toBe('/farm')
+    expect(await signInAt('/sign-in', 'farmer', '254700000001')).toBe('/farm')
   })
 
   it('follows a next only inside the person’s own app', async () => {

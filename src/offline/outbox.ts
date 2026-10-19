@@ -31,6 +31,7 @@ export type Kind =
   | 'batch.lab_verify'
   | 'batch.package'
   | 'batch.distribute'
+  | 'consent.record'
 /** A staff step on a batch the server already has (13 §8). */
 export type StageKind = 'batch.process' | 'batch.lab_verify' | 'batch.package' | 'batch.distribute'
 export type Status = 'queued' | 'sent' | 'needs_attention'
@@ -80,16 +81,25 @@ const KINDS: Record<Kind, { request: (body: Json) => { path: string; json: Json 
   'batch.lab_verify': { request: step('lab-verify') },
   'batch.package': { request: step('package') },
   'batch.distribute': { request: step('distribute') },
+  // A consent choice (13 §9 item 3): the farmer goes in the path, since the
+  // server forbids any field but purpose, granted and text_version.
+  'consent.record': {
+    request: ({ farmer_id, ...rest }) => ({
+      path: `/v2/farmers/${String(farmer_id)}/consents`,
+      json: rest,
+    }),
+  },
 }
 
-/** What the sync chip counts: a harvest or a staff step, not the actions
- *  inside a harvest (its apiary and batch). */
+/** What the sync chip counts: a harvest, a staff step or a consent choice,
+ *  not the actions inside a harvest (its apiary and batch). */
 const COUNTED: ReadonlySet<Kind> = new Set<Kind>([
   'batch.harvest',
   'batch.process',
   'batch.lab_verify',
   'batch.package',
   'batch.distribute',
+  'consent.record',
 ])
 
 const MAX_CONFLICT_RETRIES = 5
@@ -117,6 +127,29 @@ function refsIn(body: Json): string[] {
 /** The draft for one staff step on a batch (13 §8). */
 export function stageDraft(kind: StageKind, batchId: number, body: Json): Draft {
   return { kind, local_ref: `${kind}-${uuid()}`, body: { batch_id: batchId, ...body } }
+}
+
+/** One consent choice for one farmer, in the wording version they heard. */
+export function consentDraft(
+  farmerId: number,
+  purpose: string,
+  granted: boolean,
+  textVersion: string,
+): Draft {
+  return {
+    kind: 'consent.record',
+    local_ref: `consent-${uuid()}`,
+    body: { farmer_id: farmerId, purpose, granted, text_version: textVersion },
+  }
+}
+
+/** A new apiary for a farmer, seeded by their field officer (13 §9 item 7). */
+export function apiaryDraft(farmerId: number, apiary: Json): Draft {
+  return {
+    kind: 'apiary.create',
+    local_ref: `apiary-${uuid()}`,
+    body: { farmer_id: farmerId, ...apiary },
+  }
 }
 
 /** The drafts for one "Register a harvest": a new apiary only if needed. */

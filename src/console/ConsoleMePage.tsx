@@ -9,14 +9,21 @@ import { Button } from '../ui/Button'
 import styles from './ConsoleMePage.module.css'
 import { targetOf } from './work'
 
-/** This person's saved staff steps, live from the outbox. */
-function useMySteps(userId: number) {
+// A farmer's page holds this person's saved choices and new apiaries.
+const FARMER_WORK = new Set(['consent.record', 'apiary.create'])
+
+/** This person's saved staff work (steps, choices, apiaries), live. */
+function useMyWork(userId: number) {
   const { outbox } = useOutbox()
   const [rows, setRows] = useState<ActionRecord[]>([])
   useEffect(() => {
     let live = true
     const load = () =>
-      void outbox.list(userId).then((all) => live && setRows(all.filter((r) => targetOf(r.kind))))
+      void outbox
+        .list(userId)
+        .then(
+          (all) => live && setRows(all.filter((r) => targetOf(r.kind) || FARMER_WORK.has(r.kind))),
+        )
     load()
     const off = outbox.subscribe(load)
     return () => {
@@ -32,11 +39,13 @@ export function ConsoleMePage({ me }: { me: Me }) {
   const { t } = useTranslation()
   const session = useSessionApi()
   const [, navigate] = useLocation()
-  const steps = useMySteps(me.user_id)
-  // Only a queued step will send at the next sign-in; a refused one never
-  // will, so it is listed apart, with the way back to its card (review).
-  const queued = steps.filter((r) => r.status === 'queued').length
-  const refused = steps.filter((r) => r.status === 'needs_attention')
+  const work = useMyWork(me.user_id)
+  // Only queued work will send at the next sign-in; refused work never will,
+  // so it is listed apart, with the way back to where it can be removed.
+  const queued = work.filter((r) => r.status === 'queued')
+  const steps = queued.filter((r) => targetOf(r.kind)).length
+  const changes = queued.length - steps
+  const refused = work.filter((r) => r.status === 'needs_attention')
   return (
     <section className={styles.page}>
       <h1 className="serif">{me.display_name}</h1>
@@ -45,9 +54,14 @@ export function ConsoleMePage({ me }: { me: Me }) {
       <Link href="/password" className={styles.link}>
         {t('password.change.title')}
       </Link>
-      {queued > 0 ? (
+      {steps > 0 ? (
         <p className={styles.note} role="status">
-          {t('console.me.signOutWaiting', { count: queued })}
+          {t('console.me.signOutWaiting', { count: steps })}
+        </p>
+      ) : null}
+      {changes > 0 ? (
+        <p className={styles.note} role="status">
+          {t('console.me.signOutChanges', { count: changes })}
         </p>
       ) : null}
       {refused.length > 0 ? (
@@ -56,12 +70,23 @@ export function ConsoleMePage({ me }: { me: Me }) {
           <ul>
             {refused.map((r) => (
               <li key={r.id}>
-                <Link href={`/batches/${String(r.body.batch_id)}`} className={styles.link}>
-                  {t('console.me.refusedStep', {
-                    step: t(`console.steps.${targetOf(r.kind)}`),
-                    id: String(r.body.batch_id),
-                  })}
-                </Link>
+                {targetOf(r.kind) ? (
+                  <Link href={`/batches/${String(r.body.batch_id)}`} className={styles.link}>
+                    {t('console.me.refusedStep', {
+                      step: t(`console.steps.${targetOf(r.kind)}`),
+                      id: String(r.body.batch_id),
+                    })}
+                  </Link>
+                ) : (
+                  <Link href={`/farmers/${String(r.body.farmer_id)}`} className={styles.link}>
+                    {t(
+                      r.kind === 'consent.record'
+                        ? 'console.me.refusedChoice'
+                        : 'console.me.refusedApiary',
+                      { id: String(r.body.farmer_id) },
+                    )}
+                  </Link>
+                )}
               </li>
             ))}
           </ul>

@@ -159,8 +159,12 @@ function Back() {
   )
 }
 
-function passwordError(t: (k: string) => string, pw: string): string | undefined {
-  if (pw.length < STAFF_MIN) return t('console.people.errors.tooShort')
+function passwordError(
+  t: (k: string, o?: Record<string, unknown>) => string,
+  pw: string,
+  min = STAFF_MIN,
+): string | undefined {
+  if (pw.length < min) return t('console.people.errors.tooShort', { min })
   if (new TextEncoder().encode(pw).length > BCRYPT_MAX_BYTES)
     return t('console.people.errors.tooLong')
   return undefined
@@ -233,7 +237,7 @@ function AddPerson({
     } else if (result.code === 'username_taken') {
       setErrors({ username: t('console.people.errors.taken') })
     } else if (result.code === 'password_too_short') {
-      setErrors({ password: t('console.people.errors.tooShort') })
+      setErrors({ password: t('console.people.errors.tooShort', { min: STAFF_MIN }) })
     } else if (result.code === 'password_too_long') {
       setErrors({ password: t('console.people.errors.tooLong') })
     } else {
@@ -398,7 +402,19 @@ function Person({
   )
 }
 
-function ResetPassword({ id, changed }: { id: number; changed: () => void }) {
+/** A new starting password for someone else (D5). A farmer's minimum is 8,
+ *  so the farmer page passes its own (board call 5). */
+export function ResetPassword({
+  id,
+  changed,
+  min = STAFF_MIN,
+  note = 'console.people.person.reset.note',
+}: {
+  id: number
+  changed: () => void
+  min?: number
+  note?: string
+}) {
   const { t } = useTranslation()
   const { post, fresh } = usePress()
   const [password, setPassword] = useState('')
@@ -409,8 +425,8 @@ function ResetPassword({ id, changed }: { id: number; changed: () => void }) {
   const submit = async (e: FormEvent) => {
     e.preventDefault()
     setDone(false)
-    // The rule is the target's; staff accounts are the only ones listed here.
-    const bad = passwordError(t, password)
+    // The rule is the target's: 15 for staff, 8 for a farmer (D16).
+    const bad = passwordError(t, password, min)
     setError(bad)
     if (bad) return
     setBusy(true)
@@ -423,14 +439,14 @@ function ResetPassword({ id, changed }: { id: number; changed: () => void }) {
     } else if (result.kind === 'offline') {
       setError(t('console.people.person.reset.offline'))
     } else {
-      setError(t(RESET_REFUSALS[result.code ?? ''] ?? 'console.people.errors.failed'))
+      setError(t(RESET_REFUSALS[result.code ?? ''] ?? 'console.people.errors.failed', { min }))
     }
   }
 
   return (
     <form className={styles.block} onSubmit={(e) => void submit(e)} noValidate>
       <h3 className={styles.h3}>{t('console.people.person.reset.title')}</h3>
-      <p className={styles.small}>{t('console.people.person.reset.note')}</p>
+      <p className={styles.small}>{t(note)}</p>
       <Field label={t('console.people.person.reset.password')} error={error}>
         {(p) => (
           <input

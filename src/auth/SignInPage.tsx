@@ -5,6 +5,7 @@ import { useLocation, useSearch } from 'wouter'
 import { Brand } from '../ui/Brand'
 import { Button } from '../ui/Button'
 import { Field } from '../ui/Field'
+import { signInIdentifier } from './phone'
 import { useSessionApi } from './SessionContext'
 import styles from './SignInPage.module.css'
 import { landingFor } from './surface'
@@ -26,7 +27,7 @@ export function SignInPage() {
     e.preventDefault()
     setBusy(true)
     setError(undefined)
-    const result = await session.signIn(identifier.trim(), password)
+    const result = await session.signIn(signInIdentifier(identifier), password)
     setBusy(false)
     if (result === 'ok' && session.state.status === 'signed_in') {
       // Only ever back into this person's own app, never to another origin.
