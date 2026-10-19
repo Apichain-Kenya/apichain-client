@@ -808,14 +808,14 @@
       "labPlace": "{{lab}}, certificate {{cert}}.",
       "labOnly": "{{lab}}.",
       "foot": "Printed by {{name}} from the ApiChain console. A printed sheet can go out of date; the live record behind the code is the one to trust.",
-      "print": "Print record"
+      "print": "Print record",
+      "savedCopy": "This is this device's saved copy of the record, from {{when}}: the connection failed. Printing waits for a live answer, so a sheet never shows an old state as new."
     },
     "health": {
       "title": "Record health",
       "checked": "Chain checked {{ago}}. Nothing has changed.",
       "notChecked": "The chain hasn't been checked yet.",
       "broken": "Chain check found a change. Tell whoever runs the server today.",
-      "waiting_zero": "No records waiting to be sealed.",
       "waiting_one": "1 record waiting to be sealed.",
       "waiting_other": "{{count}} records waiting to be sealed.",
       "stuck": "Sealing has stopped: the last attempt failed.",
@@ -826,7 +826,10 @@
       "hours_one": "{{count}} hour ago",
       "hours_other": "{{count}} hours ago",
       "days_one": "{{count}} day ago",
-      "days_other": "{{count}} days ago"
+      "days_other": "{{count}} days ago",
+      "sealedAll": "Every record is sealed on Bitcoin.",
+      "bundles_one": "1 bundle of records is waiting for Bitcoin to confirm it.",
+      "bundles_other": "{{count}} bundles of records are waiting for Bitcoin to confirm them."
     }
   },
   "consent": {

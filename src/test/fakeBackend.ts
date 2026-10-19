@@ -150,6 +150,8 @@ export class FakeBackend {
   signedUrls: string[] = []
   /** `GET /v2/public/batches/{public_id}/verify` answers, by public id. */
   verifies: Record<string, Json> = {}
+  /** Set to answer /verify as the service worker's saved copy does. */
+  verifyCachedAt: string | null = null
   /** `GET /v2/audit/health` and `/v2/audit/anchor-health`. */
   auditHealth: Json = { chain_ok: true, checked_at: null, rows_checked: 0 }
   anchorHealth: Json = { anchor_ok: true, pending_rows: 0, pending_anchors: 0 }
@@ -449,7 +451,12 @@ export class FakeBackend {
     const verify = url.pathname.match(/^\/v2\/public\/batches\/([^/]+)\/verify$/)
     if (verify) {
       const row = this.verifies[verify[1]]
-      return row ? json(200, row) : json(404, { code: 'batch_not_found', message: 'No such batch' })
+      if (!row) return json(404, { code: 'batch_not_found', message: 'No such batch' })
+      return json(
+        200,
+        row,
+        this.verifyCachedAt ? { 'X-ApiChain-Cached-At': this.verifyCachedAt } : {},
+      )
     }
     if (url.pathname === '/v2/audit/health') return json(200, this.auditHealth)
     if (url.pathname === '/v2/audit/anchor-health') return json(200, this.anchorHealth)

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useId, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { AlertCircle, Check, Clock } from 'lucide-react'
 
@@ -46,17 +46,23 @@ export function AnchorHealth() {
   if (anchor.status === 'ok') {
     const h = anchor.data
     if (!h.anchor_ok) lines.push({ tone: 'bad', text: t('console.health.stuck') })
-    lines.push({
-      tone: h.pending_rows > 0 ? 'wait' : 'ok',
-      text: t('console.health.waiting', { count: h.pending_rows }),
-    })
+    // Rows not yet in a bundle, then bundles Bitcoin has not confirmed. Only
+    // with neither is every record sealed (12 D8: sealed means confirmed).
+    if (h.pending_rows > 0)
+      lines.push({ tone: 'wait', text: t('console.health.waiting', { count: h.pending_rows }) })
+    if (h.pending_anchors > 0)
+      lines.push({ tone: 'wait', text: t('console.health.bundles', { count: h.pending_anchors }) })
+    if (h.pending_rows === 0 && h.pending_anchors === 0)
+      lines.push({ tone: 'ok', text: t('console.health.sealedAll') })
   }
   const failed = audit.status === 'error' || anchor.status === 'error'
   const Icon = { ok: Check, wait: Clock, bad: AlertCircle }
+  // The card can be on the page twice (the rail and an admin's Me page).
+  const titleId = useId()
 
   return (
-    <section className={styles.card} aria-labelledby="health-title">
-      <h2 id="health-title" className={styles.title}>
+    <section className={styles.card} aria-labelledby={titleId}>
+      <h2 id={titleId} className={styles.title}>
         {t('console.health.title')}
       </h2>
       {lines.map((l) => {

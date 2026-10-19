@@ -7,7 +7,7 @@ import { Button } from '../../ui/Button'
 import listStyles from '../BatchesPage.module.css'
 import type { BatchDetail } from '../work'
 import styles from './Labels.module.css'
-import { mayPrintLabels } from './printOrigins'
+import { mayPrintLabels } from '../printOrigins'
 import { jarLink, longDay, useBatchSheet, useQr } from './sheet'
 
 const PER_SHEET = 12

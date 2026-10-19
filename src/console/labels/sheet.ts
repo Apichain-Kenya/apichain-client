@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
 
+import { OfflineError } from '../../auth/session'
+import { useSessionApi } from '../../auth/SessionContext'
 import type { VerifyResponse } from '../../consumer/trustState'
 import { useRead, type Read } from '../useRead'
 import { serverDate, type BatchDetail } from '../work'
@@ -65,13 +67,58 @@ export function eatTime(at: Date): string {
   return eatFormat.format(at)
 }
 
+/** The jar check, and whether it is this device's saved copy: the service
+ *  worker answers /verify from its cache when the network fails, and marks
+ *  the answer with when it was stored (12 D15). A record sheet must know. */
+function useVerify(publicId: string | null): {
+  read: Read<VerifyResponse>
+  cachedAt: string | null
+} {
+  const session = useSessionApi()
+  const userId = session.userId
+  const [state, setState] = useState<{ read: Read<VerifyResponse>; cachedAt: string | null }>({
+    read: { status: 'loading' },
+    cachedAt: null,
+  })
+  useEffect(() => {
+    if (publicId === null || userId === null) return
+    let live = true
+    setState({ read: { status: 'loading' }, cachedAt: null })
+    session
+      .authFetch(`/v2/public/batches/${publicId}/verify`, {}, { asUser: userId })
+      .then(async (res) => {
+        if (!live) return
+        if (!res.ok)
+          return setState({ read: { status: 'error', code: res.status }, cachedAt: null })
+        const data = (await res.json()) as VerifyResponse
+        if (live)
+          setState({
+            read: { status: 'ok', data },
+            cachedAt: res.headers.get('X-ApiChain-Cached-At'),
+          })
+      })
+      .catch((e: unknown) => {
+        if (live)
+          setState({
+            read: e instanceof OfflineError ? { status: 'offline' } : { status: 'error', code: 0 },
+            cachedAt: null,
+          })
+      })
+    return () => {
+      live = false
+    }
+  }, [publicId, userId, session])
+  return state
+}
+
 /** A batch as the console holds it, and as a shopper's scan would see it. */
 export function useBatchSheet(id: number): {
   batch: Read<BatchDetail>
   verify: Read<VerifyResponse> | null
+  cachedAt: string | null
 } {
   const batch = useRead<BatchDetail>(`/v2/batches/${id}`)
   const publicId = batch.status === 'ok' ? batch.data.public_id : null
-  const verify = useRead<VerifyResponse>(publicId ? `/v2/public/batches/${publicId}/verify` : null)
-  return { batch, verify: publicId ? verify : null }
+  const { read, cachedAt } = useVerify(publicId)
+  return { batch, verify: publicId ? read : null, cachedAt }
 }

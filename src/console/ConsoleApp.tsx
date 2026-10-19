@@ -12,6 +12,7 @@ import { useSession, type Me } from '../auth/SessionContext'
 import { AppShell, type NavItem } from '../ui/AppShell'
 import { OfflineBanner } from '../ui/OfflineBanner'
 import { SyncChip } from '../ui/Sync'
+import { useWide } from '../ui/useWide'
 import { AnchorHealth } from './AnchorHealth'
 import { BatchesPage } from './BatchesPage'
 import { ConsoleMePage } from './ConsoleMePage'
@@ -59,6 +60,7 @@ export function ConsoleRoutes({ me }: { me: Me }) {
     if (!location.startsWith('/farmers')) setFarmerNotice(null)
   }, [location])
   const admin = me.role === 'admin'
+  const wide = useWide()
   // Farmers belong to field officers and admins (D7); operators and lab
   // officers see a farmer's name on a batch, nothing more.
   const farmers = me.role === 'field_officer' || admin
@@ -75,7 +77,7 @@ export function ConsoleRoutes({ me }: { me: Me }) {
       nav={nav}
       account={{ name: me.display_name, role: t(`console.roles.${me.role}`) }}
       status={<SyncChip waiting={waiting} />}
-      railFoot={admin ? <AnchorHealth /> : undefined}
+      railFoot={admin && wide ? <AnchorHealth /> : undefined}
     >
       <div className={styles.banner}>
         <OfflineBanner unreachable={paused === 'offline'} message={t('console.offlineBanner')} />

@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useLocation } from 'wouter'
-import { ArrowLeft, Printer } from 'lucide-react'
+import { AlertTriangle, ArrowLeft, Printer } from 'lucide-react'
 
 import { interpretAuthenticity } from '../../api/authenticity'
 import type { Me } from '../../auth/SessionContext'
@@ -29,7 +29,7 @@ const DECLARED: Partial<Record<StateKey, (v: VerifyResponse) => unknown>> = {
 export function RecordSheet({ me, id }: { me: Me; id: number }) {
   const { t } = useTranslation()
   const [, navigate] = useLocation()
-  const { batch, verify } = useBatchSheet(id)
+  const { batch, verify, cachedAt } = useBatchSheet(id)
   const back = (
     <button
       type="button"
@@ -52,13 +52,28 @@ export function RecordSheet({ me, id }: { me: Me; id: number }) {
       </section>
     )
   }
-  return <Sheet me={me} b={batch.data} v={verify.data} back={back} />
+  return <Sheet me={me} b={batch.data} v={verify.data} cachedAt={cachedAt} back={back} />
 }
 
-function Sheet({ me, b, v, back }: { me: Me; b: BatchDetail; v: VerifyResponse; back: ReactNode }) {
+function Sheet({
+  me,
+  b,
+  v,
+  cachedAt,
+  back,
+}: {
+  me: Me
+  b: BatchDetail
+  v: VerifyResponse
+  /** Set when this is the device's saved copy, not a live answer. */
+  cachedAt: string | null
+  back: ReactNode
+}) {
   const { t } = useTranslation()
-  // The moment this sheet speaks for, fixed when it was opened.
-  const [at] = useState(() => new Date())
+  // The moment this sheet speaks for: when it was opened, or, for a saved
+  // copy, when that copy was stored. A saved copy is never printed (D13).
+  const [opened] = useState(() => new Date())
+  const at = cachedAt ? new Date(cachedAt) : opened
   const qr = useQr(jarLink(b.public_id))
   const state = trustState(v)
   const honeyKey = b.metadata?.honey_type
@@ -91,10 +106,20 @@ function Sheet({ me, b, v, back }: { me: Me; b: BatchDetail; v: VerifyResponse; 
             {t('console.record.title')}
           </h1>
         </div>
-        <Button icon={<Printer aria-hidden="true" size={18} />} onClick={() => window.print()}>
+        <Button
+          icon={<Printer aria-hidden="true" size={18} />}
+          disabled={cachedAt !== null}
+          onClick={() => window.print()}
+        >
           {t('console.record.print')}
         </Button>
       </div>
+      {cachedAt ? (
+        <p className={`${styles.notice} ${styles.screenOnly}`} role="status">
+          <AlertTriangle aria-hidden="true" size={18} strokeWidth={2} />
+          <span>{t('console.record.savedCopy', { when: eatTime(at) })}</span>
+        </p>
+      ) : null}
       <div className={styles.desk}>
         <article className={styles.a4}>
           <div className={styles.top}>

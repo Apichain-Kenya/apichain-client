@@ -13,7 +13,7 @@ import mismatch from '../consumer/__fixtures__/mismatch.json'
 import sealed from '../consumer/__fixtures__/sealed.json'
 import sealing from '../consumer/__fixtures__/sealing.json'
 import { renderConsole, staff, wide, type Env } from '../test/consoleHarness'
-import { PRINT_ORIGINS } from './labels/printOrigins'
+import { PRINT_ORIGINS } from './printOrigins'
 import { QUIET, qrMatrix, qrSvg } from './labels/qr'
 
 type Json = Record<string, unknown>
@@ -203,6 +203,35 @@ describe('The batch record sheet (D13)', () => {
     }
   }
 
+  it('a saved copy from this device is dated as such, and is not printed', async () => {
+    const env = await staff('operator')
+    packed(env)
+    env.server.verifyCachedAt = '2026-10-12T06:30:00.000Z'
+    renderConsole(env, '/batches/4183/record')
+    expect(
+      await screen.findByText('As of 12 Oct 2026, 09:30 (East Africa Time)'),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByText(/^This is this device's saved copy of the record, from 12 Oct 2026, 09:30/),
+    ).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Print record' })).toBeDisabled()
+  })
+
+  it('a batch not yet packed has its sheet too, with the steps still to come', async () => {
+    const env = await staff('operator')
+    const verification = { ...(inProgress.verification as Json), lab: null, packaging: null }
+    env.server.verifies = {
+      p1: { ...inProgress, public_id: 'p1', state: 'PROCESSED', conformance: null, verification },
+    }
+    renderConsole(env, '/batches/4181/record')
+    await screen.findByText(/^As of /)
+    expect(screen.getByText('Still on its journey')).toBeInTheDocument()
+    expect(screen.getByText('No lab result yet.')).toBeInTheDocument()
+    const rows = screen.getAllByRole('row').map((r) => r.textContent)
+    expect(rows).toContain('Lab testedNot yet')
+    expect(screen.getByRole('button', { name: 'Print record' })).toBeEnabled()
+  })
+
   it('words a failed lab result as being reviewed', async () => {
     await sheet(inProgress, 'fail')
     expect(screen.getByText(/Lab results are being reviewed\./)).toBeInTheDocument()
@@ -261,8 +290,19 @@ describe('Anchor health (13 §10 item 4)', () => {
     env.server.anchorHealth = { anchor_ok: true, pending_rows: 0, pending_anchors: 0 }
     renderConsole(env, '/me')
     const card = await screen.findByRole('region', { name: 'Record health' })
-    expect(await within(card).findByText('No records waiting to be sealed.')).toBeInTheDocument()
+    expect(await within(card).findByText('Every record is sealed on Bitcoin.')).toBeInTheDocument()
     expect(within(card).getByText("The chain hasn't been checked yet.")).toBeInTheDocument()
+  })
+
+  it('never says sealed while Bitcoin has yet to confirm a bundle', async () => {
+    const env = await staff('admin')
+    env.server.anchorHealth = { anchor_ok: true, pending_rows: 0, pending_anchors: 1 }
+    renderConsole(env, '/me')
+    const card = await screen.findByRole('region', { name: 'Record health' })
+    expect(
+      await within(card).findByText('1 bundle of records is waiting for Bitcoin to confirm it.'),
+    ).toBeInTheDocument()
+    expect(within(card).queryByText(/sealed on Bitcoin/)).not.toBeInTheDocument()
   })
 
   it('an operator has no card and never asks', async () => {
@@ -279,6 +319,23 @@ describe('Anchor health (13 §10 item 4)', () => {
 
 describe('Accessibility', () => {
   for (const theme of ['light', 'dark']) {
+    it(`an admin's Me page, with the record health card, has no axe violations (${theme})`, async () => {
+      document.documentElement.setAttribute('data-theme', theme)
+      wide(true)
+      const env = await staff('admin')
+      env.server.anchorHealth = { anchor_ok: false, pending_rows: 3, pending_anchors: 1 }
+      const { container } = renderConsole(env, '/me')
+      // Twice: the rail's (CSS-hidden here) and the Me page's, so ids must differ.
+      expect(
+        await screen.findAllByText('Sealing has stopped: the last attempt failed.'),
+      ).toHaveLength(2)
+      // axe no longer checks duplicate ids; this page has two cards, so check.
+      const ids = [...container.querySelectorAll('[id]')].map((el) => el.id)
+      expect(new Set(ids).size).toBe(ids.length)
+      const result = await axe.run(container, { rules: { 'color-contrast': { enabled: false } } })
+      expect(result.violations.map((v) => v.id)).toEqual([])
+    })
+
     it(`the label sheet and the record sheet have no axe violations (${theme})`, async () => {
       document.documentElement.setAttribute('data-theme', theme)
       wide(true)
