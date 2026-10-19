@@ -429,11 +429,7 @@ function Documents({
     }
   }
 
-  const view = async (doc: DocumentOut) => {
-    // Opened inside the click, so the browser does not block it as a popup;
-    // the link arrives after, and the new tab never gets a handle back here.
-    const tab = window.open('', '_blank')
-    if (tab) tab.opener = null
+  const download = async (doc: DocumentOut) => {
     try {
       const res = await session.authFetch(
         `/v2/documents/${doc.id}/download-url`,
@@ -442,10 +438,14 @@ function Documents({
       )
       if (!res.ok) throw new Error(String(res.status))
       const { url } = (await res.json()) as { url: string }
-      if (tab) tab.location.href = url
-      else window.open(url, '_blank', 'noopener')
+      // The server signs every link as an attachment (3b, `storage.py`), so
+      // following it here saves the file and the console stays where it is.
+      // No tab: one opened first would only ever stay blank (P4b-H walk).
+      const a = document.createElement('a')
+      a.href = url
+      a.rel = 'noopener noreferrer'
+      a.click()
     } catch {
-      tab?.close()
       setSaid({ tone: 'alert', text: t('console.farmers.farmer.viewFailed') })
     }
   }
@@ -533,7 +533,7 @@ function Documents({
                     type: typeName,
                     name: d.original_filename,
                   })}
-                  onClick={() => void view(d)}
+                  onClick={() => void download(d)}
                 >
                   {t('console.farmers.farmer.view')}
                 </Button>

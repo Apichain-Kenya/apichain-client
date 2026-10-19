@@ -472,7 +472,7 @@ describe('Documents (D9: online only)', () => {
     await userEvent.upload(upload(), PDF())
     expect(await screen.findByText('Filed.')).toBeInTheDocument()
     expect(
-      await screen.findByRole('button', { name: 'View National ID, id.pdf' }),
+      await screen.findByRole('button', { name: 'Download National ID, id.pdf' }),
     ).toBeInTheDocument()
     expect(uploads(env)).toEqual([
       {
@@ -502,25 +502,33 @@ describe('Documents (D9: online only)', () => {
     ).toBeInTheDocument()
   })
 
-  it('asks for a fresh signed link on every view, and keeps none', async () => {
+  it('asks for a fresh signed link on every download, opens no tab, and keeps none', async () => {
     const env = await officer()
     env.server.consent(env.mwende.id, 'document_upload', true, 'onboarder')
     renderConsole(env, `/farmers/${env.mwende.id}`)
     await vi.waitFor(() => expect(upload()).toBeEnabled())
     await userEvent.upload(upload(), PDF())
-    const view = await screen.findByRole('button', { name: 'View National ID, id.pdf' })
-    const tabs: { opener: unknown; location: { href: string }; close: () => void }[] = []
-    vi.stubGlobal('open', () => {
-      const tab = { opener: window, location: { href: '' }, close: vi.fn() }
-      tabs.push(tab)
-      return tab
+    const download = await screen.findByRole('button', {
+      name: 'Download National ID, id.pdf',
     })
-    await userEvent.click(view)
-    await userEvent.click(view)
-    await vi.waitFor(() => expect(tabs.map((t) => t.location.href)).toEqual(env.server.signedUrls))
+    // The server signs every link as an attachment (3b, `storage.py`), so the
+    // browser saves it and the console stays. A tab opened first would only
+    // ever stay blank (found in the P4b-H browser walk).
+    const opened = vi.fn()
+    vi.stubGlobal('open', opened)
+    const followed: string[] = []
+    const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(function (
+      this: HTMLAnchorElement,
+    ) {
+      followed.push(this.href)
+    })
+    await userEvent.click(download)
+    await userEvent.click(download)
+    await vi.waitFor(() => expect(followed).toEqual(env.server.signedUrls))
+    click.mockRestore()
     expect(env.server.signedUrls).toHaveLength(2)
     expect(new Set(env.server.signedUrls).size).toBe(2)
-    expect(tabs.every((t) => t.opener === null)).toBe(true)
+    expect(opened).not.toHaveBeenCalled()
     expect(document.body.innerHTML).not.toContain('store.test')
     expect(await everythingStored()).not.toContain('store.test')
   })
