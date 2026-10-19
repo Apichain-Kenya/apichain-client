@@ -184,6 +184,23 @@ describe('The batch record sheet (D13)', () => {
     expect(rows).toContain('Sent to shopsNot yet')
   })
 
+  it('says "on <day>" only when the day it was recorded differs from the declared day', async () => {
+    // Harvested and tested on the day they were recorded (14 Oct, as the
+    // console fixture records them): the day once, no "on 14 Oct" (board call 1).
+    const v = structuredClone(inProgress) as unknown as {
+      verification: Record<string, { payload: Json }>
+    }
+    v.verification.harvest.payload = {
+      ...v.verification.harvest.payload,
+      harvest_date: '2026-10-14T00:00:00',
+    }
+    v.verification.lab.payload = { ...v.verification.lab.payload, tested_at: '2026-10-14T00:00:00' }
+    await sheet(v as unknown as Json)
+    const rows = screen.getAllByRole('row').map((r) => r.textContent)
+    expect(rows).toContain('Harvested14 Oct 2026Wanjiru Kamau, farmer')
+    expect(rows).toContain('Lab tested14 Oct 2026Achieng Odhiambo, lab officer')
+  })
+
   for (const [name, verify] of [
     ['in progress', inProgress],
     ['being sealed', sealing],

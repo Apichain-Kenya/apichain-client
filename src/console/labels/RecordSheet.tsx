@@ -185,7 +185,8 @@ function Sheet({
                     <td>{t(`console.steps.${key}`)}</td>
                     <td>{declared ?? longDay(stage.recorded_at)}</td>
                     <td>
-                      {declared
+                      {/* The recorded day only when it differs (board call 1). */}
+                      {declared && declared !== longDay(stage.recorded_at)
                         ? t('console.record.on', { by, day: shortDay(stage.recorded_at) })
                         : by}
                     </td>
