@@ -354,3 +354,117 @@ describe('browser-walk fixes', () => {
     release()
   })
 })
+
+describe('the "Sending" gap (13 §11 item 3)', () => {
+  /** The farmer's batch list, answered only when the test says so. */
+  function heldList() {
+    const answers: ((items: unknown[]) => void)[] = []
+    const real = services.session.authFetch.bind(services.session)
+    vi.spyOn(services.session, 'authFetch').mockImplementation((path, init, opts) =>
+      String(path).startsWith('/v2/batches?')
+        ? new Promise((r) =>
+            answers.push((items) =>
+              r(new Response(JSON.stringify({ items, next_cursor: null }), { status: 200 })),
+            ),
+          )
+        : real(path, init, opts),
+    )
+    return answers
+  }
+
+  const summary = (id: number, state: string) => ({
+    id,
+    public_id: 'b'.repeat(32),
+    batch_code: `B-${id}`,
+    state,
+    honey_type: 'acacia',
+    apiary_name: 'Mukurwe-ini',
+    created_at: '2026-10-13T06:00:00',
+    state_updated_at: '2026-10-13T07:00:00',
+  })
+
+  it('a sent harvest stays as "Sending" at every moment until the list has it', async () => {
+    await setup({ online: true })
+    server.apiaries.push({ id: 101, farmer_id: 7, name: 'Mukurwe-ini' })
+    const answers = heldList()
+    await services.outbox.enqueue(
+      11,
+      harvestDrafts({
+        farmerId: 7,
+        apiaryId: 101,
+        metadata: { honey_type: 'acacia' },
+        harvest: { harvest_date: TODAY, quantity_kg: '35.00', hive_ids: [] },
+      }),
+      services.now(),
+    )
+    const { container } = renderAt('/')
+    await vi.waitFor(() => expect(answers).toHaveLength(1))
+    answers[0]([])
+    expect(await screen.findByText('Saved on this phone')).toBeInTheDocument()
+
+    // Count the harvest rows at every change to the screen from here on.
+    const rows = () => container.querySelectorAll('ul > li').length
+    const seen: number[] = [rows()]
+    const watch = new MutationObserver(() => seen.push(rows()))
+    watch.observe(container, { childList: true, subtree: true, characterData: true })
+
+    await services.outbox.replay(11, services.session, services.now) // sent
+    expect(await screen.findByText('Sending')).toBeInTheDocument()
+    await vi.waitFor(() => expect(answers).toHaveLength(2))
+    answers[1]([summary(Number(server.batches[0].id), 'HARVESTED')])
+    expect(await screen.findByText('Sent. Now harvest recorded')).toBeInTheDocument()
+    expect(screen.queryByText('Sending')).not.toBeInTheDocument()
+    watch.disconnect()
+    expect(Math.min(...seen)).toBe(1)
+    expect(Math.max(...seen)).toBe(1)
+  })
+
+  it('a list read before the harvest landed (batch still registered) keeps one "Sending" row', async () => {
+    await setup({ online: true })
+    server.apiaries.push({ id: 101, farmer_id: 7, name: 'Mukurwe-ini' })
+    const answers = heldList()
+    await services.outbox.enqueue(
+      11,
+      harvestDrafts({
+        farmerId: 7,
+        apiaryId: 101,
+        metadata: { honey_type: 'acacia' },
+        harvest: { harvest_date: TODAY, quantity_kg: '35.00', hive_ids: [] },
+      }),
+      services.now(),
+    )
+    await services.outbox.replay(11, services.session, services.now)
+    const { container } = renderAt('/')
+    await vi.waitFor(() => expect(answers).toHaveLength(1))
+    answers[0]([summary(Number(server.batches[0].id), 'CREATED')])
+    await screen.findByText('Sending')
+    await new Promise((r) => setTimeout(r, 50))
+    expect(container.querySelectorAll('ul > li')).toHaveLength(1)
+    expect(screen.queryByText(/^Sent\./)).not.toBeInTheDocument()
+  })
+
+  it('an old sent harvest beyond the first page of 100 never comes back as "Sending"', async () => {
+    await setup({ online: true })
+    const answers = heldList()
+    server.apiaries.push({ id: 101, farmer_id: 7, name: 'Mukurwe-ini' })
+    server.seq.batch = 4 // sent long ago, as batch 5
+    await services.outbox.enqueue(
+      11,
+      harvestDrafts({
+        farmerId: 7,
+        apiaryId: 101,
+        metadata: { honey_type: 'acacia' },
+        harvest: { harvest_date: TODAY, quantity_kg: '35.00', hive_ids: [] },
+      }),
+      services.now(),
+    )
+    await services.outbox.replay(11, services.session, services.now)
+    expect(server.batches[0].id).toBe(5)
+    // The first page holds batches 200 down to 101.
+    renderAt('/')
+    await vi.waitFor(() => expect(answers).toHaveLength(1))
+    answers[0](Array.from({ length: 100 }, (_, i) => summary(200 - i, 'PACKAGED')))
+    expect(await screen.findAllByText('Sent. Now packed')).toHaveLength(100)
+    expect(screen.queryByText('Sending')).not.toBeInTheDocument()
+  })
+})

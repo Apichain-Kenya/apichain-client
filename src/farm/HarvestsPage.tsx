@@ -10,7 +10,7 @@ import { SyncBadge } from '../ui/Sync'
 import { dayLabel, localDay } from './dayLabel'
 import { useFarm } from './FarmServices'
 import styles from './HarvestsPage.module.css'
-import { useFarmData, type Apiary } from './useFarmData'
+import { useFarmData, type Apiary, type BatchSummary } from './useFarmData'
 
 const HEX = 'M32 3 L60 19 L60 53 L32 69 L4 53 L4 19 Z'
 
@@ -20,19 +20,46 @@ function greetingKey(hour: number) {
   return 'farm.greeting.evening'
 }
 
-type Unsent = { harvest: ActionRecord; batch?: ActionRecord; apiary?: ActionRecord }
+type Unsent = {
+  harvest: ActionRecord
+  batch?: ActionRecord
+  apiary?: ActionRecord
+  /** The server's batch, once known: the row the server list will show. */
+  batchId: number | null
+}
 
-/** One saved-but-unsent harvest = its batch.harvest action plus the actions it depends on. */
-function unsentHarvests(actions: ActionRecord[]): Unsent[] {
+const PAGE = 100 // the list read below asks for one page of this size
+
+/**
+ * Whether the server's list already shows this sent harvest: its batch is
+ * there and past CREATED, or is older than a full page reaches (newest first),
+ * so a harvest sent long ago never comes back as "Sending".
+ */
+function listed(batchId: number | null, batches: BatchSummary[] | null): boolean {
+  if (batchId === null || batches === null) return false
+  const row = batches.find((b) => b.id === batchId)
+  if (row) return row.state !== 'CREATED'
+  return batches.length >= PAGE && batchId < Math.min(...batches.map((b) => b.id))
+}
+
+/**
+ * One harvest still to show from this phone: its batch.harvest action plus
+ * the actions it depends on. Unsent ones, and sent ones until the server's
+ * list has them (13 §11 item 3), so a harvest never blinks out in between.
+ */
+function localHarvests(actions: ActionRecord[], batches: BatchSummary[] | null): Unsent[] {
   const byRef = new Map(actions.map((a) => [a.local_ref, a]))
   return actions
-    .filter((a) => a.kind === 'batch.harvest' && a.status !== 'sent')
+    .filter((a) => a.kind === 'batch.harvest')
     .sort((a, b) => b.seq - a.seq)
     .map((harvest) => {
       const batch = byRef.get(harvest.depends_on[0])
       const apiary = batch?.depends_on[0] ? byRef.get(batch.depends_on[0]) : undefined
-      return { harvest, batch, apiary }
+      const id =
+        harvest.server_result?.batch_id ?? batch?.server_result?.id ?? harvest.body.batch_id
+      return { harvest, batch, apiary, batchId: typeof id === 'number' ? id : null }
     })
+    .filter((u) => u.harvest.status !== 'sent' || !listed(u.batchId, batches))
 }
 
 // My harvests (approved board): what is on this phone, what was sent, and one
@@ -42,7 +69,10 @@ export function HarvestsPage({ me }: { me: Me }) {
   const { t } = useTranslation()
   const farm = useFarm()
   const { apiaries, batches, actions, fresh } = useFarmData(me.user_id, me.farmer_id ?? null)
-  const unsent = unsentHarvests(actions)
+  const unsent = localHarvests(actions, batches)
+  // A batch this phone still shows is not shown twice.
+  const mine = new Set(unsent.map((u) => u.batchId))
+  const sent = (batches ?? []).filter((b) => !mine.has(b.id))
   const name = me.display_name.split(' ')[0]
   const today = farm.today()
 
@@ -56,7 +86,7 @@ export function HarvestsPage({ me }: { me: Me }) {
 
       <h2 className={styles.title}>{t('farm.harvests.title')}</h2>
       {unsent.length === 0 &&
-      (batches?.length ?? 0) === 0 &&
+      sent.length === 0 &&
       apiaries !== null &&
       (fresh || batches !== null || !farm.online()) ? (
         <p className={styles.empty}>{t('farm.harvests.empty')}</p>
@@ -65,7 +95,7 @@ export function HarvestsPage({ me }: { me: Me }) {
         {unsent.map((u) => (
           <UnsentRow key={u.harvest.id} unsent={u} apiaries={apiaries ?? []} today={today} />
         ))}
-        {(batches ?? []).map((b) => (
+        {sent.map((b) => (
           <li key={b.id} className={styles.card}>
             <svg className={styles.cell} viewBox="0 0 64 72" aria-hidden="true">
               <path d={HEX} className={styles.cellSent} />
@@ -131,7 +161,9 @@ function UnsentRow({
             date: dayLabel(String(harvest.body.harvest_date), today, t),
           })}
         </span>
-        <SyncBadge status={attention ? 'attention' : 'local'} />
+        <SyncBadge
+          status={attention ? 'attention' : harvest.status === 'sent' ? 'sending' : 'local'}
+        />
         {attention ? (
           <div className={styles.attention}>
             <p>

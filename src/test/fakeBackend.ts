@@ -163,7 +163,8 @@ export class FakeBackend {
   private refresh = new Map<string, { userId: number; rotatedTo: string | null }>()
   private idem = new Map<string, { fingerprint: string; status: number; body: Json }>()
   private codes: Code[] = []
-  private seq = {
+  /** The next ids, one past these. A test may move one to place a record. */
+  seq = {
     token: 0,
     refresh: 0,
     apiary: 100,
