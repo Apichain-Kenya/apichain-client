@@ -254,23 +254,49 @@ export class Outbox {
 
   /** "Fix and send": the corrected action is a new action with a new key. */
   async fixAndResend(id: string, body: Json, now: number): Promise<ActionRecord> {
-    const db = await this.db
-    const old = (await db.get('actions', id)) as ActionRecord | undefined
-    if (!old) throw new Error(`no outbox action ${id}`)
-    const fixed: ActionRecord = {
-      ...old,
-      id: uuid(),
-      body,
-      idempotency_key: uuid(),
-      status: 'queued',
-      attempts: 0,
-      next_attempt_at: now,
-      resolved: refsIn(body).length === 0,
-      last_error: null,
-      server_result: null,
+    return (await this.fixAll([{ id, body }], now))[0]
+  }
+
+  /**
+   * "Fix and send again" for a whole harvest (13 §11 item 2): each action is
+   * replaced by a new one with a new key, keeping its local_ref and seq so
+   * its dependants still find it and capture order holds. One transaction, so
+   * the runner never sends a fixed parent ahead of its child's new body; a
+   * missing action changes nothing at all. Only for actions never sent: a new
+   * key on one the server may hold would record it twice.
+   */
+  async fixAll(fixes: { id: string; body: Json }[], now: number): Promise<ActionRecord[]> {
+    const tx = (await this.db).transaction('actions', 'readwrite')
+    const fixed: ActionRecord[] = []
+    try {
+      for (const { id, body } of fixes) {
+        const old = (await tx.store.get(id)) as ActionRecord | undefined
+        if (!old) throw new Error(`no outbox action ${id}`)
+        if (old.status === 'sent') throw new Error(`outbox action ${id} was already sent`)
+        const row: ActionRecord = {
+          ...old,
+          id: uuid(),
+          body,
+          depends_on: refsIn(body),
+          idempotency_key: uuid(),
+          status: 'queued',
+          attempts: 0,
+          conflicts: 0,
+          next_attempt_at: now,
+          resolved: refsIn(body).length === 0,
+          last_error: null,
+          server_result: null,
+        }
+        await tx.store.delete(id)
+        await tx.store.put(row)
+        fixed.push(row)
+      }
+      await tx.done
+    } catch (e) {
+      tx.abort()
+      await tx.done.catch(() => undefined)
+      throw e
     }
-    const tx = db.transaction('actions', 'readwrite')
-    await Promise.all([tx.store.delete(id), tx.store.put(fixed), tx.done])
     this.emit()
     return fixed
   }

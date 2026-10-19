@@ -166,6 +166,57 @@ describe('replay', () => {
     expect((await outbox.list(11)).some((r) => r.id === bad.id)).toBe(false)
   })
 
+  it('a refused new apiary holds its batch and harvest; fixed, all three send', async () => {
+    const drafts = newApiaryHarvest()
+    drafts[0].body = { ...drafts[0].body, name: 'Ridge\u0000' }
+    await outbox.enqueue(11, drafts, clock)
+    await replay()
+    const k = byKind(await outbox.list(11))
+    expect(k['apiary.create'].status).toBe('needs_attention')
+    expect(k['batch.create'].status).toBe('queued')
+    expect(k['batch.harvest'].status).toBe('queued')
+    expect(server.requests.map((r) => r.path)).toEqual(['/v2/apiaries'])
+
+    // "Fix and send again": the whole chain, in one transaction, new keys.
+    const fixed = await outbox.fixAll(
+      [
+        { id: k['apiary.create'].id, body: { ...k['apiary.create'].body, name: 'Ridge' } },
+        { id: k['batch.create'].id, body: k['batch.create'].body },
+        { id: k['batch.harvest'].id, body: k['batch.harvest'].body },
+      ],
+      clock,
+    )
+    expect(fixed.map((r) => r.local_ref)).toEqual(
+      ['apiary.create', 'batch.create', 'batch.harvest'].map((kind) => k[kind].local_ref),
+    )
+    for (const r of fixed) {
+      expect(r.idempotency_key).not.toBe(k[r.kind].idempotency_key)
+      expect(r.id).not.toBe(k[r.kind].id)
+    }
+    expect(fixed[1].depends_on).toEqual([k['apiary.create'].local_ref])
+
+    await replay()
+    const after = await outbox.list(11)
+    expect(after).toHaveLength(3)
+    expect(after.every((r) => r.status === 'sent')).toBe(true)
+    expect(server.harvests).toHaveLength(1)
+    expect(server.apiaries.at(-1)).toMatchObject({ name: 'Ridge' })
+  })
+
+  it('a fix is all or nothing: one missing record changes none', async () => {
+    const [apiary] = await outbox.enqueue(11, newApiaryHarvest(), clock)
+    await expect(
+      outbox.fixAll(
+        [
+          { id: apiary.id, body: { ...apiary.body, name: 'Other' } },
+          { id: 'gone', body: {} },
+        ],
+        clock,
+      ),
+    ).rejects.toThrow('no outbox action gone')
+    expect((await outbox.list(11)).find((r) => r.id === apiary.id)?.body.name).toBe('Ridge')
+  })
+
   it('pauses the whole queue when the session cannot be renewed, keeping every item', async () => {
     await outbox.enqueue(11, newApiaryHarvest(), clock)
     server.revokeAllSessions()

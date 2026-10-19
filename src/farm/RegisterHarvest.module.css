@@ -122,3 +122,20 @@
     border-top: 0;
   }
 }
+p.note {
+  margin: 0;
+}
+/* A part of a fix the server already accepted: shown, not offered. */
+.kept {
+  display: grid;
+  gap: var(--space-1);
+  margin: 0;
+  padding: var(--space-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-md);
+}
+.kept small {
+  color: var(--ink-2);
+  font-size: var(--text-sm);
+}

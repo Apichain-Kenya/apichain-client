@@ -394,6 +394,9 @@ export class FakeBackend {
         result = [403, { code: 'forbidden' }]
       } else if (staffMay && !this.farmers.some((f) => f.id === body.farmer_id)) {
         result = [404, { code: 'farmer_not_found', message: 'Farmer does not exist' }]
+      } else if (String(body.name).includes('\u0000')) {
+        // `SafeStr`: PostgreSQL text cannot hold U+0000, so the schema refuses it.
+        result = [422, { detail: [{ msg: "String should match pattern '^[^\\x00]*$'" }] }]
       } else {
         const row = { id: ++this.seq.apiary, ...body }
         this.apiaries = [...this.apiaries, row]
@@ -529,6 +532,12 @@ export class FakeBackend {
   }
 
   private mayActFor(user: FakeUser, farmerId: number): Reply | null {
+    // A farmer acts for themselves whether or not a test seeded their profile.
+    if (user.role === 'farmer') {
+      return user.farmerId === farmerId
+        ? null
+        : [403, { code: 'forbidden', message: 'A farmer may only act on their own records' }]
+    }
     const f = this.farmerFor(user, farmerId)
     return Array.isArray(f) ? f : null
   }

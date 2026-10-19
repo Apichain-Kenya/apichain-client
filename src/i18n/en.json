@@ -206,6 +206,14 @@
         "unknownReason": "no reason given"
       }
     },
+    "fix": {
+      "open": "Fix and send again",
+      "title": "Fix this harvest",
+      "send": "Send again",
+      "kept": "Already accepted, so it stays as it is.",
+      "savedPlace": "The place you saved before.",
+      "nothing": "This harvest has nothing to fix."
+    },
     "steps": {
       "progress": "Step {{n}} of 4: {{name}}",
       "where": "where",

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link } from 'wouter'
+import { Link, useLocation } from 'wouter'
 import { Plus } from 'lucide-react'
 
 import type { Me } from '../auth/SessionContext'
@@ -135,6 +135,7 @@ function UnsentRow({
 }) {
   const { t } = useTranslation()
   const farm = useFarm()
+  const [, navigate] = useLocation()
   const [confirming, setConfirming] = useState(false)
   const { harvest, batch, apiary } = unsent
   const meta = batch?.body.metadata as { honey_type?: string } | undefined
@@ -196,9 +197,14 @@ function UnsentRow({
                 </div>
               </>
             ) : (
-              <Button variant="quiet" onClick={() => setConfirming(true)}>
-                {t('farm.harvests.attention.remove')}
-              </Button>
+              <>
+                <Button onClick={() => navigate(`/register?fix=${harvest.id}`)}>
+                  {t('farm.fix.open')}
+                </Button>
+                <Button variant="quiet" onClick={() => setConfirming(true)}>
+                  {t('farm.harvests.attention.remove')}
+                </Button>
+              </>
             )}
           </div>
         ) : null}

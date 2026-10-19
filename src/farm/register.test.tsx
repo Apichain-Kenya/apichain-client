@@ -468,3 +468,126 @@ describe('the "Sending" gap (13 §11 item 3)', () => {
     expect(screen.queryByText('Sending')).not.toBeInTheDocument()
   })
 })
+
+describe('fix and send again (13 §11 item 2)', () => {
+  it('a refused harvest opens filled in; sending again makes a new action, the refused one is gone', async () => {
+    await setup({ online: true })
+    server.apiaries.push({ id: 101, farmer_id: 7, name: 'Mukurwe-ini' })
+    await services.outbox.enqueue(
+      11,
+      harvestDrafts({
+        farmerId: 7,
+        apiaryId: 101,
+        metadata: { honey_type: 'acacia', apiary_management_method: 'organic' },
+        harvest: { harvest_date: '2026-10-12', quantity_kg: '0.00', hive_ids: [] },
+      }),
+      services.now(),
+    )
+    await services.outbox.replay(11, services.session, services.now)
+    const refused = (await services.outbox.list(11)).find((r) => r.kind === 'batch.harvest')!
+    expect(refused.status).toBe('needs_attention')
+
+    const { memory } = renderAt('/')
+    await userEvent.click(await screen.findByRole('button', { name: 'Fix and send again' }))
+    expect(memory.history.at(-1)).toBe(`/register?fix=${refused.id}`)
+
+    // The batch was accepted, so where and what honey stay as they are.
+    expect(await screen.findByText(/The server refused it: invalid_quantity/)).toBeInTheDocument()
+    expect(await screen.findByText('Mukurwe-ini')).toBeInTheDocument()
+    expect(screen.queryByRole('radio', { name: 'Add a new apiary' })).not.toBeInTheDocument()
+    await next()
+    expect(screen.queryByRole('radio', { name: 'Acacia' })).not.toBeInTheDocument()
+    await userEvent.type(screen.getByLabelText('Harvested (kg)'), '35')
+    await next()
+    expect(screen.getByRole('radio', { name: 'Yesterday' })).toBeChecked()
+    await next()
+    await userEvent.click(screen.getByRole('button', { name: 'Send again' }))
+
+    const rows = await services.outbox.list(11)
+    expect(rows.some((r) => r.id === refused.id)).toBe(false)
+    const fixed = rows.find((r) => r.kind === 'batch.harvest')!
+    expect(fixed.idempotency_key).not.toBe(refused.idempotency_key)
+    expect(fixed.body).toMatchObject({ quantity_kg: '35.00', harvest_date: '2026-10-12' })
+    expect(rows.filter((r) => r.kind === 'batch.create')).toHaveLength(1) // never sent twice
+    expect(memory.history.at(-1)).toBe(`/saved?id=${fixed.id}`)
+
+    await services.outbox.replay(11, services.session, services.now)
+    expect(server.harvests).toHaveLength(1)
+    expect(server.batches).toHaveLength(1)
+  })
+
+  it('a refused new apiary: its name is fixed, and the batch and harvest held behind it send', async () => {
+    await setup({ online: true })
+    await services.outbox.enqueue(
+      11,
+      harvestDrafts({
+        farmerId: 7,
+        apiary: {
+          name: 'Ridge\u0000',
+          latitude: '-0.428713',
+          longitude: '36.951247',
+          hive_count: 4,
+        },
+        metadata: { honey_type: 'wildflower', apiary_management_method: 'organic' },
+        harvest: { harvest_date: TODAY, quantity_kg: '12.00', hive_ids: [] },
+      }),
+      services.now(),
+    )
+    await services.outbox.replay(11, services.session, services.now)
+    const harvest = (await services.outbox.list(11)).find((r) => r.kind === 'batch.harvest')!
+    services.online = () => false // no live map in jsdom
+
+    renderAt(`/register?fix=${harvest.id}`)
+    const name = await screen.findByLabelText('Name this apiary')
+    expect(name).toHaveValue('Ridge\u0000')
+    expect(screen.getByText('The place you saved before.')).toBeInTheDocument()
+    expect(screen.queryByText(/within about/)).not.toBeInTheDocument()
+    await userEvent.clear(name)
+    await userEvent.type(name, 'Ridge')
+    await next()
+    expect(screen.getByRole('radio', { name: 'Wildflower' })).toBeChecked()
+    expect(screen.getByLabelText('Harvested (kg)')).toHaveValue('12')
+    await next()
+    await next()
+    expect(screen.getByText('Ridge (new), 4 hives')).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Send again' }))
+    await screen.findByRole('heading', { name: 'Saved on this phone' })
+
+    await services.outbox.replay(11, services.session, services.now)
+    const rows = await services.outbox.list(11)
+    expect(rows.map((r) => r.status)).toEqual(['sent', 'sent', 'sent'])
+    expect(server.apiaries.at(-1)).toMatchObject({ name: 'Ridge', hive_count: 4 })
+    expect(server.harvests).toHaveLength(1)
+  })
+
+  it('a link to a harvest with nothing to fix says so', async () => {
+    renderAt('/register?fix=nothing-here')
+    expect(await screen.findByText('This harvest has nothing to fix.')).toBeInTheDocument()
+  })
+
+  it('the fix form has no axe violations', async () => {
+    await setup({ online: true })
+    await services.outbox.enqueue(
+      11,
+      harvestDrafts({
+        farmerId: 7,
+        apiary: {
+          name: 'Ridge\u0000',
+          latitude: '-0.428713',
+          longitude: '36.951247',
+          hive_count: 4,
+        },
+        metadata: { honey_type: 'wildflower' },
+        harvest: { harvest_date: TODAY, quantity_kg: '12.00', hive_ids: [] },
+      }),
+      services.now(),
+    )
+    await services.outbox.replay(11, services.session, services.now)
+    const harvest = (await services.outbox.list(11)).find((r) => r.kind === 'batch.harvest')!
+    services.online = () => false // no live map in jsdom
+    const { container } = renderAt(`/register?fix=${harvest.id}`)
+    await screen.findByLabelText('Name this apiary')
+    const result = await axe.run(container, { rules: { 'color-contrast': { enabled: false } } })
+    expect(result.violations.map((v) => v.id)).toEqual([])
+  })
+})
