@@ -8,6 +8,11 @@ export function dayLabel(day: string, today: string, t: TFunction): string {
   const y = new Date(`${today}T12:00:00Z`)
   y.setUTCDate(y.getUTCDate() - 1)
   if (day === y.toISOString().slice(0, 10)) return t('farm.dates.yesterday')
+  return shortDay(day)
+}
+
+/** "12 Oct", for a calendar day (YYYY-MM-DD). */
+export function shortDay(day: string): string {
   return short.format(new Date(`${day}T12:00:00Z`))
 }
 

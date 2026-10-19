@@ -1,0 +1,95 @@
+/* The next-action card (13 §4.4): at the foot of the record, the form capped
+   at 560 px on a laptop. Desk density: inputs drop to 44 px. */
+.card {
+  display: grid;
+  gap: var(--space-4);
+  max-width: 35rem;
+  padding: var(--space-5);
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+}
+.card :is(input, select, textarea) {
+  min-height: var(--touch);
+}
+.card textarea {
+  padding-block: var(--space-2);
+}
+/* A refused step: the alert shape and words, not only the colour. */
+.problem {
+  border-color: var(--alert);
+  background: var(--tint-alert);
+}
+.problem p {
+  margin: 0;
+}
+.problem button {
+  justify-self: start;
+}
+/* Sentence case, as the board draws it: no tracked capitals (12 §4.2 #5). */
+.eyebrow {
+  margin: 0 0 calc(-1 * var(--space-3));
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--ink-2);
+}
+.h3 {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-lg);
+}
+.small {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--ink-2);
+}
+.error {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--alert);
+}
+.form {
+  display: grid;
+  gap: var(--space-4);
+}
+.save {
+  justify-self: start;
+}
+.group {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+.legend {
+  padding: 0;
+  margin-bottom: var(--space-2);
+  font-weight: 600;
+}
+.g2 {
+  display: grid;
+  gap: var(--space-3);
+}
+@media (min-width: 30rem) {
+  .g2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+.asAdmin {
+  margin: 0;
+  display: flex;
+  gap: var(--space-2);
+  align-items: flex-start;
+  padding: var(--space-3);
+  border-radius: var(--radius-sm);
+  background: var(--tint-sealing);
+  font-size: var(--text-sm);
+}
+.asAdmin svg {
+  flex: none;
+  margin-top: 1px;
+}

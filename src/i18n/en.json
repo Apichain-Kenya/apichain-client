@@ -81,6 +81,7 @@
     "stopCamera": "Stop the camera"
   },
   "ui": {
+    "optional": "(optional)",
     "seal": {
       "sealed": {
         "headline": "Checked and publicly sealed",
@@ -106,6 +107,11 @@
     "journey": {
       "title": "Its journey",
       "notYet": "Not yet",
+      "when": {
+        "recorded": "Recorded {{day}}",
+        "harvested": "Harvested {{day}}",
+        "tested": "Tested {{day}}"
+      },
       "steps": {
         "CREATED": "Registered by the beekeeper",
         "HARVESTED": "Harvested",
@@ -123,6 +129,10 @@
       "waiting_one": "{{count}} waiting to send",
       "waiting_other": "{{count}} waiting to send",
       "allSent": "All sent"
+    },
+    "switch": {
+      "on": "On",
+      "off": "Off"
     },
     "stepper": {
       "fewer": "One fewer",
@@ -142,7 +152,8 @@
     "restoring": "Signing you back in",
     "wrongRole": {
       "title": "This page is not for your account",
-      "body": "Your account can't use this page. Go back, or sign in with a different account."
+      "body": "Your account can't use this page. Go back, or sign in with a different account.",
+      "yours": "Go to your own pages"
     },
     "notFound": {
       "title": "There's nothing at this address",
@@ -166,15 +177,6 @@
       "register": "Register",
       "apiaries": "Apiaries",
       "me": "Me"
-    },
-    "signIn": {
-      "title": "Sign in",
-      "lead": "You need internet to sign in the first time. After that you can save harvests offline.",
-      "identifier": "Phone number or username",
-      "password": "Password",
-      "submit": "Sign in",
-      "invalid": "That phone number or password isn't right. Check them and try again.",
-      "offline": "You're offline. Connect to sign in the first time."
     },
     "greeting": {
       "morning": "Good morning, {{name}}",
@@ -208,6 +210,14 @@
         "unknownReason": "no reason given"
       }
     },
+    "fix": {
+      "open": "Fix and send again",
+      "title": "Fix this harvest",
+      "send": "Send again",
+      "kept": "Already accepted, so it stays as it is.",
+      "savedPlace": "The place you saved before.",
+      "nothing": "This harvest has nothing to fix."
+    },
     "steps": {
       "progress": "Step {{n}} of 4: {{name}}",
       "where": "where",
@@ -231,6 +241,7 @@
       "denied": "Location is turned off for this app. Turn it on in your phone's settings, then try again.",
       "noGps": "This phone can't share its location.",
       "mapOffline": "Map will show when you're online. Your location is saved.",
+      "mapFailed": "The map didn't load. Your location is saved, so you can carry on.",
       "pickOnMap": "Tap the map where the apiary is.",
       "name": "Name this apiary",
       "nameHint": "Any name you will recognise",
@@ -288,11 +299,578 @@
       "storageAsk": "This phone may clear saved harvests when it is low on space. Send them when you can.",
       "signOut": "Sign out",
       "signOutWaiting_one": "{{count}} harvest is still on this phone. It will send when you sign back in.",
-      "signOutWaiting_other": "{{count}} harvests are still on this phone. They will send when you sign back in."
+      "signOutWaiting_other": "{{count}} harvests are still on this phone. They will send when you sign back in.",
+      "phone": "Phone",
+      "signOutChoices_one": "{{count}} choice about messages is still on this phone. It will send when you sign back in.",
+      "signOutChoices_other": "{{count}} choices about messages are still on this phone. They will send when you sign back in."
+    },
+    "choices": {
+      "title": "Messages from ApiChain",
+      "note": "Both start off. Turn one on whenever you like; it saves on this phone and sends by itself.",
+      "noEmail": "No email on file",
+      "notYet": "Off until you turn it on",
+      "you_on": "You turned this on on {{day}}",
+      "you_off": "You turned this off on {{day}}",
+      "onboarder_on": "Your field officer turned this on on {{day}}",
+      "onboarder_off": "Your field officer turned this off on {{day}}",
+      "refused": "Not accepted: {{reason}}",
+      "remove": "Remove it"
     },
     "dates": {
       "today": "today",
       "yesterday": "yesterday"
+    }
+  },
+  "signIn": {
+    "title": "Sign in",
+    "lead": "You need internet to sign in. After that, farmers can save harvests offline.",
+    "identifier": "Phone number or username",
+    "password": "Password",
+    "submit": "Sign in",
+    "invalid": "That phone number or password isn't right. Check them and try again.",
+    "offline": "You're offline. Connect to sign in the first time."
+  },
+  "password": {
+    "forced": {
+      "title": "Choose your own password",
+      "lead": {
+        "staff": "An admin set your first password, so they know it. Choose one only you know. Every step you record will carry your name.",
+        "farmer": "Your officer helped you pick your first password. Now choose one only you know."
+      },
+      "current": {
+        "staff": "The password you were given",
+        "farmer": "The password you used just now"
+      },
+      "waiting_one": "Your saved harvest is safe on this phone. It will send as soon as you save your password.",
+      "waiting_other": "Your {{count}} saved harvests are safe on this phone. They will send as soon as you save your password."
+    },
+    "change": {
+      "title": "Change my password",
+      "lead": "Choose a new password only you know. You stay signed in here, and you're signed out everywhere else.",
+      "current": "Your current password"
+    },
+    "new": "New password",
+    "again": "Type it again",
+    "rule": {
+      "staff": "At least 15 characters. A short sentence works well.",
+      "farmer": "At least 8 characters"
+    },
+    "show": "Show password",
+    "save": "Save my password",
+    "errors": {
+      "currentMissing": "Type the password you have now.",
+      "wrong": {
+        "given": "That isn't the password you were given. Check it and try again.",
+        "current": "That isn't your current password. Check it and try again."
+      },
+      "tooShort_one": "Use at least {{count}} character.",
+      "tooShort_other": "Use at least {{count}} characters.",
+      "tooLong": "That's too long. Use a shorter password.",
+      "mismatch": "The two new passwords don't match. Type it again.",
+      "unchanged": "Choose a password that's different from the one you have now.",
+      "offline": "You're offline. Saving your password needs a connection."
+    }
+  },
+  "console": {
+    "nav": {
+      "batches": "Batches",
+      "farmers": "Farmers",
+      "people": "People",
+      "me": "Me"
+    },
+    "roles": {
+      "farmer": "farmer",
+      "field_officer": "field officer",
+      "operator": "operator",
+      "lab_officer": "lab officer",
+      "admin": "admin"
+    },
+    "states": {
+      "CREATED": "Registered",
+      "HARVESTED": "Harvested",
+      "PROCESSED": "Processed",
+      "LAB_VERIFIED": "Lab tested",
+      "PACKAGED": "Packed",
+      "DISTRIBUTED": "Sent to shops"
+    },
+    "steps": {
+      "CREATED": "Registered",
+      "HARVESTED": "Harvested",
+      "PROCESSED": "Processed",
+      "LAB_VERIFIED": "Lab tested",
+      "PACKAGED": "Packed",
+      "DISTRIBUTED": "Sent to shops"
+    },
+    "waitingFor": {
+      "process": "Process",
+      "labTest": "Lab test",
+      "package": "Package",
+      "distribute": "Send to shops"
+    },
+    "batches": {
+      "title": "Batches",
+      "search": "Find by batch code",
+      "filter": "Show",
+      "todo": "To do",
+      "all": "All",
+      "since": "{{state}} · since {{date}}",
+      "waitingSince": "{{state}} · waiting since {{date}}",
+      "nothingToDo": "Nothing is waiting for you.",
+      "none": "No batches here.",
+      "more": "Show more",
+      "pick": "Choose a batch to see its record."
+    },
+    "batch": {
+      "honey": "Honey",
+      "farmer": "Farmer",
+      "apiary": "Apiary",
+      "notFound": "There's no batch with this number.",
+      "printRecord": "Print record",
+      "labels": "Jar labels"
+    },
+    "timeline": {
+      "title": "Its record",
+      "next": "Next",
+      "notYet": "Not yet",
+      "by": "Recorded by {{name}}, {{role}}",
+      "byAdmin": "Recorded by {{name}}, as admin"
+    },
+    "integrity": {
+      "summary": "Integrity · {{sealed}} sealed, {{sealing}} sealing",
+      "sealed": "Sealed",
+      "sealing": "Sealing",
+      "note": "Sealed means the record is fixed in a public Bitcoin timestamp. Sealing usually takes a few hours."
+    },
+    "me": {
+      "shared": "On a shared computer, sign out when you're done. This device doesn't keep you signed in offline.",
+      "signOut": "Sign out",
+      "signOutWaiting_one": "1 step is waiting to send. It will send the next time you sign in here.",
+      "signOutWaiting_other": "{{count}} steps are waiting to send. They will send the next time you sign in here.",
+      "refused": "Not accepted. Open it to remove it:",
+      "refusedStep": "{{step}}, batch {{id}}",
+      "signOutChanges_one": "1 change to a farmer's page is waiting to send. It will send the next time you sign in here.",
+      "signOutChanges_other": "{{count}} changes to farmers' pages are waiting to send. They will send the next time you sign in here.",
+      "refusedChoice": "A choice for farmer {{id}}",
+      "refusedApiary": "A new apiary for farmer {{id}}"
+    },
+    "offline": "You're offline. The console needs a connection to show batches.",
+    "offlineBanner": "You're offline. Steps you save will send when you're back online.",
+    "loadFailed": "This didn't load. Try again in a moment.",
+    "next": {
+      "title": "Next step",
+      "do": {
+        "PROCESSED": "Record processing",
+        "LAB_VERIFIED": "Record the lab result",
+        "PACKAGED": "Record packaging",
+        "DISTRIBUTED": "Record sending to shops"
+      },
+      "wait": {
+        "HARVESTED": "Waiting for the harvest",
+        "PROCESSED": "Waiting for processing",
+        "LAB_VERIFIED": "Waiting for the lab",
+        "PACKAGED": "Waiting for packaging",
+        "DISTRIBUTED": "Waiting to be sent to shops"
+      },
+      "waitNote": "It will show here once it's recorded.",
+      "harvestNote": "The farmer records the harvest from their phone.",
+      "asAdmin": "You're recording this as an admin. The batch record will show \"Recorded by {{name}}, as admin\".",
+      "savesHere": "It saves on this device first and sends by itself.",
+      "local": "Saved on this device",
+      "yourStep": "Your step: {{step}}",
+      "sending": "Sending",
+      "conflict": {
+        "title": "This step was already recorded",
+        "body": "Someone recorded this step before yours reached the server, so yours was not saved. The record above is the record now.",
+        "remove": "Remove mine and reload"
+      },
+      "refused": {
+        "title": "This step wasn't accepted",
+        "forbidden": "Your account can't record this step.",
+        "invalid": "Something in it wasn't accepted. Remove it, then record the step again.",
+        "remove": "Remove it"
+      }
+    },
+    "forms": {
+      "number": {
+        "invalid": "Use a number, like 18.4.",
+        "range": "Use a number from 0 to 100.",
+        "decimals": "Use a number with at most 2 decimals."
+      },
+      "process": {
+        "method": "How was it extracted?",
+        "centrifugal": "Centrifuge",
+        "crush_and_strain": "Crush and strain",
+        "cold_extraction": "Cold extraction",
+        "other": "Other",
+        "otherText": "How, in a few words",
+        "otherMissing": "Say how it was extracted.",
+        "moisture": "Moisture after processing (%)",
+        "notes": "Handling notes",
+        "save": "Save processing"
+      },
+      "lab": {
+        "blank": "Leave a box empty if it wasn't measured.",
+        "measurements": "Measurements",
+        "test": "The test",
+        "moisture_pct": "Moisture (%)",
+        "hmf_mg_kg": "HMF (mg/kg)",
+        "fructose_glucose_g_100g": "Fructose + glucose (g/100 g)",
+        "sucrose_g_100g": "Sucrose (g/100 g)",
+        "diastase_schade": "Diastase (Schade)",
+        "free_acidity_meq_kg": "Free acidity (meq/kg)",
+        "pollen_density": "Pollen density",
+        "laboratory_name": "Laboratory",
+        "analyst_name": "Analyst",
+        "certificate_number": "Certificate number",
+        "tested": "Tested on",
+        "notes": "Notes",
+        "swapped": "Sucrose is higher than fructose + glucose. These two may be swapped.",
+        "save": "Save lab result"
+      },
+      "package": {
+        "jars": "Jars packed",
+        "none": "Pack at least one jar.",
+        "jarIds": "Jar numbers",
+        "jarIdsHint": "One code goes on every jar from this batch, so these are only for your own stock count.",
+        "notes": "Notes",
+        "save": "Save packaging"
+      },
+      "distribute": {
+        "retailer": "Shop or buyer",
+        "retailerMissing": "Name the shop or buyer.",
+        "transport": "Transport reference",
+        "handover": "Handover notes",
+        "save": "Save"
+      }
+    },
+    "people": {
+      "title": "People",
+      "add": "Add a person",
+      "filter": "Show",
+      "active": "Active",
+      "all": "All",
+      "row": "{{username}} · {{role}}",
+      "none": "No one here yet.",
+      "pick": "Choose a person to see their account.",
+      "added": "Added {{name}}. They'll choose their own password when they first sign in.",
+      "roles": {
+        "field_officer": "Field officer",
+        "operator": "Operator",
+        "lab_officer": "Lab officer",
+        "admin": "Admin"
+      },
+      "status": {
+        "active": "Active",
+        "mustChange": "Hasn't chosen a password",
+        "inactive": "Deactivated"
+      },
+      "form": {
+        "fullName": "Full name",
+        "fullNameHint": "Shown on every step they record.",
+        "username": "Username",
+        "usernameHint": "What they type to sign in.",
+        "role": "Role",
+        "rootOnly": "Only the first admin can add another admin.",
+        "password": "Starting password",
+        "passwordHint": "At least 15 characters. Give it to them in person. They'll choose their own the first time they sign in.",
+        "save": "Add person",
+        "online": "Adding people needs internet."
+      },
+      "errors": {
+        "name": "Write their full name.",
+        "username": "Use 3 to 40 lower-case letters, numbers, dots, dashes or underscores, starting with a letter.",
+        "role": "Choose a role.",
+        "tooShort": "Use at least {{min}} characters.",
+        "tooLong": "That's too long. Use a shorter password.",
+        "taken": "That username is taken. Try another.",
+        "rootRequired": "Only the first admin can add another admin.",
+        "offline": "You're offline. Adding people needs internet.",
+        "failed": "That didn't work. Try again in a moment."
+      },
+      "person": {
+        "first": "first admin",
+        "notFound": "There's no one with this account.",
+        "reset": {
+          "title": "Reset password",
+          "note": "Set a new starting password. They'll have to choose their own at their next sign-in, and they'll be signed out everywhere now.",
+          "password": "New starting password",
+          "save": "Reset password",
+          "done": "Password reset. Give them the new one in person.",
+          "offline": "You're offline. Resetting a password needs internet.",
+          "own": "Change your own password from Me, with your current one.",
+          "root": "The first admin's password can't be reset from the console.",
+          "rootRequired": "Only the first admin can reset another admin's password."
+        },
+        "deactivate": {
+          "title": "Deactivate",
+          "note": "They'll be signed out everywhere and can't sign in again. Every step they recorded stays on the record.",
+          "start": "Deactivate",
+          "confirm": "Yes, deactivate",
+          "cancel": "Keep the account",
+          "done": "Deactivated. They can no longer sign in.",
+          "refused": "Can't deactivate this account",
+          "root": "This is the first admin's account. It can't be deactivated from the console.",
+          "self": "You can't deactivate your own account. Another admin can.",
+          "last": "This is the last active admin. Add another admin first.",
+          "offline": "You're offline. Deactivating needs internet."
+        }
+      }
+    },
+    "farmers": {
+      "title": "Farmers",
+      "enrol": "Enrol a farmer",
+      "search": "Find by name or phone",
+      "cover": "Every farmer is listed, not only yours, so you can cover for a colleague.",
+      "none": "No farmers here yet.",
+      "noMatch": "No farmer matches that.",
+      "more": "Show more",
+      "pick": "Choose a farmer to see their page.",
+      "row": "{{phone}} · {{hives}}",
+      "hives_one": "{{count}} hive",
+      "hives_other": "{{count}} hives",
+      "hivesUnknown": "Hives not counted",
+      "apiaries_one": "{{count}} apiary",
+      "apiaries_other": "{{count}} apiaries",
+      "enrolledBy": "Enrolled {{day}} by {{name}}",
+      "enrolledOn": "Enrolled {{day}}",
+      "phoneConfirmed": "Phone confirmed",
+      "phoneNotConfirmed": "Phone not confirmed",
+      "notFound": "There's no farmer with this number on file.",
+      "enrolled": "{{name}} is enrolled. They'll choose their own password when they first sign in.",
+      "new": {
+        "title": "Enrol a farmer",
+        "progress": "Step {{n}} of 4: {{name}}",
+        "steps": {
+          "details": "details",
+          "agreement": "agreement",
+          "password": "password",
+          "check": "check"
+        },
+        "back": "Back",
+        "next": "Next",
+        "details": "Their details",
+        "firstName": "First name",
+        "lastName": "Last name",
+        "phone": "Phone number",
+        "phoneHint": "A Kenyan mobile, like 0712 345 678. It's also how they sign in.",
+        "email": "Email",
+        "address": "Where they live",
+        "addressHint": "Village or nearest town",
+        "hives": "Hives",
+        "hivesHint": "Leave at 0 if they haven't been counted.",
+        "readTo": "Read this to {{name}}",
+        "readToFarmer": "Read this to the farmer",
+        "readNote": "Read it out in full. Tick the box only if they say yes.",
+        "agrees": "{{name}} agrees",
+        "farmerAgrees": "The farmer agrees",
+        "agreeNote": "They can't be enrolled without this. Texts, emails and ID copies are asked about separately, after enrolment, one at a time.",
+        "passwordTitle": "Their password",
+        "password": "Their password",
+        "passwordNote": "Help them choose one they'll remember, at least 8 characters. They'll be asked to choose their own the first time they sign in.",
+        "check": "Check before enrolling",
+        "summary": {
+          "name": "Name",
+          "phone": "Phone",
+          "email": "Email",
+          "hives": "Hives",
+          "agreement": "Agreement",
+          "password": "Password"
+        },
+        "noneGiven": "None",
+        "notCounted": "Not counted",
+        "agreed": "Agreed",
+        "notAgreed": "Not agreed",
+        "chosen": "Chosen",
+        "notChosen": "Not chosen",
+        "notKept": "This isn't saved on this device, because it includes their password. Stay on this screen and press Enrol when you have signal. If you leave, you'll need to type it again.",
+        "save": "Enrol",
+        "needsInternet": "Enrolling needs internet",
+        "errors": {
+          "firstName": "Write their first name.",
+          "lastName": "Write their last name.",
+          "phone": "Use a Kenyan mobile number, like 0712 345 678.",
+          "email": "Check the email address, or leave it empty.",
+          "agree": "Enrolment needs their agreement.",
+          "tooShort": "Use at least 8 characters.",
+          "tooLong": "That's too long. Use a shorter password.",
+          "taken": "This number is already enrolled. If you just enrolled them, find them in Farmers.",
+          "offline": "You're offline. Enrolling needs internet.",
+          "failed": "That didn't work. Try again in a moment."
+        }
+      },
+      "farmer": {
+        "phone": "Phone",
+        "email": "Email",
+        "noEmail": "None on file",
+        "confirmed": "Confirmed",
+        "notConfirmed": "Not confirmed",
+        "confirmPhone": "Confirm their number",
+        "confirmEmail": "Confirm their email",
+        "choices": "Their choices",
+        "readEach": "Read each one to the farmer. Turn it on only if they say yes.",
+        "agreed": "Agreed",
+        "agreedAt": "Agreed at enrolment, {{day}}",
+        "notAsked": "Not asked yet",
+        "noEmailRow": "No email on file",
+        "lock": "Only the farmer can turn this back on",
+        "by": {
+          "onboarder_on": "Turned on with staff, {{day}}",
+          "onboarder_off": "Turned off with staff, {{day}}",
+          "farmer_self_on": "Turned on by the farmer, {{day}}",
+          "farmer_self_off": "Turned off by the farmer, {{day}}",
+          "you_on": "Turned on with {{name}}, just now",
+          "you_off": "Turned off with {{name}}, just now"
+        },
+        "local": "Saved on this device",
+        "sending": "Sending",
+        "refused": "Not accepted",
+        "refusedBody": "The server didn't accept this. Remove it, then try again.",
+        "remove": "Remove",
+        "documents": "Documents",
+        "type": "Type",
+        "types": {
+          "national_id": "National ID",
+          "kra_pin_certificate": "KRA PIN certificate",
+          "land_document": "Land document",
+          "farm_photo": "Farm photo",
+          "other": "Other"
+        },
+        "choose": "Choose a file",
+        "limits": "PDF, JPG or PNG, up to 10 MB each, 50 MB in all.",
+        "noDocuments": "No documents yet.",
+        "needConsent": "Upload opens once they agree to copies of their ID and papers being kept.",
+        "waitingConsent": "Waiting for their agreement to reach the server. Upload opens once it has.",
+        "checking": "Checking the file",
+        "filed": "Filed.",
+        "already": "This file is already on file.",
+        "tooBig": "That file is over 10 MB. Choose a smaller one.",
+        "wrongType": "Only PDF, JPG or PNG files can be filed. This file is another kind, whatever its name says.",
+        "quota": "This farmer's documents are full: 50 MB in all.",
+        "rejected": "The file checker refused this file. Ask for another copy.",
+        "scanner": "The file checker is starting up. Try again in a few minutes.",
+        "storage": "Documents can't be stored right now. Try again in a few minutes.",
+        "uploadOffline": "You're offline. Uploads need internet.",
+        "failed": "That didn't work. Try again in a moment.",
+        "docRow": "{{size}} · {{day}}",
+        "viewLabel": "Download {{type}}, {{name}}",
+        "view": "Download",
+        "viewFailed": "That document can't be downloaded right now. Try again in a moment.",
+        "apiaries": "Apiaries",
+        "noApiaries": "No apiaries yet.",
+        "addApiary": "Add an apiary",
+        "apiaryHives_one": "{{count}} hive",
+        "apiaryHives_other": "{{count}} hives",
+        "resetNote": "Set a new starting password, at least 8 characters. They'll have to choose their own at their next sign-in."
+      },
+      "verify": {
+        "titleSms": "Confirm this number is theirs",
+        "titleEmail": "Confirm this email is theirs",
+        "intro": "We'll send a 6-digit code to {{to}}. Ask the farmer to read it out to you.",
+        "send": "Send code",
+        "resend": "Send a new code",
+        "resendIn": "Send a new code in {{time}}",
+        "sent": "Code sent. It works for 10 minutes.",
+        "until": "The code works until {{time}}.",
+        "code": "Code",
+        "confirm": "Confirm",
+        "invalid_one": "That code isn't right. {{count}} try left.",
+        "invalid_other": "That code isn't right. {{count}} tries left.",
+        "locked": "That code can't be used any more. Send a new code.",
+        "noCode": "There's no code to check. Send a new code.",
+        "format": "The code is 6 digits.",
+        "notSignIn": "This only confirms the contact. It isn't how they sign in.",
+        "rateLimited": "Too many codes for now. Wait, then send a new one.",
+        "noRecipientSms": "This number can't get texts. Check it with the farmer.",
+        "noRecipientEmail": "There's no email on file to send to.",
+        "sendFailed": "The code couldn't be sent. Try again in a minute.",
+        "offline": "You're offline. Confirming needs internet.",
+        "failed": "That didn't work. Try again in a moment."
+      },
+      "apiary": {
+        "title": "Add an apiary",
+        "for": "For {{name}}",
+        "name": "Apiary name",
+        "nameHint": "A name the farmer will recognise",
+        "save": "Save apiary"
+      }
+    },
+    "labels": {
+      "title": "Jar labels",
+      "count": "{{labels}} on {{sheets}}",
+      "labels_one": "{{count}} label",
+      "labels_other": "{{count}} labels",
+      "sheets_one": "{{count}} sheet",
+      "sheets_other": "{{count}} sheets",
+      "sampleTag": "Sample only",
+      "notice": "Printing real jar labels is switched off until ApiChain has its own web address. A jar's code can't change once it's printed, address included. Sample sheets are fine for checking size and layout.",
+      "printSample": "Print sample sheet (not for jars)",
+      "print": "Print labels",
+      "watermark": "SAMPLE: not for jars",
+      "scan": "Scan to see where this honey came from",
+      "honey": "{{honey}} honey",
+      "packed": "Packed {{day}}",
+      "spec": "Each code prints at least 20 mm across, with error correction M and a 4-module quiet zone. Twelve labels a sheet.",
+      "notPacked": "Jar labels can be printed once this batch is packed.",
+      "noCount": "The packing record has no jar count, so there are no labels to print.",
+      "making": "Making the code",
+      "qrFailed": "The code didn't load. If the app offers an update, take it; otherwise reload the page.",
+      "sheet": "Label sheet {{n}} of {{total}}",
+      "codeLabel": "Code to this batch's record"
+    },
+    "record": {
+      "title": "Batch record",
+      "brand": "ApiChain · Batch record",
+      "heading": "{{honey}} honey from {{place}}",
+      "headingNoPlace": "{{honey}} honey",
+      "headingBatch": "Batch {{code}}",
+      "beekeeper": "Beekeeper {{name}}",
+      "kg": "{{kg}} kg harvested",
+      "jars_one": "{{count}} jar",
+      "jars_other": "{{count}} jars",
+      "asOf": "As of {{when}} (East Africa Time)",
+      "atPrint": "This sheet shows the record at the moment it was printed. Scan the code for its state now.",
+      "liveCode": "Code to the live record",
+      "step": "Step",
+      "day": "Day",
+      "by": "Recorded by",
+      "byRole": "{{name}}, {{role}}",
+      "byAdmin": "{{name}}, as admin",
+      "on": "{{by}}, on {{day}}",
+      "notYet": "Not yet",
+      "labPlace": "{{lab}}, certificate {{cert}}.",
+      "labOnly": "{{lab}}.",
+      "foot": "Printed by {{name}} from the ApiChain console. A printed sheet can go out of date; the live record behind the code is the one to trust.",
+      "print": "Print record",
+      "savedCopy": "This is this device's saved copy of the record, from {{when}}: the connection failed. Printing waits for a live answer, so a sheet never shows an old state as new."
+    },
+    "health": {
+      "title": "Record health",
+      "checked": "Chain checked {{ago}}. Nothing has changed.",
+      "notChecked": "The chain hasn't been checked yet.",
+      "broken": "Chain check found a change. Tell whoever runs the server today.",
+      "waiting_one": "1 record waiting to be sealed.",
+      "waiting_other": "{{count}} records waiting to be sealed.",
+      "stuck": "Sealing has stopped: the last attempt failed.",
+      "unavailable": "Record health can't be read right now.",
+      "justNow": "just now",
+      "minutes_one": "{{count}} min ago",
+      "minutes_other": "{{count}} min ago",
+      "hours_one": "{{count}} hour ago",
+      "hours_other": "{{count}} hours ago",
+      "days_one": "{{count}} day ago",
+      "days_other": "{{count}} days ago",
+      "sealedAll": "Every record is sealed on Bitcoin.",
+      "bundles_one": "1 bundle of records is waiting for Bitcoin to confirm it.",
+      "bundles_other": "{{count}} bundles of records are waiting for Bitcoin to confirm them."
+    }
+  },
+  "consent": {
+    "agreement": "ApiChain will keep your name, phone number and harvest records, so that people who buy your honey can see where it came from. Only staff who work with you can see your phone number.",
+    "purposes": {
+      "data_processing": "Keep my details and harvest records",
+      "document_upload": "Keep copies of my ID and land papers",
+      "sms_notifications": "Send me a text when my honey reaches a new step",
+      "email_notifications": "Email me when my honey reaches a new step"
     }
   }
 }

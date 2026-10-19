@@ -5,6 +5,13 @@ import 'leaflet/dist/leaflet.css'
 import type { Fix } from './FarmServices'
 import styles from './MapPicker.module.css'
 
+/** The circle's colour: the honey token, read from the page, so it follows
+ *  the theme. Leaflet would otherwise draw its default blue (13 §11 item 5). */
+function ringStyle(): L.PathOptions {
+  const honey = getComputedStyle(document.documentElement).getPropertyValue('--comb-strong').trim()
+  return { color: honey, fillColor: honey, weight: 1.5 }
+}
+
 // The online map (12 D11): Leaflet + OpenStreetMap tiles, lazy-loaded, used
 // only to confirm or nudge the GPS pin. Tiles get the browser's ordinary HTTP
 // cache and nothing else: OpenStreetMap forbids offline use and prefetching,
@@ -53,7 +60,7 @@ export default function MapPicker({
         // the GPS radius as the honest uncertainty.
         latest.current({ lat: p.lat, lon: p.lng, accuracy: fix.accuracy })
       })
-    ring.current = L.circle([fix.lat, fix.lon], { radius: fix.accuracy, weight: 1.5 }).addTo(m)
+    ring.current = L.circle([fix.lat, fix.lon], { radius: fix.accuracy, ...ringStyle() }).addTo(m)
     m.setView([fix.lat, fix.lon], 16)
     map.current = m
     return () => {
@@ -66,7 +73,7 @@ export default function MapPicker({
 
   useEffect(() => {
     pin.current?.setLatLng([fix.lat, fix.lon])
-    ring.current?.setLatLng([fix.lat, fix.lon]).setRadius(fix.accuracy)
+    ring.current?.setLatLng([fix.lat, fix.lon]).setRadius(fix.accuracy).setStyle(ringStyle())
   }, [fix])
 
   return <div ref={el} className={styles.map} role="application" aria-label={label} />

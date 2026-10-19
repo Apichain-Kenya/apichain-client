@@ -1,0 +1,327 @@
+/* Farmers (13 §9, board "Field officer: enrolling a farmer"): the batch list's
+   rows and split, People's pane and form, plus the consent row, the switch,
+   the read-aloud box and the step bar. Every state is a word as well as a
+   colour or a position (WCAG 1.4.1). */
+.cover {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--ink-2);
+}
+.facts {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-6);
+  color: var(--ink-2);
+}
+.section {
+  display: grid;
+  gap: var(--space-3);
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--line);
+}
+.contact {
+  display: grid;
+  gap: var(--space-3);
+}
+@media (min-width: 30rem) {
+  .contact {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+.card {
+  display: grid;
+  gap: var(--space-2);
+  align-content: start;
+  padding: var(--space-4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+}
+.card p {
+  margin: 0;
+}
+.label {
+  font-size: var(--text-sm);
+  color: var(--ink-2);
+}
+.value {
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+.tag {
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 2px var(--space-3);
+  border: 1.5px solid currentColor;
+  border-radius: 999px;
+  font-size: var(--text-sm);
+}
+.yes {
+  color: var(--sealed);
+}
+.no {
+  color: var(--ink-2);
+  border-style: dashed;
+}
+.linkButton {
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--touch);
+  padding: 0 var(--space-4);
+  border: 1.5px solid var(--ink);
+  border-radius: var(--radius-sm);
+  color: var(--ink);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+/* The read-aloud box (board): the staff member reads, the farmer decides. */
+.readaloud {
+  display: flex;
+  gap: var(--space-2);
+  align-items: flex-start;
+  margin: 0;
+  padding: var(--space-3);
+  border-radius: var(--radius-sm);
+  background: var(--tint-open);
+  color: var(--ink);
+  font-size: var(--text-sm);
+}
+.readaloud svg {
+  flex: none;
+  margin-top: 2px;
+}
+.quote {
+  margin: 0;
+  padding: var(--space-4);
+  border-left: 4px solid var(--comb-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  font-size: var(--text-md);
+  line-height: 1.5;
+}
+.check {
+  display: flex;
+  gap: var(--space-3);
+  align-items: center;
+  min-height: var(--touch-lg);
+  padding: 0 var(--space-4);
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  font-weight: 500;
+}
+.check input {
+  width: 1.375rem;
+  height: 1.375rem;
+  accent-color: var(--ink);
+}
+
+/* Consent rows: one purpose per row, its words, then the switch and its word. */
+.consent {
+  display: grid;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+}
+.crow {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: var(--space-2) var(--space-3);
+  align-items: start;
+  padding: var(--space-3) var(--space-4);
+}
+.crow + .crow {
+  border-top: 1px solid var(--line);
+}
+.crow > svg {
+  margin-top: 2px;
+  color: var(--ink-2);
+}
+.cwords {
+  display: grid;
+  gap: var(--space-1);
+  min-width: 0;
+}
+.cwords p {
+  margin: 0;
+  font-weight: 500;
+}
+.cwords small {
+  font-size: var(--text-sm);
+  color: var(--ink-2);
+}
+.lock {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--ink) !important;
+}
+.fixed {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--sealed);
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+.rowProblem {
+  grid-column: 2 / -1;
+}
+
+/* Documents and apiaries. */
+.drop {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: 1.5px dashed var(--line);
+  border-radius: var(--radius-sm);
+}
+.waiting {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--ink);
+}
+.waiting svg {
+  flex: none;
+  color: var(--sealing);
+}
+.docs {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-2);
+}
+.doc {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: var(--space-1) var(--space-3);
+  align-items: center;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+}
+.doc > svg {
+  color: var(--ink-2);
+}
+.doc p {
+  margin: 0;
+}
+.docName {
+  overflow-wrap: anywhere;
+}
+.docSub {
+  font-size: var(--text-sm);
+  color: var(--ink-2);
+}
+.docProblem {
+  grid-column: 1 / -1;
+}
+
+/* Enrolment: on a phone, one section per screen with a step bar. */
+.steps {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--space-3);
+  align-items: center;
+}
+.progress {
+  display: grid;
+  gap: var(--space-1);
+  font-size: var(--text-sm);
+  color: var(--ink-2);
+}
+.track {
+  display: block;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--line);
+  overflow: hidden;
+}
+.track span {
+  display: block;
+  height: 100%;
+  background: var(--ink);
+}
+.stepBack {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--touch);
+  height: var(--touch);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ink);
+}
+.summary {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+}
+.summary li {
+  display: grid;
+  grid-template-columns: 7rem minmax(0, 1fr);
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+}
+.summary li + li {
+  border-top: 1px solid var(--line);
+}
+.summary span {
+  color: var(--ink-2);
+}
+.summary b {
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+/* The code: big digits, a phone's number pad. */
+.code {
+  max-width: 12rem;
+  font-size: var(--text-xl);
+  letter-spacing: 0.3em;
+  font-variant-numeric: tabular-nums;
+}
+.until {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--ink-2);
+}
+
+.gps {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--ink-2);
+}
+.mapOff {
+  display: grid;
+  place-items: center;
+  min-height: 8rem;
+  padding: var(--space-4);
+  border-radius: var(--radius-sm);
+  background: var(--map-land);
+  color: var(--ink-2);
+  text-align: center;
+}
+.mapOff p {
+  margin: 0;
+}

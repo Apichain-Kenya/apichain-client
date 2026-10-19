@@ -1,0 +1,130 @@
+/* People (13 §4.2, board "Admin: people"): the batch list's rows and split,
+   plus the account pane. A status is a word in a tag with its own border,
+   never colour alone. */
+.head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+.add {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--touch);
+  padding: 0 var(--space-4);
+  border-radius: var(--radius-sm);
+  background: var(--ink);
+  color: var(--on-ink);
+  font-weight: 600;
+  text-decoration: none;
+}
+.notice {
+  margin: 0;
+  padding: var(--space-3);
+  border-radius: var(--radius-sm);
+  background: var(--tint-sealed);
+}
+.name {
+  font-weight: 600;
+}
+.tag {
+  grid-row: 1 / span 2;
+  grid-column: 2;
+  align-self: center;
+  padding: 2px var(--space-3);
+  border: 1.5px solid currentColor;
+  border-radius: 999px;
+  font-size: var(--text-sm);
+}
+.active {
+  color: var(--sealed);
+}
+.mustChange {
+  color: var(--open);
+}
+.inactive {
+  color: var(--ink-2);
+  border-style: dashed;
+}
+.pane {
+  display: grid;
+  gap: var(--space-5);
+  min-width: 0;
+  max-width: 35rem;
+}
+.personHead {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: var(--space-2) var(--space-3);
+  align-items: baseline;
+}
+.personHead .small {
+  grid-column: 1 / -1;
+}
+.h2 {
+  margin: 0;
+  font-size: var(--text-xl);
+}
+.h3 {
+  margin: 0;
+  font-size: var(--text-lg);
+}
+.form,
+.block {
+  display: grid;
+  gap: var(--space-4);
+}
+.block {
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--line);
+}
+.form :is(input, select, textarea),
+.block :is(input, select, textarea) {
+  min-height: var(--touch);
+}
+.g2 {
+  display: grid;
+  gap: var(--space-3);
+}
+@media (min-width: 30rem) {
+  .g2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+.save {
+  justify-self: start;
+}
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+.small {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--ink-2);
+}
+.error {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--alert);
+}
+.refusal {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  border: 1.5px solid var(--alert);
+  border-radius: var(--radius-sm);
+  background: var(--tint-alert);
+}
+.refusal p {
+  margin: 0;
+}
+.refusalTitle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-weight: 600;
+}

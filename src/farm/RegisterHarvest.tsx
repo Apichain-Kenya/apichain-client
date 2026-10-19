@@ -1,25 +1,34 @@
-import { lazy, Suspense, useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useLocation } from 'wouter'
+import { Link, useLocation, useSearch } from 'wouter'
 import { ChevronLeft, Flower2, LocateFixed, Plus, Sprout, TreeDeciduous, Wheat } from 'lucide-react'
 
 import type { Me } from '../auth/SessionContext'
 import { harvestDrafts } from '../offline/outbox'
 import { Button } from '../ui/Button'
 import { ChoiceTiles } from '../ui/ChoiceTiles'
+import { ChunkBoundary } from '../ui/ChunkBoundary'
 import { DateChips } from '../ui/DateChips'
 import { Field } from '../ui/Field'
 import { Stepper } from '../ui/Stepper'
 import { useWide } from '../ui/useWide'
 import { useFarm, type Fix } from './FarmServices'
+import {
+  bodiesOf,
+  fixesOf,
+  fixGroup,
+  formOf,
+  type FixGroup,
+  type HarvestForm,
+  type Honey,
+  type Method,
+} from './fix'
 import styles from './RegisterHarvest.module.css'
 import { useFarmData } from './useFarmData'
 import { dayLabel } from './dayLabel'
 
 const MapPicker = lazy(() => import('./MapPicker'))
 
-type Honey = 'acacia' | 'wildflower' | 'eucalyptus' | 'sunflower' | 'mixed'
-type Method = 'organic' | 'conventional' | 'regenerative'
 type Step = 1 | 2 | 3 | 4
 const STEP_NAMES = ['where', 'what', 'when', 'check'] as const
 const GOOD_ENOUGH_M = 50 // ask to wait for a better fix beyond this (12 §11)
@@ -32,15 +41,49 @@ const HONEY_ICONS: Record<Honey, React.ReactNode> = {
   mixed: <Wheat aria-hidden="true" />,
 }
 
-// "Register a harvest" (12 §11, approved board). One decision per screen on a
-// phone, GPS first with the map only to confirm, and no latitude/longitude
-// field anywhere (03 §8.1). Saving commits to the outbox at once, with or
-// without a network; the outbox sends it later.
+// "Register a harvest" (12 §11, approved board), and "Fix and send again"
+// for a refused one (13 §11 item 2) at `?fix=<harvest action id>`. The form
+// mounts only once the outbox is read, so a fix opens filled in.
 export function RegisterHarvest({ me }: { me: Me }) {
+  const { t } = useTranslation()
+  const { outbox } = useFarm()
+  const fixId = new URLSearchParams(useSearch()).get('fix')
+  // undefined: still reading the outbox.
+  const [group, setGroup] = useState<FixGroup | null | undefined>(fixId ? undefined : null)
+  useEffect(() => {
+    if (!fixId) return
+    let live = true
+    void outbox.list(me.user_id).then((rows) => live && setGroup(fixGroup(rows, fixId)))
+    return () => {
+      live = false
+    }
+  }, [outbox, me.user_id, fixId])
+
+  if (group === undefined) return null
+  if (fixId && group === null) {
+    return (
+      <section className={styles.flow}>
+        <p role="status">{t('farm.fix.nothing')}</p>
+        <Link href="/">{t('farm.saved.done')}</Link>
+      </section>
+    )
+  }
+  return <HarvestFlow key={fixId ?? 'new'} me={me} fixing={group} />
+}
+
+// One decision per screen on a phone, GPS first with the map only to
+// confirm, and no latitude/longitude field anywhere (03 §8.1). Saving commits
+// to the outbox at once, with or without a network; the outbox sends it
+// later. When fixing, a part the server already accepted is shown, not offered.
+function HarvestFlow({ me, fixing }: { me: Me; fixing: FixGroup | null }) {
   const { t } = useTranslation()
   const [, navigate] = useLocation()
   const farm = useFarm()
   const { apiaries } = useFarmData(me.user_id, me.farmer_id ?? null)
+  const [start] = useState<Partial<HarvestForm>>(() => (fixing ? formOf(fixing) : {}))
+  // Which parts may change: all of a new harvest; of a fix, only the unsent.
+  const editWhere = !fixing || fixing.editApiary || (!fixing.apiary && fixing.editBatch)
+  const editBatch = !fixing || fixing.editBatch
 
   // Laptop: all four sections on one page, one Save (12 §4.5). Phone: one
   // decision per screen.
@@ -48,18 +91,18 @@ export function RegisterHarvest({ me }: { me: Me }) {
   const [step, setStep] = useState<Step>(1)
   const shows = (n: Step) => wide || step === n
   const Title = wide ? 'h2' : 'h1'
-  const [choice, setChoice] = useState<string | null>(null) // apiary id, or 'new'
-  const [fix, setFix] = useState<Fix | null>(null)
+  const [choice, setChoice] = useState<string | null>(start.where ?? null) // apiary id, or 'new'
+  const [fix, setFix] = useState<Fix | null>(start.fix ?? null)
   const [pendingFix, setPendingFix] = useState<Fix | null>(null)
   const [locating, setLocating] = useState(false)
   const [locError, setLocError] = useState<string | null>(null)
-  const [name, setName] = useState('')
-  const [hives, setHives] = useState(1)
-  const [honey, setHoney] = useState<Honey>('acacia')
-  const [kg, setKg] = useState(0)
-  const [expected, setExpected] = useState(0)
-  const [method, setMethod] = useState<Method>('organic')
-  const [day, setDay] = useState(farm.today())
+  const [name, setName] = useState(start.name ?? '')
+  const [hives, setHives] = useState(start.hives ?? 1)
+  const [honey, setHoney] = useState<Honey>(start.honey ?? 'acacia')
+  const [kg, setKg] = useState(start.kg ?? 0)
+  const [expected, setExpected] = useState(start.expected ?? 0)
+  const [method, setMethod] = useState<Method>(start.method ?? 'organic')
+  const [day, setDay] = useState(start.day ?? farm.today())
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [saving, setSaving] = useState(false)
 
@@ -113,39 +156,47 @@ export function RegisterHarvest({ me }: { me: Me }) {
     setErrors(all)
     if (Object.keys(all).length > 0 || me.farmer_id == null) return
     setSaving(true)
-    const drafts = harvestDrafts({
-      farmerId: me.farmer_id,
-      ...(isNew
-        ? {
-            apiary: {
-              name: name.trim(),
-              latitude: fix!.lat.toFixed(6),
-              longitude: fix!.lon.toFixed(6),
-              hive_count: hives,
-            },
-          }
-        : { apiaryId: Number(where) }),
-      metadata: {
-        honey_type: honey,
-        expected_yield_kg: (expected || kg).toFixed(2),
-        harvest_window_start: day,
-        harvest_window_end: day,
-        apiary_management_method: method,
-      },
-      harvest: { harvest_date: day, quantity_kg: kg.toFixed(2), hive_ids: [] },
-    })
-    const rows = await farm.outbox.enqueue(me.user_id, drafts, farm.now())
+    const form = { where, name, hives, fix, honey, kg, expected, method, day }
+    let rows
+    if (fixing) {
+      // Never enqueue: the refused chain is replaced, new keys, one transaction.
+      rows = await farm.outbox.fixAll(fixesOf(fixing, form, me.farmer_id), farm.now())
+    } else {
+      const { apiary, metadata, harvest } = bodiesOf(form, me.farmer_id)
+      const drafts = harvestDrafts({
+        farmerId: me.farmer_id,
+        ...(isNew ? { apiary } : { apiaryId: Number(where) }),
+        metadata,
+        harvest,
+      })
+      rows = await farm.outbox.enqueue(me.user_id, drafts, farm.now())
+    }
     void farm.sync.kick({ force: true })
     navigate(`/saved?id=${rows[rows.length - 1].id}`)
   }
 
+  // A fix whose apiary is on the server but not yet in this phone's list
+  // names it from the stored chain.
+  const knownName =
+    known.find((a) => String(a.id) === where)?.name ??
+    (fixing?.apiary ? String(fixing.apiary.body.name) : '')
   const apiaryLabel = isNew
     ? t('farm.check.newApiary', { name: name.trim(), count: hives })
-    : (known.find((a) => String(a.id) === where)?.name ?? '')
+    : knownName
 
   return (
     <section className={styles.flow}>
-      {wide ? <h1 className="serif">{t('farm.register')}</h1> : null}
+      {wide ? <h1 className="serif">{t(fixing ? 'farm.fix.title' : 'farm.register')}</h1> : null}
+      {fixing ? (
+        <p className={styles.note} role="status">
+          {t('farm.harvests.attention.why', {
+            reason:
+              fixing.refused.last_error?.message ??
+              fixing.refused.last_error?.code ??
+              t('farm.harvests.attention.unknownReason'),
+          })}
+        </p>
+      ) : null}
       <div className={styles.bar} hidden={wide}>
         {step > 1 ? (
           <button
@@ -170,25 +221,41 @@ export function RegisterHarvest({ me }: { me: Me }) {
       {shows(1) ? (
         <div className={styles.step}>
           <Title className="serif">{t('farm.where.title')}</Title>
-          <ChoiceTiles
-            legend={known.length ? t('farm.where.pick') : t('farm.where.noneSaved')}
-            name="apiary"
-            value={where}
-            onChange={(v) => {
-              setChoice(v)
-              setErrors({})
-            }}
-            options={[
-              ...known.map((a) => ({
-                value: String(a.id),
-                label: a.hive_count
-                  ? `${a.name}, ${t('farm.apiaries.hives', { count: a.hive_count })}`
-                  : a.name,
-              })),
-              { value: 'new', label: t('farm.where.new'), icon: <Plus aria-hidden="true" /> },
-            ]}
-          />
-          {isNew ? (
+          {!editWhere ? (
+            <p className={styles.kept}>
+              <span>{knownName}</span>
+              <small>{t('farm.fix.kept')}</small>
+            </p>
+          ) : fixing?.editApiary ? null : (
+            <ChoiceTiles
+              legend={known.length ? t('farm.where.pick') : t('farm.where.noneSaved')}
+              name="apiary"
+              value={where}
+              onChange={(v) => {
+                setChoice(v)
+                setErrors({})
+              }}
+              options={[
+                ...known.map((a) => ({
+                  value: String(a.id),
+                  label: a.hive_count
+                    ? `${a.name}, ${t('farm.apiaries.hives', { count: a.hive_count })}`
+                    : a.name,
+                })),
+                // A fix keeps to existing apiaries: a new one would be a new action.
+                ...(fixing
+                  ? []
+                  : [
+                      {
+                        value: 'new',
+                        label: t('farm.where.new'),
+                        icon: <Plus aria-hidden="true" />,
+                      },
+                    ]),
+              ]}
+            />
+          )}
+          {isNew && editWhere ? (
             <>
               <Button
                 variant="secondary"
@@ -221,16 +288,26 @@ export function RegisterHarvest({ me }: { me: Me }) {
               {fix ? (
                 <>
                   {farm.online() ? (
-                    <Suspense fallback={<div className={styles.offlineMap} />}>
-                      <MapPicker fix={fix} onMove={setFix} label={t('farm.where.drag')} />
-                    </Suspense>
+                    <ChunkBoundary
+                      fallback={
+                        <div className={styles.offlineMap}>
+                          <p>{t('farm.where.mapFailed')}</p>
+                        </div>
+                      }
+                    >
+                      <Suspense fallback={<div className={styles.offlineMap} />}>
+                        <MapPicker fix={fix} onMove={setFix} label={t('farm.where.drag')} />
+                      </Suspense>
+                    </ChunkBoundary>
                   ) : (
                     <div className={styles.offlineMap}>
                       <p>{t('farm.where.mapOffline')}</p>
                     </div>
                   )}
                   <p className={styles.gps}>
-                    {t('farm.where.accuracy', { m: Math.round(fix.accuracy) })}
+                    {fix.accuracy > 0
+                      ? t('farm.where.accuracy', { m: Math.round(fix.accuracy) })
+                      : t('farm.fix.savedPlace')}
                     {farm.online() ? ` ${t('farm.where.drag')}` : ''}
                   </p>
                 </>
@@ -266,41 +343,61 @@ export function RegisterHarvest({ me }: { me: Me }) {
       {shows(2) ? (
         <div className={styles.step}>
           <Title className="serif">{t('farm.what.title')}</Title>
-          <ChoiceTiles<Honey>
-            legend={t('farm.what.honey')}
-            name="honey"
-            value={honey}
-            onChange={setHoney}
-            options={(Object.keys(HONEY_ICONS) as Honey[]).map((h) => ({
-              value: h,
-              label: t(`scan.honey.${h}`),
-              icon: HONEY_ICONS[h],
-            }))}
-          />
+          {editBatch ? (
+            <ChoiceTiles<Honey>
+              legend={t('farm.what.honey')}
+              name="honey"
+              value={honey}
+              onChange={setHoney}
+              options={(Object.keys(HONEY_ICONS) as Honey[]).map((h) => ({
+                value: h,
+                label: t(`scan.honey.${h}`),
+                icon: HONEY_ICONS[h],
+              }))}
+            />
+          ) : (
+            <p className={styles.kept}>
+              <span>{t(`scan.honey.${honey}`)}</span>
+              <small>{t('farm.fix.kept')}</small>
+            </p>
+          )}
           <KgInput label={t('farm.what.harvested')} value={kg} onChange={setKg} error={errors.kg} />
-          <KgInput label={t('farm.what.expected')} value={expected} onChange={setExpected} />
-          <ChoiceTiles<Method>
-            legend={t('farm.what.method')}
-            name="method"
-            value={method}
-            onChange={setMethod}
-            options={(['organic', 'conventional', 'regenerative'] as Method[]).map((m) => ({
-              value: m,
-              label: t(`farm.what.methods.${m}`),
-            }))}
-          />
+          {editBatch ? (
+            <>
+              <KgInput label={t('farm.what.expected')} value={expected} onChange={setExpected} />
+              <ChoiceTiles<Method>
+                legend={t('farm.what.method')}
+                name="method"
+                value={method}
+                onChange={setMethod}
+                options={(['organic', 'conventional', 'regenerative'] as Method[]).map((m) => ({
+                  value: m,
+                  label: t(`farm.what.methods.${m}`),
+                }))}
+              />
+            </>
+          ) : null}
         </div>
       ) : null}
 
       {shows(3) ? (
         <div className={styles.step}>
           <Title className="serif">{t('farm.when.title')}</Title>
-          <DateChips
-            legend={t('farm.when.legend')}
-            value={day}
-            today={farm.today()}
-            onChange={setDay}
-          />
+          {editBatch ? (
+            <DateChips
+              legend={t('farm.when.legend')}
+              value={day}
+              today={farm.today()}
+              onChange={setDay}
+            />
+          ) : (
+            // The day is also the batch's harvest window, which the server
+            // already holds; a new day here would disagree with it.
+            <p className={styles.kept}>
+              <span>{dayLabel(day, farm.today(), t)}</span>
+              <small>{t('farm.fix.kept')}</small>
+            </p>
+          )}
         </div>
       ) : null}
 
@@ -331,7 +428,7 @@ export function RegisterHarvest({ me }: { me: Me }) {
           </Button>
         ) : (
           <Button full loading={saving} onClick={() => void save()}>
-            {t('farm.check.save')}
+            {t(fixing ? 'farm.fix.send' : 'farm.check.save')}
           </Button>
         )}
       </div>

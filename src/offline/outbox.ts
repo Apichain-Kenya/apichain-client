@@ -23,7 +23,17 @@ import { browserLocks, OfflineError, type Session } from '../auth/session'
 
 type Json = Record<string, unknown>
 export type Ref = { $ref: string }
-export type Kind = 'apiary.create' | 'batch.create' | 'batch.harvest'
+export type Kind =
+  | 'apiary.create'
+  | 'batch.create'
+  | 'batch.harvest'
+  | 'batch.process'
+  | 'batch.lab_verify'
+  | 'batch.package'
+  | 'batch.distribute'
+  | 'consent.record'
+/** A staff step on a batch the server already has (13 §8). */
+export type StageKind = 'batch.process' | 'batch.lab_verify' | 'batch.package' | 'batch.distribute'
 export type Status = 'queued' | 'sent' | 'needs_attention'
 
 export type Draft = { kind: Kind; local_ref: string; body: Json }
@@ -46,17 +56,51 @@ export type ActionRecord = Draft & {
   last_error: { status: number; code?: string; message?: string } | null
 }
 
-export type ReplayResult = { sent: number; paused: null | 'offline' | 'signed_out' }
+// `password_change`: the server refuses everything until this person has
+// chosen their own password (13 D5). Like a 401, it pauses; it never marks.
+export type ReplayResult = {
+  sent: number
+  paused: null | 'offline' | 'signed_out' | 'password_change'
+}
 
 // How each kind becomes a request, and which field of the reply is the id a
 // dependant refers to.
+const step =
+  (route: string) =>
+  ({ batch_id, ...rest }: Json) => ({
+    path: `/v2/batches/${String(batch_id)}/${route}`,
+    json: rest,
+  })
+
 const KINDS: Record<Kind, { request: (body: Json) => { path: string; json: Json } }> = {
   'apiary.create': { request: (body) => ({ path: '/v2/apiaries', json: body }) },
   'batch.create': { request: (body) => ({ path: '/v2/batches', json: body }) },
-  'batch.harvest': {
-    request: ({ batch_id, ...rest }) => ({ path: `/v2/batches/${batch_id}/harvest`, json: rest }),
+  'batch.harvest': { request: step('harvest') },
+  // Staff steps (13 §8): no references, since the batch already has its id.
+  'batch.process': { request: step('process') },
+  'batch.lab_verify': { request: step('lab-verify') },
+  'batch.package': { request: step('package') },
+  'batch.distribute': { request: step('distribute') },
+  // A consent choice (13 §9 item 3): the farmer goes in the path, since the
+  // server forbids any field but purpose, granted and text_version.
+  'consent.record': {
+    request: ({ farmer_id, ...rest }) => ({
+      path: `/v2/farmers/${String(farmer_id)}/consents`,
+      json: rest,
+    }),
   },
 }
+
+/** What the sync chip counts: a harvest, a staff step or a consent choice,
+ *  not the actions inside a harvest (its apiary and batch). */
+const COUNTED: ReadonlySet<Kind> = new Set<Kind>([
+  'batch.harvest',
+  'batch.process',
+  'batch.lab_verify',
+  'batch.package',
+  'batch.distribute',
+  'consent.record',
+])
 
 const MAX_CONFLICT_RETRIES = 5
 const BACKOFF_BASE_MS = 2_000
@@ -78,6 +122,34 @@ function refsIn(body: Json): string[] {
   return Object.values(body)
     .filter(isRef)
     .map((r) => r.$ref)
+}
+
+/** The draft for one staff step on a batch (13 §8). */
+export function stageDraft(kind: StageKind, batchId: number, body: Json): Draft {
+  return { kind, local_ref: `${kind}-${uuid()}`, body: { batch_id: batchId, ...body } }
+}
+
+/** One consent choice for one farmer, in the wording version they heard. */
+export function consentDraft(
+  farmerId: number,
+  purpose: string,
+  granted: boolean,
+  textVersion: string,
+): Draft {
+  return {
+    kind: 'consent.record',
+    local_ref: `consent-${uuid()}`,
+    body: { farmer_id: farmerId, purpose, granted, text_version: textVersion },
+  }
+}
+
+/** A new apiary for a farmer, seeded by their field officer (13 §9 item 7). */
+export function apiaryDraft(farmerId: number, apiary: Json): Draft {
+  return {
+    kind: 'apiary.create',
+    local_ref: `apiary-${uuid()}`,
+    body: { farmer_id: farmerId, ...apiary },
+  }
 }
 
 /** The drafts for one "Register a harvest": a new apiary only if needed. */
@@ -173,32 +245,58 @@ export class Outbox {
     return (await this.list(userId)).filter((r) => r.status !== 'sent').length
   }
 
-  /** What the sync chip counts: harvests, not the actions inside them. */
-  async waitingHarvests(userId: number): Promise<number> {
-    return (await this.list(userId)).filter(
-      (r) => r.kind === 'batch.harvest' && r.status !== 'sent',
-    ).length
+  /** What the sync chip counts: harvests and staff steps, not the actions
+   *  inside a harvest. */
+  async waitingWork(userId: number): Promise<number> {
+    return (await this.list(userId)).filter((r) => COUNTED.has(r.kind) && r.status !== 'sent')
+      .length
   }
 
   /** "Fix and send": the corrected action is a new action with a new key. */
   async fixAndResend(id: string, body: Json, now: number): Promise<ActionRecord> {
-    const db = await this.db
-    const old = (await db.get('actions', id)) as ActionRecord | undefined
-    if (!old) throw new Error(`no outbox action ${id}`)
-    const fixed: ActionRecord = {
-      ...old,
-      id: uuid(),
-      body,
-      idempotency_key: uuid(),
-      status: 'queued',
-      attempts: 0,
-      next_attempt_at: now,
-      resolved: refsIn(body).length === 0,
-      last_error: null,
-      server_result: null,
+    return (await this.fixAll([{ id, body }], now))[0]
+  }
+
+  /**
+   * "Fix and send again" for a whole harvest (13 §11 item 2): each action is
+   * replaced by a new one with a new key, keeping its local_ref and seq so
+   * its dependants still find it and capture order holds. One transaction, so
+   * the runner never sends a fixed parent ahead of its child's new body; a
+   * missing action changes nothing at all. Only for actions never sent: a new
+   * key on one the server may hold would record it twice.
+   */
+  async fixAll(fixes: { id: string; body: Json }[], now: number): Promise<ActionRecord[]> {
+    const tx = (await this.db).transaction('actions', 'readwrite')
+    const fixed: ActionRecord[] = []
+    try {
+      for (const { id, body } of fixes) {
+        const old = (await tx.store.get(id)) as ActionRecord | undefined
+        if (!old) throw new Error(`no outbox action ${id}`)
+        if (old.status === 'sent') throw new Error(`outbox action ${id} was already sent`)
+        const row: ActionRecord = {
+          ...old,
+          id: uuid(),
+          body,
+          depends_on: refsIn(body),
+          idempotency_key: uuid(),
+          status: 'queued',
+          attempts: 0,
+          conflicts: 0,
+          next_attempt_at: now,
+          resolved: refsIn(body).length === 0,
+          last_error: null,
+          server_result: null,
+        }
+        await tx.store.delete(id)
+        await tx.store.put(row)
+        fixed.push(row)
+      }
+      await tx.done
+    } catch (e) {
+      tx.abort()
+      await tx.done.catch(() => undefined)
+      throw e
     }
-    const tx = db.transaction('actions', 'readwrite')
-    await Promise.all([tx.store.delete(id), tx.store.put(fixed), tx.done])
     this.emit()
     return fixed
   }
@@ -273,7 +371,14 @@ export class Outbox {
         }
         if (res.status === 401) return { sent, paused: 'signed_out' }
 
-        const err = (await res.json().catch(() => ({}))) as { code?: string; message?: string }
+        const err = (await res.json().catch(() => ({}))) as {
+          code?: string
+          message?: string
+          detail?: { msg?: string }[]
+        }
+        if (res.status === 403 && err.code === 'password_change_required') {
+          return { sent, paused: 'password_change' }
+        }
         const conflict = res.status === 409 && err.code === 'idempotency_conflict'
         if (res.status >= 500 || res.status === 429) {
           await this.backoff(row, now())
@@ -286,7 +391,9 @@ export class Outbox {
           continue
         }
         row.status = 'needs_attention'
-        row.last_error = { status: res.status, code: err.code, message: err.message }
+        // A request-validation 422 has no code, only FastAPI's `detail` list.
+        const message = err.message ?? err.detail?.[0]?.msg
+        row.last_error = { status: res.status, code: err.code, message }
         await this.put(row)
       }
       return { sent, paused: null }

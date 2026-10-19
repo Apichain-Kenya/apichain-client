@@ -7,37 +7,26 @@ import { Providers } from '../app/Providers'
 import { RequireRole } from '../app/RequireRole'
 import { outbox, session, sync } from '../app/services'
 import { useSync } from '../app/useSync'
+import { ChangePasswordPage } from '../auth/ChangePasswordPage'
 import { useSession, type Me } from '../auth/SessionContext'
 import { Snapshots } from '../offline/snapshots'
 import { AppShell } from '../ui/AppShell'
 import { OfflineBanner } from '../ui/OfflineBanner'
 import { SyncChip } from '../ui/Sync'
-import { FarmServicesContext, type FarmServices, type Fix } from './FarmServices'
+import { FarmServicesContext, type FarmServices } from './FarmServices'
 import { HarvestsPage } from './HarvestsPage'
+import { locate } from './locate'
 import { RegisterHarvest } from './RegisterHarvest'
 import { SavedPage } from './SavedPage'
-import { SignInPage } from './SignInPage'
 import { ApiariesPage, MePage } from './SimplePages'
 
 // The farmer capture app (12 §11): its own lazy chunk, holding the session,
 // the outbox and every farmer screen, so a shopper scanning a jar never
 // downloads any of it (12 D13).
 
-function locate(): Promise<Fix> {
-  return new Promise((resolve, reject) => {
-    if (!navigator.geolocation) return reject({ code: 2 })
-    navigator.geolocation.getCurrentPosition(
-      (p) =>
-        resolve({ lat: p.coords.latitude, lon: p.coords.longitude, accuracy: p.coords.accuracy }),
-      reject,
-      { enableHighAccuracy: true, timeout: 20_000, maximumAge: 0 },
-    )
-  })
-}
-
 let snapshots: Snapshots | null = null
 
-export default function FarmApp({ mode }: { mode: 'sign-in' | 'farm' }) {
+export default function FarmApp() {
   const services = useMemo<FarmServices>(
     () => ({
       session,
@@ -55,7 +44,7 @@ export default function FarmApp({ mode }: { mode: 'sign-in' | 'farm' }) {
   return (
     <FarmServicesContext.Provider value={services}>
       <Providers session={session} outbox={outbox} sync={sync}>
-        {mode === 'sign-in' ? <SignInPage /> : <FarmGate />}
+        <FarmGate />
       </Providers>
     </FarmServicesContext.Provider>
   )
@@ -108,6 +97,9 @@ export function FarmRoutes({ signedInAs: me }: { signedInAs: Me }) {
         </Route>
         <Route path="/me">
           <MePage me={me} />
+        </Route>
+        <Route path="/password">
+          <ChangePasswordPage me={me} forced={false} />
         </Route>
       </Switch>
     </AppShell>

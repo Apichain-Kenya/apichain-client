@@ -55,7 +55,13 @@ function renderAt(path: string) {
     <FarmServicesContext.Provider value={services}>
       <Router hook={memory.hook} searchHook={memory.searchHook}>
         <FarmRoutes
-          signedInAs={{ user_id: 11, role: 'farmer', display_name: 'Wanjiru K', farmer_id: 7 }}
+          signedInAs={{
+            user_id: 11,
+            role: 'farmer',
+            display_name: 'Wanjiru K',
+            farmer_id: 7,
+            must_change_password: false,
+          }}
         />
       </Router>
     </FarmServicesContext.Provider>,
@@ -208,7 +214,7 @@ describe('My harvests', () => {
     await next()
     await userEvent.click(screen.getByRole('button', { name: 'Save harvest' }))
     await screen.findByRole('heading', { name: 'Saved on this phone' })
-    expect(await services.outbox.waitingHarvests(11)).toBe(1)
+    expect(await services.outbox.waitingWork(11)).toBe(1)
 
     first.unmount()
     renderAt('/')
@@ -346,5 +352,278 @@ describe('browser-walk fixes', () => {
     await new Promise((r) => setTimeout(r, 300)) // snapshot read; server still answering
     expect(screen.queryByText('No harvests yet. Register your first one.')).not.toBeInTheDocument()
     release()
+  })
+})
+
+describe('the "Sending" gap (13 §11 item 3)', () => {
+  /** The farmer's batch list, answered only when the test says so. */
+  function heldList() {
+    const answers: ((items: unknown[]) => void)[] = []
+    const real = services.session.authFetch.bind(services.session)
+    vi.spyOn(services.session, 'authFetch').mockImplementation((path, init, opts) =>
+      String(path).startsWith('/v2/batches?')
+        ? new Promise((r) =>
+            answers.push((items) =>
+              r(new Response(JSON.stringify({ items, next_cursor: null }), { status: 200 })),
+            ),
+          )
+        : real(path, init, opts),
+    )
+    return answers
+  }
+
+  const summary = (id: number, state: string) => ({
+    id,
+    public_id: 'b'.repeat(32),
+    batch_code: `B-${id}`,
+    state,
+    honey_type: 'acacia',
+    apiary_name: 'Mukurwe-ini',
+    created_at: '2026-10-13T06:00:00',
+    state_updated_at: '2026-10-13T07:00:00',
+  })
+
+  it('a sent harvest stays as "Sending" at every moment until the list has it', async () => {
+    await setup({ online: true })
+    server.apiaries.push({ id: 101, farmer_id: 7, name: 'Mukurwe-ini' })
+    const answers = heldList()
+    await services.outbox.enqueue(
+      11,
+      harvestDrafts({
+        farmerId: 7,
+        apiaryId: 101,
+        metadata: { honey_type: 'acacia' },
+        harvest: { harvest_date: TODAY, quantity_kg: '35.00', hive_ids: [] },
+      }),
+      services.now(),
+    )
+    const { container } = renderAt('/')
+    await vi.waitFor(() => expect(answers).toHaveLength(1))
+    answers[0]([])
+    expect(await screen.findByText('Saved on this phone')).toBeInTheDocument()
+
+    // Count the harvest rows at every change to the screen from here on.
+    const rows = () => container.querySelectorAll('ul > li').length
+    const seen: number[] = [rows()]
+    const watch = new MutationObserver(() => seen.push(rows()))
+    watch.observe(container, { childList: true, subtree: true, characterData: true })
+
+    await services.outbox.replay(11, services.session, services.now) // sent
+    expect(await screen.findByText('Sending')).toBeInTheDocument()
+    await vi.waitFor(() => expect(answers).toHaveLength(2))
+    answers[1]([summary(Number(server.batches[0].id), 'HARVESTED')])
+    expect(await screen.findByText('Sent. Now harvest recorded')).toBeInTheDocument()
+    expect(screen.queryByText('Sending')).not.toBeInTheDocument()
+    watch.disconnect()
+    expect(Math.min(...seen)).toBe(1)
+    expect(Math.max(...seen)).toBe(1)
+  })
+
+  it('a list read before the harvest landed (batch still registered) keeps one "Sending" row', async () => {
+    await setup({ online: true })
+    server.apiaries.push({ id: 101, farmer_id: 7, name: 'Mukurwe-ini' })
+    const answers = heldList()
+    await services.outbox.enqueue(
+      11,
+      harvestDrafts({
+        farmerId: 7,
+        apiaryId: 101,
+        metadata: { honey_type: 'acacia' },
+        harvest: { harvest_date: TODAY, quantity_kg: '35.00', hive_ids: [] },
+      }),
+      services.now(),
+    )
+    await services.outbox.replay(11, services.session, services.now)
+    const { container } = renderAt('/')
+    await vi.waitFor(() => expect(answers).toHaveLength(1))
+    answers[0]([summary(Number(server.batches[0].id), 'CREATED')])
+    await screen.findByText('Sending')
+    await new Promise((r) => setTimeout(r, 50))
+    expect(container.querySelectorAll('ul > li')).toHaveLength(1)
+    expect(screen.queryByText(/^Sent\./)).not.toBeInTheDocument()
+  })
+
+  it('opening the page never flashes a harvest already in the list as "Sending"', async () => {
+    await setup({ online: true })
+    server.apiaries.push({ id: 101, farmer_id: 7, name: 'Mukurwe-ini' })
+    const answers = heldList()
+    await services.outbox.enqueue(
+      11,
+      harvestDrafts({
+        farmerId: 7,
+        apiaryId: 101,
+        metadata: { honey_type: 'acacia' },
+        harvest: { harvest_date: TODAY, quantity_kg: '35.00', hive_ids: [] },
+      }),
+      services.now(),
+    )
+    await services.outbox.replay(11, services.session, services.now)
+    const batchId = Number(server.batches[0].id)
+    await services.snapshots.set(11, 'batches', [summary(batchId, 'HARVESTED')])
+
+    // Watch from before the first render: every frame, not just the last.
+    let flashed = false
+    const watch = new MutationObserver(() => {
+      flashed ||= document.body.textContent?.includes('Sending') ?? false
+    })
+    watch.observe(document.body, { childList: true, subtree: true, characterData: true })
+    renderAt('/')
+    expect(await screen.findByText('Sent. Now harvest recorded')).toBeInTheDocument()
+    await vi.waitFor(() => expect(answers).toHaveLength(1))
+    answers[0]([summary(batchId, 'HARVESTED')])
+    await new Promise((r) => setTimeout(r, 50))
+    watch.disconnect()
+    expect(flashed).toBe(false)
+  })
+
+  it('an old sent harvest beyond the first page of 100 never comes back as "Sending"', async () => {
+    await setup({ online: true })
+    const answers = heldList()
+    server.apiaries.push({ id: 101, farmer_id: 7, name: 'Mukurwe-ini' })
+    server.seq.batch = 4 // sent long ago, as batch 5
+    await services.outbox.enqueue(
+      11,
+      harvestDrafts({
+        farmerId: 7,
+        apiaryId: 101,
+        metadata: { honey_type: 'acacia' },
+        harvest: { harvest_date: TODAY, quantity_kg: '35.00', hive_ids: [] },
+      }),
+      services.now(),
+    )
+    await services.outbox.replay(11, services.session, services.now)
+    expect(server.batches[0].id).toBe(5)
+    // The first page holds batches 200 down to 101.
+    renderAt('/')
+    await vi.waitFor(() => expect(answers).toHaveLength(1))
+    answers[0](Array.from({ length: 100 }, (_, i) => summary(200 - i, 'PACKAGED')))
+    expect(await screen.findAllByText('Sent. Now packed')).toHaveLength(100)
+    expect(screen.queryByText('Sending')).not.toBeInTheDocument()
+  })
+})
+
+describe('fix and send again (13 §11 item 2)', () => {
+  it('a refused harvest opens filled in; sending again makes a new action, the refused one is gone', async () => {
+    await setup({ online: true })
+    server.apiaries.push({ id: 101, farmer_id: 7, name: 'Mukurwe-ini' })
+    await services.outbox.enqueue(
+      11,
+      harvestDrafts({
+        farmerId: 7,
+        apiaryId: 101,
+        metadata: { honey_type: 'acacia', apiary_management_method: 'organic' },
+        harvest: { harvest_date: '2026-10-12', quantity_kg: '0.00', hive_ids: [] },
+      }),
+      services.now(),
+    )
+    await services.outbox.replay(11, services.session, services.now)
+    const refused = (await services.outbox.list(11)).find((r) => r.kind === 'batch.harvest')!
+    expect(refused.status).toBe('needs_attention')
+
+    const { memory } = renderAt('/')
+    await userEvent.click(await screen.findByRole('button', { name: 'Fix and send again' }))
+    expect(memory.history.at(-1)).toBe(`/register?fix=${refused.id}`)
+
+    // The batch was accepted, so where and what honey stay as they are.
+    expect(await screen.findByText(/The server refused it: invalid_quantity/)).toBeInTheDocument()
+    expect(await screen.findByText('Mukurwe-ini')).toBeInTheDocument()
+    expect(screen.queryByRole('radio', { name: 'Add a new apiary' })).not.toBeInTheDocument()
+    await next()
+    expect(screen.queryByRole('radio', { name: 'Acacia' })).not.toBeInTheDocument()
+    await userEvent.type(screen.getByLabelText('Harvested (kg)'), '35')
+    await next()
+    // The day is the batch's harvest window too, already accepted: kept, so
+    // the harvest never disagrees with the window the jar shows.
+    expect(screen.queryByRole('radio', { name: 'Yesterday' })).not.toBeInTheDocument()
+    expect(screen.getByText(/^yesterday$/i)).toBeInTheDocument()
+    await next()
+    await userEvent.click(screen.getByRole('button', { name: 'Send again' }))
+
+    const rows = await services.outbox.list(11)
+    expect(rows.some((r) => r.id === refused.id)).toBe(false)
+    const fixed = rows.find((r) => r.kind === 'batch.harvest')!
+    expect(fixed.idempotency_key).not.toBe(refused.idempotency_key)
+    expect(fixed.body).toMatchObject({ quantity_kg: '35.00', harvest_date: '2026-10-12' })
+    expect(rows.filter((r) => r.kind === 'batch.create')).toHaveLength(1) // never sent twice
+    expect(memory.history.at(-1)).toBe(`/saved?id=${fixed.id}`)
+
+    await services.outbox.replay(11, services.session, services.now)
+    expect(server.harvests).toHaveLength(1)
+    expect(server.batches).toHaveLength(1)
+  })
+
+  it('a refused new apiary: its name is fixed, and the batch and harvest held behind it send', async () => {
+    await setup({ online: true })
+    await services.outbox.enqueue(
+      11,
+      harvestDrafts({
+        farmerId: 7,
+        apiary: {
+          name: 'Ridge\u0000',
+          latitude: '-0.428713',
+          longitude: '36.951247',
+          hive_count: 4,
+        },
+        metadata: { honey_type: 'wildflower', apiary_management_method: 'organic' },
+        harvest: { harvest_date: TODAY, quantity_kg: '12.00', hive_ids: [] },
+      }),
+      services.now(),
+    )
+    await services.outbox.replay(11, services.session, services.now)
+    const harvest = (await services.outbox.list(11)).find((r) => r.kind === 'batch.harvest')!
+    services.online = () => false // no live map in jsdom
+
+    renderAt(`/register?fix=${harvest.id}`)
+    const name = await screen.findByLabelText('Name this apiary')
+    expect(name).toHaveValue('Ridge\u0000')
+    expect(screen.getByText('The place you saved before.')).toBeInTheDocument()
+    expect(screen.queryByText(/within about/)).not.toBeInTheDocument()
+    await userEvent.clear(name)
+    await userEvent.type(name, 'Ridge')
+    await next()
+    expect(screen.getByRole('radio', { name: 'Wildflower' })).toBeChecked()
+    expect(screen.getByLabelText('Harvested (kg)')).toHaveValue('12')
+    await next()
+    await next()
+    expect(screen.getByText('Ridge (new), 4 hives')).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Send again' }))
+    await screen.findByRole('heading', { name: 'Saved on this phone' })
+
+    await services.outbox.replay(11, services.session, services.now)
+    const rows = await services.outbox.list(11)
+    expect(rows.map((r) => r.status)).toEqual(['sent', 'sent', 'sent'])
+    expect(server.apiaries.at(-1)).toMatchObject({ name: 'Ridge', hive_count: 4 })
+    expect(server.harvests).toHaveLength(1)
+  })
+
+  it('a link to a harvest with nothing to fix says so', async () => {
+    renderAt('/register?fix=nothing-here')
+    expect(await screen.findByText('This harvest has nothing to fix.')).toBeInTheDocument()
+  })
+
+  it('the fix form has no axe violations', async () => {
+    await setup({ online: true })
+    await services.outbox.enqueue(
+      11,
+      harvestDrafts({
+        farmerId: 7,
+        apiary: {
+          name: 'Ridge\u0000',
+          latitude: '-0.428713',
+          longitude: '36.951247',
+          hive_count: 4,
+        },
+        metadata: { honey_type: 'wildflower' },
+        harvest: { harvest_date: TODAY, quantity_kg: '12.00', hive_ids: [] },
+      }),
+      services.now(),
+    )
+    await services.outbox.replay(11, services.session, services.now)
+    const harvest = (await services.outbox.list(11)).find((r) => r.kind === 'batch.harvest')!
+    services.online = () => false // no live map in jsdom
+    const { container } = renderAt(`/register?fix=${harvest.id}`)
+    await screen.findByLabelText('Name this apiary')
+    const result = await axe.run(container, { rules: { 'color-contrast': { enabled: false } } })
+    expect(result.violations.map((v) => v.id)).toEqual([])
   })
 })

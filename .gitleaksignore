@@ -1,0 +1,8 @@
+# Reviewed gitleaks false positives, one fingerprint per line.
+# Each entry pins one finding in one commit; a new finding still fails the scan.
+# Do not quote flagged code in these comments: gitleaks scans this file too.
+
+# P4b-D lab form: a comparison of a loop variable against a measurement's
+# field name was read as an API key. The value is a form field name, not a
+# credential, and the variable was renamed in the next commit. Reviewed 2026-10-18.
+1b09db606a7a22c8559e1f9f98e312d910b07644:src/console/StageForms.tsx:generic-api-key:185

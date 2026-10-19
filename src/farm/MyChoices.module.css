@@ -1,0 +1,60 @@
+.wrap {
+  display: grid;
+  gap: var(--space-3);
+}
+.title {
+  margin: 0;
+  font-size: var(--text-md);
+  font-weight: 600;
+}
+.list {
+  display: grid;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+}
+.row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: var(--space-2) var(--space-3);
+  align-items: start;
+  padding: var(--space-3) var(--space-4);
+}
+.row + .row {
+  border-top: 1px solid var(--line);
+}
+.row > svg {
+  margin-top: 2px;
+  color: var(--ink-2);
+}
+.words {
+  display: grid;
+  gap: var(--space-1);
+  min-width: 0;
+}
+.words p {
+  margin: 0;
+  color: var(--ink);
+  font-weight: 500;
+}
+.words small {
+  font-size: var(--text-sm);
+  color: var(--ink-2);
+}
+.problem {
+  grid-column: 2 / -1;
+  display: grid;
+  gap: var(--space-2);
+  justify-items: start;
+}
+.problem p {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  margin: 0;
+  color: var(--alert);
+  font-size: var(--text-sm);
+}
+.note {
+  font-size: var(--text-sm);
+}

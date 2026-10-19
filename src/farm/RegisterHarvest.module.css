@@ -116,9 +116,38 @@
   background: var(--paper);
   border-top: 1px solid var(--line);
 }
+/* A field brought into view (focus, the keyboard opening) stops above the
+   sticky Next bar and the tab bar under it, so the name field is never
+   hidden (13 §11 item 5). The bar is a button plus its padding and rule. */
+.flow :is(input, select, textarea, button, [role='application']) {
+  scroll-margin-bottom: calc(
+    3.5rem + env(safe-area-inset-bottom, 0px) + var(--touch-lg) + 2 * var(--space-3) + 1px +
+      var(--space-3)
+  );
+}
 @media (min-width: 1024px) {
   .actions {
     position: static;
     border-top: 0;
   }
+  .flow :is(input, select, textarea, button, [role='application']) {
+    scroll-margin-bottom: 0;
+  }
+}
+p.note {
+  margin: 0;
+}
+/* A part of a fix the server already accepted: shown, not offered. */
+.kept {
+  display: grid;
+  gap: var(--space-1);
+  margin: 0;
+  padding: var(--space-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-md);
+}
+.kept small {
+  color: var(--ink-2);
+  font-size: var(--text-sm);
 }

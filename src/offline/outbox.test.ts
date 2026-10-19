@@ -7,7 +7,7 @@ import { beforeEach, describe, expect, it } from 'vitest'
 
 import { Session } from '../auth/session'
 import { FakeBackend, FakeBus, FakeLocks } from '../test/fakeBackend'
-import { Outbox, harvestDrafts, type ActionRecord } from './outbox'
+import { Outbox, apiaryDraft, consentDraft, harvestDrafts, type ActionRecord } from './outbox'
 
 let server: FakeBackend
 let session: Session
@@ -166,6 +166,57 @@ describe('replay', () => {
     expect((await outbox.list(11)).some((r) => r.id === bad.id)).toBe(false)
   })
 
+  it('a refused new apiary holds its batch and harvest; fixed, all three send', async () => {
+    const drafts = newApiaryHarvest()
+    drafts[0].body = { ...drafts[0].body, name: 'Ridge\u0000' }
+    await outbox.enqueue(11, drafts, clock)
+    await replay()
+    const k = byKind(await outbox.list(11))
+    expect(k['apiary.create'].status).toBe('needs_attention')
+    expect(k['batch.create'].status).toBe('queued')
+    expect(k['batch.harvest'].status).toBe('queued')
+    expect(server.requests.map((r) => r.path)).toEqual(['/v2/apiaries'])
+
+    // "Fix and send again": the whole chain, in one transaction, new keys.
+    const fixed = await outbox.fixAll(
+      [
+        { id: k['apiary.create'].id, body: { ...k['apiary.create'].body, name: 'Ridge' } },
+        { id: k['batch.create'].id, body: k['batch.create'].body },
+        { id: k['batch.harvest'].id, body: k['batch.harvest'].body },
+      ],
+      clock,
+    )
+    expect(fixed.map((r) => r.local_ref)).toEqual(
+      ['apiary.create', 'batch.create', 'batch.harvest'].map((kind) => k[kind].local_ref),
+    )
+    for (const r of fixed) {
+      expect(r.idempotency_key).not.toBe(k[r.kind].idempotency_key)
+      expect(r.id).not.toBe(k[r.kind].id)
+    }
+    expect(fixed[1].depends_on).toEqual([k['apiary.create'].local_ref])
+
+    await replay()
+    const after = await outbox.list(11)
+    expect(after).toHaveLength(3)
+    expect(after.every((r) => r.status === 'sent')).toBe(true)
+    expect(server.harvests).toHaveLength(1)
+    expect(server.apiaries.at(-1)).toMatchObject({ name: 'Ridge' })
+  })
+
+  it('a fix is all or nothing: one missing record changes none', async () => {
+    const [apiary] = await outbox.enqueue(11, newApiaryHarvest(), clock)
+    await expect(
+      outbox.fixAll(
+        [
+          { id: apiary.id, body: { ...apiary.body, name: 'Other' } },
+          { id: 'gone', body: {} },
+        ],
+        clock,
+      ),
+    ).rejects.toThrow('no outbox action gone')
+    expect((await outbox.list(11)).find((r) => r.id === apiary.id)?.body.name).toBe('Ridge')
+  })
+
   it('pauses the whole queue when the session cannot be renewed, keeping every item', async () => {
     await outbox.enqueue(11, newApiaryHarvest(), clock)
     server.revokeAllSessions()
@@ -229,5 +280,67 @@ describe('user scoping', () => {
     expect(result.paused).toBe('signed_out')
     expect(server.apiaries).toHaveLength(0)
     expect((await outbox.list(11)).every((r) => r.status === 'queued')).toBe(true)
+  })
+})
+
+describe('consent choices (13 §9 item 3)', () => {
+  async function officer() {
+    server.addStaff('mutua', 'a long staff passphrase', 40, 'field_officer', 'Mutua Kioko')
+    const farmer = server.seedFarmer({
+      first_name: 'Nafula',
+      last_name: 'Wekesa',
+      phone: '+254745220961',
+    })
+    const s = new Session({
+      fetch: server.fetch,
+      locks: new FakeLocks(),
+      channel: null,
+      storage: null,
+    })
+    expect(await s.signIn('mutua', 'a long staff passphrase')).toBe('ok')
+    return { s, farmer }
+  }
+
+  it('sends the farmer in the path and only the three fields the server allows', async () => {
+    const { s, farmer } = await officer()
+    await outbox.enqueue(
+      40,
+      [consentDraft(farmer.id, 'sms_notifications', true, 'en-2026-10')],
+      clock,
+    )
+    expect(await outbox.waitingWork(40)).toBe(1)
+    expect((await outbox.replay(40, s, () => clock)).sent).toBe(1)
+    expect(server.requests.at(-1)).toEqual({
+      path: `/v2/farmers/${farmer.id}/consents`,
+      key: expect.any(String),
+      body: { purpose: 'sms_notifications', granted: true, text_version: 'en-2026-10' },
+    })
+    expect(await outbox.waitingWork(40)).toBe(0)
+  })
+
+  it("a farmer's own withdrawal refuses an officer's grant, and the refusal waits", async () => {
+    const { s, farmer } = await officer()
+    server.consent(farmer.id, 'sms_notifications', false, 'farmer_self')
+    await outbox.enqueue(
+      40,
+      [consentDraft(farmer.id, 'sms_notifications', true, 'en-2026-10')],
+      clock,
+    )
+    await outbox.replay(40, s, () => clock)
+    const [row] = await outbox.list(40)
+    expect(row.status).toBe('needs_attention')
+    expect(row.last_error).toMatchObject({ status: 409, code: 'withdrawn_by_farmer' })
+    // Counted until someone removes it, so it is never forgotten.
+    expect(await outbox.waitingWork(40)).toBe(1)
+  })
+
+  it('an officer may add an apiary for any farmer', async () => {
+    const { s, farmer } = await officer()
+    const apiary = { name: 'Kyuso', latitude: '-0.428713', longitude: '38.212000', hive_count: 6 }
+    await outbox.enqueue(40, [apiaryDraft(farmer.id, apiary)], clock)
+    expect((await outbox.replay(40, s, () => clock)).sent).toBe(1)
+    expect(server.apiaries).toEqual([{ id: 101, farmer_id: farmer.id, ...apiary }])
+    // Not a harvest or a step: the chip does not count an apiary.
+    expect(await outbox.waitingWork(40)).toBe(0)
   })
 })

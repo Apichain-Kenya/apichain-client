@@ -1,0 +1,8 @@
+.banner:not(:empty) {
+  margin-bottom: var(--space-4);
+}
+@media print {
+  .banner {
+    display: none;
+  }
+}

@@ -39,7 +39,7 @@ describe('Phase 4a acceptance', () => {
     server.offline = true
     const outbox = new Outbox('acceptance-outbox', locks)
     await outbox.enqueue(11, harvestDrafts(DRAFT), Date.now())
-    expect(await outbox.waitingHarvests(11)).toBe(1)
+    expect(await outbox.waitingWork(11)).toBe(1)
 
     // Back in signal, and the first reply is lost after the server commits.
     server.offline = false
@@ -48,7 +48,7 @@ describe('Phase 4a acceptance', () => {
     runner.start() // the app opens: first attempt, whose reply is lost
     await vi.waitFor(() => expect(runner.state.paused).toBe('offline'))
     window.dispatchEvent(new Event('online')) // signal steadies: retried, same key
-    await vi.waitFor(async () => expect(await outbox.waitingHarvests(11)).toBe(0))
+    await vi.waitFor(async () => expect(await outbox.waitingWork(11)).toBe(0))
     runner.stop()
 
     expect(server.apiaries).toHaveLength(1)

@@ -117,18 +117,19 @@ describe('Journey', () => {
     render(
       <Journey
         steps={[
-          { key: 'CREATED', date: '2026-03-02' },
-          { key: 'HARVESTED', date: '2026-03-09' },
-          { key: 'PROCESSED', date: null },
-          { key: 'LAB_VERIFIED', date: null },
-          { key: 'PACKAGED', date: null },
-          { key: 'DISTRIBUTED', date: null },
+          { key: 'CREATED', date: '2026-03-02', word: 'recorded' },
+          { key: 'HARVESTED', date: '2026-03-09', word: 'harvested' },
+          { key: 'PROCESSED', date: null, word: 'recorded' },
+          { key: 'LAB_VERIFIED', date: null, word: 'recorded' },
+          { key: 'PACKAGED', date: null, word: 'recorded' },
+          { key: 'DISTRIBUTED', date: null, word: 'recorded' },
         ]}
       />,
     )
     const items = screen.getAllByRole('listitem')
     expect(items).toHaveLength(6)
-    expect(items[1]).toHaveTextContent('Harvested')
+    expect(items[0]).toHaveTextContent('Recorded 2 Mar')
+    expect(items[1]).toHaveTextContent('Harvested 9 Mar')
     expect(items[2]).toHaveTextContent('Not yet')
   })
 })

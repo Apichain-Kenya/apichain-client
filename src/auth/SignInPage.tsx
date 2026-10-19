@@ -5,14 +5,17 @@ import { useLocation, useSearch } from 'wouter'
 import { Brand } from '../ui/Brand'
 import { Button } from '../ui/Button'
 import { Field } from '../ui/Field'
-import { useFarm } from './FarmServices'
+import { signInIdentifier } from './phone'
+import { useSessionApi } from './SessionContext'
 import styles from './SignInPage.module.css'
+import { landingFor } from './surface'
 
-// The first sign-in needs a network; capture never does (12 D16). The copy
-// says so before the farmer tries, not after it fails.
+// One sign-in for everyone (13 §7 step 2): a farmer lands in the capture app,
+// staff in the console. The first sign-in needs a network; capture never does
+// (12 D16). The copy says so before the farmer tries, not after it fails.
 export function SignInPage() {
   const { t } = useTranslation()
-  const { session } = useFarm()
+  const session = useSessionApi()
   const [, navigate] = useLocation()
   const next = new URLSearchParams(useSearch()).get('next')
   const [identifier, setIdentifier] = useState('')
@@ -24,24 +27,23 @@ export function SignInPage() {
     e.preventDefault()
     setBusy(true)
     setError(undefined)
-    const result = await session.signIn(identifier.trim(), password)
+    const result = await session.signIn(signInIdentifier(identifier), password)
     setBusy(false)
-    if (result === 'ok') {
-      // Only ever back into this app, never to another origin.
-      const target = next && next.startsWith('/') && !next.startsWith('//') ? next : '/farm'
-      navigate(target, { replace: true })
+    if (result === 'ok' && session.state.status === 'signed_in') {
+      // Only ever back into this person's own app, never to another origin.
+      navigate(landingFor(session.state.me.role, next), { replace: true })
     } else {
-      setError(result === 'invalid' ? t('farm.signIn.invalid') : t('farm.signIn.offline'))
+      setError(result === 'invalid' ? t('signIn.invalid') : t('signIn.offline'))
     }
   }
 
   return (
     <main className={styles.page}>
       <Brand />
-      <h1 className="serif">{t('farm.signIn.title')}</h1>
-      <p className={styles.lead}>{t('farm.signIn.lead')}</p>
+      <h1 className="serif">{t('signIn.title')}</h1>
+      <p className={styles.lead}>{t('signIn.lead')}</p>
       <form className={styles.form} onSubmit={(e) => void submit(e)} noValidate>
-        <Field label={t('farm.signIn.identifier')}>
+        <Field label={t('signIn.identifier')}>
           {(p) => (
             <input
               {...p}
@@ -53,7 +55,7 @@ export function SignInPage() {
             />
           )}
         </Field>
-        <Field label={t('farm.signIn.password')} error={error}>
+        <Field label={t('signIn.password')} error={error}>
           {(p) => (
             <input
               {...p}
@@ -65,7 +67,7 @@ export function SignInPage() {
           )}
         </Field>
         <Button type="submit" full loading={busy}>
-          {t('farm.signIn.submit')}
+          {t('signIn.submit')}
         </Button>
       </form>
     </main>
