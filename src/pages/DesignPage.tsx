@@ -35,12 +35,12 @@ export default function DesignPage() {
         <h2>Journey</h2>
         <Journey
           steps={[
-            { key: 'CREATED', date: '2026-03-02' },
-            { key: 'HARVESTED', date: '2026-03-09' },
-            { key: 'PROCESSED', date: '2026-03-14' },
-            { key: 'LAB_VERIFIED', date: '2026-03-20' },
-            { key: 'PACKAGED', date: null },
-            { key: 'DISTRIBUTED', date: null },
+            { key: 'CREATED', date: '2026-03-02', word: 'recorded' },
+            { key: 'HARVESTED', date: '2026-03-09', word: 'harvested' },
+            { key: 'PROCESSED', date: '2026-03-14', word: 'recorded' },
+            { key: 'LAB_VERIFIED', date: '2026-03-20', word: 'tested' },
+            { key: 'PACKAGED', date: null, word: 'recorded' },
+            { key: 'DISTRIBUTED', date: null, word: 'recorded' },
           ]}
         />
       </section>

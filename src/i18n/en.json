@@ -107,6 +107,11 @@
     "journey": {
       "title": "Its journey",
       "notYet": "Not yet",
+      "when": {
+        "recorded": "Recorded {{day}}",
+        "harvested": "Harvested {{day}}",
+        "tested": "Tested {{day}}"
+      },
       "steps": {
         "CREATED": "Registered by the beekeeper",
         "HARVESTED": "Harvested",

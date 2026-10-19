@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { OfflineError } from '../../auth/session'
 import { useSessionApi } from '../../auth/SessionContext'
 import type { VerifyResponse } from '../../consumer/trustState'
+import { dayOf } from '../../ui/day'
 import { useRead, type Read } from '../useRead'
 import { serverDate, type BatchDetail } from '../work'
 
@@ -46,9 +47,8 @@ const utcFormat = new Intl.DateTimeFormat('en-KE', {
 /** A declared day (13 §0 #10): the first ten characters of the field the
  *  person entered, read as a calendar day in no time zone at all. */
 export function declaredDay(value: unknown): string | null {
-  if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}/.test(value)) return null
-  const [y, m, d] = value.slice(0, 10).split('-').map(Number)
-  return utcFormat.format(new Date(Date.UTC(y, m - 1, d)))
+  const day = dayOf(value)
+  return day === null ? null : utcFormat.format(new Date(`${day}T12:00:00Z`))
 }
 
 const eatFormat = new Intl.DateTimeFormat('en-KE', {

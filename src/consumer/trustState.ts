@@ -12,6 +12,7 @@
 
 import type { components } from '../api/client/schema'
 import type { TrustState } from '../ui/TrustSeal'
+import { dayOf } from '../ui/day'
 import type { JourneyStep, StepKey } from '../ui/Journey'
 
 export type VerifyResponse = components['schemas']['BatchVerifyResponse']
@@ -48,10 +49,22 @@ export function stepsDone(v: VerifyResponse): number {
   return i < 0 ? 0 : i + 1
 }
 
+// The two steps with a day the person declared (13 §0 #10), both public
+// fields of the stage payload. The other steps have none, so they show the
+// day they were recorded, worded as such.
+const DECLARED: Partial<Record<StepKey, { field: string; word: JourneyStep['word'] }>> = {
+  HARVESTED: { field: 'harvest_date', word: 'harvested' },
+  LAB_VERIFIED: { field: 'tested_at', word: 'tested' },
+}
+
 export function journeySteps(v: VerifyResponse): JourneyStep[] {
   const done = stepsDone(v)
-  return ORDER.map((key, i) => ({
-    key,
-    date: i < done ? (v.verification[STEP_BLOCK[key]]?.recorded_on ?? null) : null,
-  }))
+  return ORDER.map((key, i) => {
+    const block = v.verification[STEP_BLOCK[key]]
+    if (i >= done || !block) return { key, date: null, word: 'recorded' }
+    const d = DECLARED[key]
+    const declared = d ? dayOf(block.payload?.[d.field]) : null
+    if (d && declared) return { key, date: declared, word: d.word }
+    return { key, date: dayOf(block.recorded_on), word: 'recorded' }
+  })
 }
