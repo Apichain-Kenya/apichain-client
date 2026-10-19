@@ -24,8 +24,12 @@ export default defineConfig({
         // The console's own chunk is precached too (about 6 KB gzip): with
         // `prompt` updates, an old shell must still find its matching console
         // after a deploy has removed the old hashed files. Heavy lazy chunks
-        // (map, QR) stay out.
-        globIgnores: ['**/assets/farm-MapPicker*', '**/assets/qr-scanner*'],
+        // (map, QR scanner, QR encoder for printing labels) stay out.
+        globIgnores: [
+          '**/assets/farm-MapPicker*',
+          '**/assets/qr-scanner*',
+          '**/assets/qr-encoder*',
+        ],
       },
       manifest: {
         name: 'ApiChain',
@@ -61,14 +65,17 @@ export default defineConfig({
         // 2), is named `session` so bundle-report can prove the jar page
         // never loads it. The bundler draws that chunk itself: forcing it
         // with manualChunks pulled shared code into it, and the entry with it.
+        // The label printer's QR encoder is `qr-encoder`, lazy and uncached.
         chunkFileNames: (chunk) =>
-          chunk.facadeModuleId?.includes('/src/farm/')
-            ? 'assets/farm-[name]-[hash].js'
-            : chunk.facadeModuleId?.includes('/src/console/')
-              ? 'assets/console-[name]-[hash].js'
-              : chunk.moduleIds.some((id) => id.endsWith('/src/auth/session.ts'))
-                ? 'assets/session-[hash].js'
-                : 'assets/[name]-[hash].js',
+          chunk.facadeModuleId?.endsWith('/src/console/labels/qr.ts')
+            ? 'assets/qr-encoder-[hash].js'
+            : chunk.facadeModuleId?.includes('/src/farm/')
+              ? 'assets/farm-[name]-[hash].js'
+              : chunk.facadeModuleId?.includes('/src/console/')
+                ? 'assets/console-[name]-[hash].js'
+                : chunk.moduleIds.some((id) => id.endsWith('/src/auth/session.ts'))
+                  ? 'assets/session-[hash].js'
+                  : 'assets/[name]-[hash].js',
         // Their CSS too (FarmApp, MapPicker incl. Leaflet's stylesheet).
         assetFileNames: (asset) =>
           asset.names?.some((n) => /^(FarmApp|MapPicker)\./.test(n))

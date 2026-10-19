@@ -148,6 +148,11 @@ export class FakeBackend {
   outbound: { farmerId: number; channel: string; code: string }[] = []
   /** Every signed URL handed out, in order. */
   signedUrls: string[] = []
+  /** `GET /v2/public/batches/{public_id}/verify` answers, by public id. */
+  verifies: Record<string, Json> = {}
+  /** `GET /v2/audit/health` and `/v2/audit/anchor-health`. */
+  auditHealth: Json = { chain_ok: true, checked_at: null, rows_checked: 0 }
+  anchorHealth: Json = { anchor_ok: true, pending_rows: 0, pending_anchors: 0 }
   /** The server's clock, for the verification windows. */
   now: () => number = () => Date.now()
 
@@ -441,6 +446,13 @@ export class FakeBackend {
           : null,
       })
     }
+    const verify = url.pathname.match(/^\/v2\/public\/batches\/([^/]+)\/verify$/)
+    if (verify) {
+      const row = this.verifies[verify[1]]
+      return row ? json(200, row) : json(404, { code: 'batch_not_found', message: 'No such batch' })
+    }
+    if (url.pathname === '/v2/audit/health') return json(200, this.auditHealth)
+    if (url.pathname === '/v2/audit/anchor-health') return json(200, this.anchorHealth)
     const farmerPath = url.pathname.match(/^\/v2\/farmers(?:\/(\d+)(\/consents|\/documents)?)?$/)
     if (farmerPath) return json(...this.readFarmers(user, url, farmerPath))
     const download = url.pathname.match(/^\/v2\/documents\/(\d+)\/download-url$/)

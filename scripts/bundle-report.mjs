@@ -18,6 +18,7 @@ const ROUTES = {
   console: { module: 'src/console/ConsoleApp.tsx', budget: 160 * KB }, // 13 D14
 }
 const FONT_BUDGET = 70 * KB
+const QR_ENCODER_BUDGET = 15 * KB // 13 §10: the label printer's encoder, lazy
 
 const gz = (file) => gzipSync(readFileSync(join(DIST, file))).length
 const entryKey = Object.keys(manifest).find((k) => manifest[k].isEntry)
@@ -63,6 +64,21 @@ const sessionChecks = [
 if (sessionKey) rows.push(['session chunk (farmer and console)', sizeOf([sessionKey]), null])
 for (const [, ok] of sessionChecks) if (!ok) failed = true
 
+// The QR encoder (13 §10): its own lazy chunk, never in the console's first
+// load, never precached, and at most 15 KB.
+const encoderKey = Object.keys(manifest).find((k) => /^assets\/qr-encoder-/.test(manifest[k].file))
+const consoleClosure = staticClosure(ROUTES.console.module, new Set(entryFiles))
+if (encoderKey) {
+  const size = sizeOf([encoderKey])
+  rows.push(['QR encoder chunk (labels, lazy)', size, QR_ENCODER_BUDGET])
+  if (size > QR_ENCODER_BUDGET) failed = true
+}
+const encoderChecks = [
+  ['QR encoder chunk is built', Boolean(encoderKey)],
+  ["the console's first load leaves out the QR encoder", !consoleClosure.has(encoderKey)],
+]
+for (const [, ok] of encoderChecks) if (!ok) failed = true
+
 const assets = join(DIST, 'assets')
 const fonts = readdirSync(assets)
   .filter((f) => f.endsWith('.woff2'))
@@ -78,6 +94,7 @@ const precacheChecks = [
   ['precache holds the farmer app', precached(/assets\/farm-FarmApp-[^"]+\.js/)],
   ['precache leaves out the map', !precached(/assets\/farm-MapPicker-/)],
   ['precache leaves out the QR fallback', !precached(/assets\/qr-scanner/)],
+  ['precache leaves out the QR encoder', !precached(/assets\/qr-encoder/)],
   ['precache holds the session', precached(/assets\/session-[^"]+\.js/)],
   ['precache holds the console', precached(/assets\/console-ConsoleApp-[^"]+\.js/)],
 ]
@@ -89,7 +106,7 @@ for (const [label, size, budget] of rows) {
   const over = size !== null && budget !== null && size > budget ? ' **OVER**' : ''
   console.log(`| ${label} | ${fmt(size)}${over} | ${budget === null ? '-' : fmt(budget)} |`)
 }
-for (const [label, ok] of [...sessionChecks, ...precacheChecks])
+for (const [label, ok] of [...sessionChecks, ...encoderChecks, ...precacheChecks])
   console.log(`| ${label} | ${ok ? 'yes' : '**NO**'} | required |`)
 if (failed) {
   console.error('\nBundle budget exceeded (12 D13).')

@@ -83,6 +83,10 @@
   .rail .link.active {
     background: var(--paper);
   }
+  .railFoot {
+    margin-top: auto;
+    padding-top: var(--space-4);
+  }
   .main {
     padding: var(--space-6) var(--space-8);
   }
@@ -127,7 +131,27 @@
     padding: var(--space-4) 0 0;
     font-size: 0.75rem;
   }
+  /* Too narrow for a card: the Me page carries it instead. */
+  .desk .railFoot {
+    display: none;
+  }
   .desk .main {
     padding: var(--space-6);
+  }
+}
+
+/* Printing a label or record sheet: only the page itself, no chrome. */
+@media print {
+  .shell {
+    display: block;
+    min-height: 0;
+  }
+  .top,
+  .rail,
+  .bottom {
+    display: none !important;
+  }
+  .main {
+    padding: 0;
   }
 }

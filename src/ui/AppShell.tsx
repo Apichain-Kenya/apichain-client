@@ -17,17 +17,20 @@ export type NavItem = {
 // `desk`: the console's density (13 §4). Between 1024 and 1279 px the rail
 // narrows to 96 px with each word under its icon, so a detail pane keeps room
 // for its 560 px form (board call 3). `account`: who is signed in, on the rail.
+// `railFoot`: a card at the rail's foot (an admin's record health, 13 §10).
 export function AppShell({
   nav,
   status,
   account,
   desk = false,
+  railFoot,
   children,
 }: {
   nav: NavItem[]
   status?: ReactNode
   account?: { name: string; role: string }
   desk?: boolean
+  railFoot?: ReactNode
   children: ReactNode
 }) {
   const { t } = useTranslation()
@@ -66,6 +69,7 @@ export function AppShell({
         ) : null}
         {links}
         <div className={styles.railStatus}>{status}</div>
+        {railFoot ? <div className={styles.railFoot}>{railFoot}</div> : null}
       </nav>
       <main className={styles.main}>{children}</main>
       <nav className={styles.bottom} aria-label={t('ui.nav.label')}>

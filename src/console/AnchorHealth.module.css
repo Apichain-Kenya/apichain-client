@@ -1,0 +1,38 @@
+/* Record health (board, admin rail): small, quiet, and every state in words. */
+.card {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--paper);
+  font-size: var(--text-sm);
+}
+.title {
+  margin: 0;
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+.line {
+  display: flex;
+  gap: var(--space-2);
+  align-items: flex-start;
+  margin: 0;
+  color: var(--ink);
+}
+.line svg {
+  flex: none;
+  margin-top: 2px;
+}
+.ok svg {
+  color: var(--sealed);
+}
+.wait svg {
+  color: var(--sealing);
+}
+.bad {
+  font-weight: 600;
+}
+.bad svg {
+  color: var(--alert);
+}

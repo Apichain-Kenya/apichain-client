@@ -6,6 +6,7 @@ import { useOutbox } from '../app/useOutbox'
 import { useSessionApi, type Me } from '../auth/SessionContext'
 import type { ActionRecord } from '../offline/outbox'
 import { Button } from '../ui/Button'
+import { AnchorHealth } from './AnchorHealth'
 import styles from './ConsoleMePage.module.css'
 import { targetOf } from './work'
 
@@ -92,6 +93,7 @@ export function ConsoleMePage({ me }: { me: Me }) {
           </ul>
         </div>
       ) : null}
+      {me.role === 'admin' ? <AnchorHealth /> : null}
       <Button
         variant="secondary"
         onClick={() => void session.signOut().then(() => navigate('~/sign-in', { replace: true }))}

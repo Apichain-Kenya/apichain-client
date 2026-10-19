@@ -173,3 +173,19 @@
 .facts dd {
   margin: 0;
 }
+
+/* The batch's sheets (13 §10): its record, and its jar labels once packed. */
+.sheets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-5);
+  margin: 0;
+}
+.sheetLink {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--touch);
+  color: var(--ink);
+  font-weight: 600;
+}

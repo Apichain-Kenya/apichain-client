@@ -12,9 +12,12 @@ import { useSession, type Me } from '../auth/SessionContext'
 import { AppShell, type NavItem } from '../ui/AppShell'
 import { OfflineBanner } from '../ui/OfflineBanner'
 import { SyncChip } from '../ui/Sync'
+import { AnchorHealth } from './AnchorHealth'
 import { BatchesPage } from './BatchesPage'
 import { ConsoleMePage } from './ConsoleMePage'
 import { FarmersPage, type FarmerNotice, type FarmersView } from './FarmersPage'
+import { LabelsPage } from './labels/LabelsPage'
+import { RecordSheet } from './labels/RecordSheet'
 import { PeoplePage } from './PeoplePage'
 import styles from './ConsoleApp.module.css'
 
@@ -72,6 +75,7 @@ export function ConsoleRoutes({ me }: { me: Me }) {
       nav={nav}
       account={{ name: me.display_name, role: t(`console.roles.${me.role}`) }}
       status={<SyncChip waiting={waiting} />}
+      railFoot={admin ? <AnchorHealth /> : undefined}
     >
       <div className={styles.banner}>
         <OfflineBanner unreachable={paused === 'offline'} message={t('console.offlineBanner')} />
@@ -82,6 +86,12 @@ export function ConsoleRoutes({ me }: { me: Me }) {
         </Route>
         <Route path="/batches">
           <BatchesPage me={me} id={null} />
+        </Route>
+        <Route path="/batches/:id/labels">
+          {(p: { id: string }) => <LabelsPage key={p.id} id={Number(p.id)} />}
+        </Route>
+        <Route path="/batches/:id/record">
+          {(p: { id: string }) => <RecordSheet key={p.id} me={me} id={Number(p.id)} />}
         </Route>
         <Route path="/batches/:id">
           <BatchRoute me={me} />

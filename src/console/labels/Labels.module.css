@@ -1,0 +1,235 @@
+/* Label and record sheets (13 §10, board "Jar labels and the batch record
+   sheet"). On screen, a preview of white paper on the desk, in both themes,
+   because it is paper. In print, only the paper: the shell, the buttons and
+   the notices are hidden (AppShell's print rules hide the rest). */
+.page {
+  display: grid;
+  gap: var(--space-4);
+  min-width: 0;
+}
+.bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+.barStart {
+  display: grid;
+  gap: var(--space-1);
+}
+.h1 {
+  margin: 0;
+  font-size: var(--text-xl);
+}
+.small {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--ink-2);
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+.tag {
+  padding: 2px var(--space-3);
+  border: 1.5px solid var(--open);
+  border-radius: 999px;
+  color: var(--open);
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+.notice {
+  display: flex;
+  gap: var(--space-2);
+  align-items: flex-start;
+  margin: 0;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-sm);
+  background: var(--tint-open);
+  color: var(--ink);
+}
+.notice svg {
+  flex: none;
+  margin-top: 2px;
+  color: var(--open);
+}
+.desk {
+  display: grid;
+  gap: var(--space-4);
+  justify-items: center;
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--paper);
+  overflow-x: auto;
+}
+
+/* Paper: fixed colours, as printed. */
+.sheet,
+.a4 {
+  --print-ink: #1a1a1a;
+  --print-muted: #4a4a4a;
+  --print-line: #c9c9c9;
+  width: 210mm;
+  max-width: 100%;
+  box-sizing: border-box;
+  background: #ffffff;
+  color: var(--print-ink);
+  box-shadow: 0 1px 4px rgb(0 0 0 / 0.18);
+}
+.sheet {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-auto-rows: 66mm;
+  gap: 4mm;
+  padding: 10mm;
+}
+.label {
+  position: relative;
+  display: grid;
+  grid-template-columns: 30mm minmax(0, 1fr);
+  gap: 2mm;
+  align-items: center;
+  padding: 3mm;
+  border: 0.3mm dashed var(--print-line);
+  overflow: hidden;
+  font-size: 9pt;
+  line-height: 1.25;
+}
+.qr {
+  display: block;
+  width: 30mm; /* the code itself is at least 20 mm across inside its quiet zone */
+  height: 30mm;
+}
+.words {
+  display: grid;
+  gap: 1mm;
+  min-width: 0;
+}
+.words b {
+  font-size: 10.5pt;
+}
+.code {
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+.watermark {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+.watermark span {
+  padding: 1mm 2mm;
+  border: 0.6mm solid #a4282a;
+  color: #a4282a;
+  background: rgb(255 255 255 / 0.85);
+  font-size: 10pt;
+  font-weight: 700;
+  transform: rotate(-24deg);
+  white-space: nowrap;
+}
+
+.a4 {
+  display: grid;
+  gap: 6mm;
+  padding: 16mm;
+  font-size: 10.5pt;
+  line-height: 1.45;
+}
+.a4 p,
+.a4 h2 {
+  margin: 0;
+}
+.a4 h2 {
+  font-family: var(--font-serif);
+  font-size: 18pt;
+  font-weight: 400;
+}
+.top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 4mm;
+  font-weight: 600;
+}
+.muted {
+  color: var(--print-muted);
+}
+.state {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 32mm;
+  gap: 6mm;
+  align-items: center;
+  padding: 5mm;
+  border: 0.4mm solid var(--print-line);
+}
+.state > div {
+  display: grid;
+  gap: 1.5mm;
+}
+.state b {
+  font-size: 12pt;
+}
+.stateQr {
+  width: 32mm;
+  height: 32mm;
+}
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.table th,
+.table td {
+  padding: 2mm 2mm 2mm 0;
+  border-bottom: 0.3mm solid var(--print-line);
+  text-align: left;
+  vertical-align: top;
+}
+.table th {
+  font-size: 9pt;
+  color: var(--print-muted);
+  font-weight: 600;
+}
+.foot {
+  padding-top: 4mm;
+  border-top: 0.3mm solid var(--print-line);
+  font-size: 9pt;
+  color: var(--print-muted);
+}
+
+@media print {
+  @page {
+    size: A4;
+    margin: 0;
+  }
+  .screenOnly {
+    display: none !important;
+  }
+  .page,
+  .desk {
+    display: block;
+    padding: 0;
+    background: none;
+  }
+  .sheet,
+  .a4 {
+    box-shadow: none;
+    width: 210mm;
+    max-width: none;
+  }
+  .sheet {
+    break-after: page;
+  }
+  .sheet:last-child {
+    break-after: auto;
+  }
+  .label,
+  .state,
+  .table tr {
+    break-inside: avoid;
+  }
+}

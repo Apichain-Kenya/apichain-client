@@ -379,8 +379,9 @@ describe('Their choices (13 §4.5, D11)', () => {
     expect(await env.outbox.waitingWork(21)).toBe(1)
     await userEvent.click(within(refusal).getByRole('button', { name: 'Remove' }))
     await vi.waitFor(async () => expect(await env.outbox.list(21)).toEqual([]))
+    // The page hears of it on its next outbox read: wait for the screen.
+    await vi.waitFor(() => expect(texts).toBeEnabled())
     expect(texts).toHaveAttribute('aria-checked', 'false')
-    expect(texts).toBeEnabled()
   })
 })
 

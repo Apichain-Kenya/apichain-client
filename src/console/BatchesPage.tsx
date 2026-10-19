@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useLocation } from 'wouter'
-import { ArrowLeft, Search } from 'lucide-react'
+import { ArrowLeft, FileText, QrCode, Search } from 'lucide-react'
 
 import type { Me } from '../auth/SessionContext'
 import { useWide } from '../ui/useWide'
@@ -287,6 +287,18 @@ function BatchBody({
           ) : null}
         </dl>
       </header>
+      <p className={styles.sheets}>
+        <Link href={`/batches/${b.id}/record`} className={styles.sheetLink}>
+          <FileText aria-hidden="true" size={18} strokeWidth={1.75} />
+          {t('console.batch.printRecord')}
+        </Link>
+        {b.state === 'PACKAGED' || b.state === 'DISTRIBUTED' ? (
+          <Link href={`/batches/${b.id}/labels`} className={styles.sheetLink}>
+            <QrCode aria-hidden="true" size={18} strokeWidth={1.75} />
+            {t('console.batch.labels')}
+          </Link>
+        ) : null}
+      </p>
       <Timeline stages={b.stages} />
       <NextStep key={b.id} batch={b} me={me} onRecorded={onRecorded} />
     </>
