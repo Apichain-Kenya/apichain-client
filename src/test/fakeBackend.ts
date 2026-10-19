@@ -416,6 +416,7 @@ export class FakeBackend {
       else if (Number(body.quantity_kg) <= 0) result = [422, { code: 'invalid_quantity' }]
       else {
         this.harvests.push({ batch_id: batchId, ...body })
+        this.consoleRecord(user, batchId)
         result = [201, { batch_id: batchId, state: 'HARVESTED' }]
       }
     } else {
@@ -834,6 +835,61 @@ export class FakeBackend {
     }
     this.documents = [...this.documents, doc]
     return [201, this.docOut(doc)]
+  }
+
+  /**
+   * A harvested batch as the console reads it (`GET /v2/batches/{id}`), so a
+   * farmer's harvest and the staff steps after it are one batch, as on the
+   * server. Its first four records are the farmer's own.
+   */
+  private consoleRecord(user: FakeUser, batchId: number) {
+    if (this.batchDetails.some((b) => b.id === batchId)) return
+    const batch = this.batches.find((b) => b.id === batchId)!
+    const apiary = this.apiaries.find((a) => a.id === batch.apiary_id)
+    const at = naive(this.now())
+    const stages = [
+      'batch.created',
+      'batch.apiary_recorded',
+      'batch.metadata_recorded',
+      'batch.harvest_recorded',
+    ].map((action, i) => ({
+      action,
+      actor_display_name: user.displayName,
+      actor_id: user.id,
+      actor_role: user.role,
+      anchor_status: 'pending',
+      audit_id: i + 1,
+      payload_hash: String(i + 1).repeat(64),
+      recorded_at: at,
+    }))
+    this.batchDetails = [
+      ...this.batchDetails,
+      {
+        id: batchId,
+        public_id: `pub${batchId}`,
+        batch_code: `B-${batchId}`,
+        state: 'HARVESTED',
+        created_at: at,
+        state_updated_at: at,
+        anchor_status: 'pending',
+        conformance_verdict: null,
+        farmer_id: batch.farmer_id,
+        farmer_display_name: user.displayName,
+        metadata: batch.metadata ?? null,
+        apiary: apiary
+          ? {
+              apiary_id: apiary.id,
+              name: apiary.name ?? null,
+              hive_count: apiary.hive_count ?? null,
+              latitude: null,
+              longitude: null,
+              locality: null,
+              location_withheld: true,
+            }
+          : null,
+        stages,
+      },
+    ]
   }
 
   /** A staff step: the role, then the state, then the body, as the server checks. */
