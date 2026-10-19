@@ -25,6 +25,7 @@ import { consentDraft, type ActionRecord } from '../offline/outbox'
 import { useSync } from '../app/useSync'
 import { Button } from '../ui/Button'
 import { Field } from '../ui/Field'
+import { Switch } from '../ui/Switch'
 import { SyncBadge } from '../ui/Sync'
 import listStyles from './BatchesPage.module.css'
 import {
@@ -298,21 +299,13 @@ function Choices({
                   />
                 ) : null}
               </div>
-              <span className={styles.swc}>
-                <button
-                  type="button"
-                  role="switch"
-                  className={styles.switch}
-                  aria-checked={c.on}
-                  aria-labelledby={label}
-                  // Held while a refusal for it is showing: remove that first.
-                  disabled={noEmail || (c.locked && !c.on) || problems.length > 0}
-                  onClick={() => void toggle(purpose, !c.on)}
-                />
-                <span aria-hidden="true">
-                  {t(c.on ? 'console.farmers.farmer.on' : 'console.farmers.farmer.off')}
-                </span>
-              </span>
+              <Switch
+                on={c.on}
+                labelledBy={label}
+                // Held while a refusal for it is showing: remove that first.
+                disabled={noEmail || (c.locked && !c.on) || problems.length > 0}
+                onChange={(on) => void toggle(purpose, on)}
+              />
               {problems.map((row) => (
                 <Refused key={row.id} row={row} className={styles.rowProblem} />
               ))}

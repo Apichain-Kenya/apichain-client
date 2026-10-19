@@ -130,6 +130,10 @@
       "waiting_other": "{{count}} waiting to send",
       "allSent": "All sent"
     },
+    "switch": {
+      "on": "On",
+      "off": "Off"
+    },
     "stepper": {
       "fewer": "One fewer",
       "more": "One more"
@@ -294,7 +298,22 @@
       "storageAsk": "This phone may clear saved harvests when it is low on space. Send them when you can.",
       "signOut": "Sign out",
       "signOutWaiting_one": "{{count}} harvest is still on this phone. It will send when you sign back in.",
-      "signOutWaiting_other": "{{count}} harvests are still on this phone. They will send when you sign back in."
+      "signOutWaiting_other": "{{count}} harvests are still on this phone. They will send when you sign back in.",
+      "phone": "Phone",
+      "signOutChoices_one": "{{count}} choice about messages is still on this phone. It will send when you sign back in.",
+      "signOutChoices_other": "{{count}} choices about messages are still on this phone. They will send when you sign back in."
+    },
+    "choices": {
+      "title": "Messages from ApiChain",
+      "note": "Both start off. Turn one on whenever you like; it saves on this phone and sends by itself.",
+      "noEmail": "No email on file",
+      "notYet": "Off until you turn it on",
+      "you_on": "You turned this on on {{day}}",
+      "you_off": "You turned this off on {{day}}",
+      "onboarder_on": "Your field officer turned this on on {{day}}",
+      "onboarder_off": "Your field officer turned this off on {{day}}",
+      "refused": "Not accepted: {{reason}}",
+      "remove": "Remove it"
     },
     "dates": {
       "today": "today",
@@ -688,8 +707,6 @@
         "confirmEmail": "Confirm their email",
         "choices": "Their choices",
         "readEach": "Read each one to the farmer. Turn it on only if they say yes.",
-        "on": "On",
-        "off": "Off",
         "agreed": "Agreed",
         "agreedAt": "Agreed at enrolment, {{day}}",
         "notAsked": "Not asked yet",

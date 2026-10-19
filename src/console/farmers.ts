@@ -2,13 +2,15 @@ import { useEffect, useState } from 'react'
 
 import type { components } from '../api/client/schema'
 import { useOutbox } from '../app/useOutbox'
+import type { ConsentState } from '../offline/choice'
 import type { ActionRecord } from '../offline/outbox'
 import { serverDate } from './work'
+
+export { choiceOf, settledKey, type Choice, type ConsentState } from '../offline/choice'
 
 export type FarmerSummary = components['schemas']['FarmerSummary']
 export type FarmerPage = components['schemas']['FarmerPage']
 export type FarmerDetail = components['schemas']['FarmerDetail']
-export type ConsentState = components['schemas']['ConsentStateOut']
 export type ConsentStates = components['schemas']['ConsentStateResponse']
 export type DocumentOut = components['schemas']['DocumentResponse']
 export type DocumentList = components['schemas']['DocumentListResponse']
@@ -27,47 +29,6 @@ export const DOC_TYPES = [
   'farm_photo',
   'other',
 ] as const
-
-/** One choice as the page shows it: the server's, unless this device holds a
- *  newer one of this person's. */
-export type Choice = {
-  on: boolean
-  /** Still on this device (or on its way): the server does not have it yet. */
-  pending: boolean
-  /** Who set it last: this person here, or the server's `granted_via`. */
-  by: 'you' | 'onboarder' | 'farmer_self' | null
-  at: string | null
-  /** The farmer took it back themselves; staff may not turn it on again. */
-  locked: boolean
-}
-
-// The newest of this person's saved choices for the purpose wins while it is
-// queued, and once sent while the server's row is not newer than its answer
-// (the farmer may since have changed it from their own phone). A refused
-// choice never counts: it is shown apart, to be removed.
-export function choiceOf(server: ConsentState | undefined, local: ActionRecord[]): Choice {
-  const mine = local.filter((r) => r.status !== 'needs_attention').at(-1)
-  const recorded = (mine?.server_result?.recorded_at as string | undefined) ?? null
-  const serverAt = server?.recorded_at ?? null
-  const fromServer: Choice = {
-    on: server?.granted ?? false,
-    pending: false,
-    by: server?.granted_via ?? null,
-    at: serverAt,
-    locked: server?.granted_via === 'farmer_self' && !server.granted,
-  }
-  if (!mine) return fromServer
-  if (mine.status === 'sent' && serverAt !== null && recorded !== null && serverAt >= recorded) {
-    return fromServer
-  }
-  return {
-    on: mine.body.granted === true,
-    pending: mine.status === 'queued',
-    by: 'you',
-    at: recorded,
-    locked: false,
-  }
-}
 
 /** This person's saved consent choices and apiaries for one farmer, oldest
  *  first, live from the outbox; null until first read. */
@@ -97,12 +58,6 @@ export function useFarmerWork(userId: number, farmerId: number) {
     }
   }, [outbox, userId, farmerId])
   return rows
-}
-
-/** A key that changes whenever one of these rows settles: sent, refused or
- *  removed. The page reloads what the server holds on each change. */
-export function settledKey(rows: ActionRecord[] | null): string | null {
-  return rows ? rows.map((r) => (r.status === 'queued' ? '' : r.id + r.status)).join() : null
 }
 
 // The server's own checks (`media.sniff`, `settings.max_file_bytes`), made
