@@ -9,6 +9,7 @@ import type { Fix } from '../farm/FarmServices'
 import { locate } from '../farm/locate'
 import { apiaryDraft } from '../offline/outbox'
 import { Button } from '../ui/Button'
+import { ChunkBoundary } from '../ui/ChunkBoundary'
 import { Field } from '../ui/Field'
 import { Stepper } from '../ui/Stepper'
 import { useOnline } from '../ui/useOnline'
@@ -133,9 +134,17 @@ export function AddApiary({ me, id }: { me: Me; id: number }) {
         {fix ? (
           <>
             {online ? (
-              <Suspense fallback={<div className={styles.mapOff} />}>
-                <MapPicker fix={fix} onMove={setFix} label={t('farm.where.drag')} />
-              </Suspense>
+              <ChunkBoundary
+                fallback={
+                  <div className={styles.mapOff}>
+                    <p>{t('farm.where.mapFailed')}</p>
+                  </div>
+                }
+              >
+                <Suspense fallback={<div className={styles.mapOff} />}>
+                  <MapPicker fix={fix} onMove={setFix} label={t('farm.where.drag')} />
+                </Suspense>
+              </ChunkBoundary>
             ) : (
               <div className={styles.mapOff}>
                 <p>{t('farm.where.mapOffline')}</p>

@@ -70,7 +70,7 @@ function Labels({
   const packed = b.state === 'PACKAGED' || b.state === 'DISTRIBUTED'
   const real = mayPrintLabels(window.location.origin)
   const link = jarLink(b.public_id)
-  const qr = useQr(packed && units ? link : null)
+  const { qr, failed } = useQr(packed && units ? link : null)
   const honey = b.metadata?.honey_type
   const packedAt = b.stages.find((s) => s.action === 'batch.packaged')?.recorded_at
 
@@ -153,7 +153,7 @@ function Labels({
       )}
       {qr ? null : (
         <p className={`${styles.small} ${styles.screenOnly}`} role="status">
-          {t('console.labels.making')}
+          {t(failed ? 'console.labels.qrFailed' : 'console.labels.making')}
         </p>
       )}
       {/* The code is drawn once and used by every label. */}

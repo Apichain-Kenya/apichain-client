@@ -241,6 +241,7 @@
       "denied": "Location is turned off for this app. Turn it on in your phone's settings, then try again.",
       "noGps": "This phone can't share its location.",
       "mapOffline": "Map will show when you're online. Your location is saved.",
+      "mapFailed": "The map didn't load. Your location is saved, so you can carry on.",
       "pickOnMap": "Tap the map where the apiary is.",
       "name": "Name this apiary",
       "nameHint": "Any name you will recognise",
@@ -812,6 +813,7 @@
       "notPacked": "Jar labels can be printed once this batch is packed.",
       "noCount": "The packing record has no jar count, so there are no labels to print.",
       "making": "Making the code",
+      "qrFailed": "The code didn't load. If the app offers an update, take it; otherwise reload the page.",
       "sheet": "Label sheet {{n}} of {{total}}",
       "codeLabel": "Code to this batch's record"
     },

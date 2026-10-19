@@ -74,7 +74,7 @@ function Sheet({
   // copy, when that copy was stored. A saved copy is never printed (D13).
   const [opened] = useState(() => new Date())
   const at = cachedAt ? new Date(cachedAt) : opened
-  const qr = useQr(jarLink(b.public_id))
+  const { qr } = useQr(jarLink(b.public_id))
   const state = trustState(v)
   const honeyKey = b.metadata?.honey_type
   const honey = honeyKey ? t(`scan.honey.${honeyKey}`, { defaultValue: honeyKey }) : null

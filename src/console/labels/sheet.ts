@@ -7,20 +7,33 @@ import { dayOf } from '../../ui/day'
 import { useRead, type Read } from '../useRead'
 import { serverDate, type BatchDetail } from '../work'
 
-/** The code for `text`, drawn by the lazy encoder chunk; null until loaded. */
-export function useQr(text: string | null): { d: string; size: number } | null {
+/**
+ * The code for `text`, drawn by the lazy encoder chunk: `qr` is null until it
+ * has loaded. `failed` when the chunk could not load (after a deploy, a page
+ * on the old version asks for a chunk the server no longer has), so the page
+ * says so instead of waiting for ever.
+ */
+export function useQr(text: string | null): {
+  qr: { d: string; size: number } | null
+  failed: boolean
+} {
   const [qr, setQr] = useState<{ text: string; d: string; size: number } | null>(null)
+  const [failed, setFailed] = useState(false)
   useEffect(() => {
     if (text === null) return
     let live = true
-    void import('./qr').then(({ qrSvg }) => {
-      if (live) setQr({ text, ...qrSvg(text) })
-    })
+    import('./qr')
+      .then(({ qrSvg }) => {
+        if (live) setQr({ text, ...qrSvg(text) })
+      })
+      .catch(() => {
+        if (live) setFailed(true)
+      })
     return () => {
       live = false
     }
   }, [text])
-  return qr && qr.text === text ? { d: qr.d, size: qr.size } : null
+  return { qr: qr && qr.text === text ? { d: qr.d, size: qr.size } : null, failed }
 }
 
 /** The /v/ link printed on every jar (12 D10): this origin, never the batch code. */

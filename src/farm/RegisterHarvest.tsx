@@ -7,6 +7,7 @@ import type { Me } from '../auth/SessionContext'
 import { harvestDrafts } from '../offline/outbox'
 import { Button } from '../ui/Button'
 import { ChoiceTiles } from '../ui/ChoiceTiles'
+import { ChunkBoundary } from '../ui/ChunkBoundary'
 import { DateChips } from '../ui/DateChips'
 import { Field } from '../ui/Field'
 import { Stepper } from '../ui/Stepper'
@@ -287,9 +288,17 @@ function HarvestFlow({ me, fixing }: { me: Me; fixing: FixGroup | null }) {
               {fix ? (
                 <>
                   {farm.online() ? (
-                    <Suspense fallback={<div className={styles.offlineMap} />}>
-                      <MapPicker fix={fix} onMove={setFix} label={t('farm.where.drag')} />
-                    </Suspense>
+                    <ChunkBoundary
+                      fallback={
+                        <div className={styles.offlineMap}>
+                          <p>{t('farm.where.mapFailed')}</p>
+                        </div>
+                      }
+                    >
+                      <Suspense fallback={<div className={styles.offlineMap} />}>
+                        <MapPicker fix={fix} onMove={setFix} label={t('farm.where.drag')} />
+                      </Suspense>
+                    </ChunkBoundary>
                   ) : (
                     <div className={styles.offlineMap}>
                       <p>{t('farm.where.mapOffline')}</p>
