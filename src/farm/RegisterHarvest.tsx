@@ -374,12 +374,21 @@ function HarvestFlow({ me, fixing }: { me: Me; fixing: FixGroup | null }) {
       {shows(3) ? (
         <div className={styles.step}>
           <Title className="serif">{t('farm.when.title')}</Title>
-          <DateChips
-            legend={t('farm.when.legend')}
-            value={day}
-            today={farm.today()}
-            onChange={setDay}
-          />
+          {editBatch ? (
+            <DateChips
+              legend={t('farm.when.legend')}
+              value={day}
+              today={farm.today()}
+              onChange={setDay}
+            />
+          ) : (
+            // The day is also the batch's harvest window, which the server
+            // already holds; a new day here would disagree with it.
+            <p className={styles.kept}>
+              <span>{dayLabel(day, farm.today(), t)}</span>
+              <small>{t('farm.fix.kept')}</small>
+            </p>
+          )}
         </div>
       ) : null}
 

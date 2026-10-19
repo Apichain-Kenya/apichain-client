@@ -33,10 +33,13 @@ const PAGE = 100 // the list read below asks for one page of this size
 /**
  * Whether the server's list already shows this sent harvest: its batch is
  * there and past CREATED, or is older than a full page reaches (newest first),
- * so a harvest sent long ago never comes back as "Sending".
+ * so a harvest sent long ago never comes back as "Sending". Before any list
+ * is read (snapshot or server) nothing is brought back either: otherwise
+ * every past harvest flashes as "Sending" while the page opens.
  */
 function listed(batchId: number | null, batches: BatchSummary[] | null): boolean {
-  if (batchId === null || batches === null) return false
+  if (batches === null) return true
+  if (batchId === null) return false
   const row = batches.find((b) => b.id === batchId)
   if (row) return row.state !== 'CREATED'
   return batches.length >= PAGE && batchId < Math.min(...batches.map((b) => b.id))

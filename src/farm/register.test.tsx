@@ -443,6 +443,39 @@ describe('the "Sending" gap (13 §11 item 3)', () => {
     expect(screen.queryByText(/^Sent\./)).not.toBeInTheDocument()
   })
 
+  it('opening the page never flashes a harvest already in the list as "Sending"', async () => {
+    await setup({ online: true })
+    server.apiaries.push({ id: 101, farmer_id: 7, name: 'Mukurwe-ini' })
+    const answers = heldList()
+    await services.outbox.enqueue(
+      11,
+      harvestDrafts({
+        farmerId: 7,
+        apiaryId: 101,
+        metadata: { honey_type: 'acacia' },
+        harvest: { harvest_date: TODAY, quantity_kg: '35.00', hive_ids: [] },
+      }),
+      services.now(),
+    )
+    await services.outbox.replay(11, services.session, services.now)
+    const batchId = Number(server.batches[0].id)
+    await services.snapshots.set(11, 'batches', [summary(batchId, 'HARVESTED')])
+
+    // Watch from before the first render: every frame, not just the last.
+    let flashed = false
+    const watch = new MutationObserver(() => {
+      flashed ||= document.body.textContent?.includes('Sending') ?? false
+    })
+    watch.observe(document.body, { childList: true, subtree: true, characterData: true })
+    renderAt('/')
+    expect(await screen.findByText('Sent. Now harvest recorded')).toBeInTheDocument()
+    await vi.waitFor(() => expect(answers).toHaveLength(1))
+    answers[0]([summary(batchId, 'HARVESTED')])
+    await new Promise((r) => setTimeout(r, 50))
+    watch.disconnect()
+    expect(flashed).toBe(false)
+  })
+
   it('an old sent harvest beyond the first page of 100 never comes back as "Sending"', async () => {
     await setup({ online: true })
     const answers = heldList()
@@ -499,7 +532,10 @@ describe('fix and send again (13 §11 item 2)', () => {
     expect(screen.queryByRole('radio', { name: 'Acacia' })).not.toBeInTheDocument()
     await userEvent.type(screen.getByLabelText('Harvested (kg)'), '35')
     await next()
-    expect(screen.getByRole('radio', { name: 'Yesterday' })).toBeChecked()
+    // The day is the batch's harvest window too, already accepted: kept, so
+    // the harvest never disagrees with the window the jar shows.
+    expect(screen.queryByRole('radio', { name: 'Yesterday' })).not.toBeInTheDocument()
+    expect(screen.getByText(/^yesterday$/i)).toBeInTheDocument()
     await next()
     await userEvent.click(screen.getByRole('button', { name: 'Send again' }))
 
