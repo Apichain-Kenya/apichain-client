@@ -106,13 +106,9 @@ function Labels({
           }).trim()}
         </b>
         <span>{t('console.labels.scan')}</span>
-        <span className={styles.code}>{b.batch_code}</span>
-        {packedAt ? (
-          <span className={styles.code}>
-            {t('console.labels.packed', { day: longDay(packedAt) })}
-          </span>
-        ) : null}
+        {packedAt ? <span>{t('console.labels.packed', { day: longDay(packedAt) })}</span> : null}
       </div>
+      <span className={styles.code}>{b.batch_code}</span>
       {real ? null : (
         <div className={styles.watermark}>
           <span>{t('console.labels.watermark')}</span>

@@ -92,6 +92,7 @@
   grid-template-columns: 30mm minmax(0, 1fr);
   gap: 2mm;
   align-items: center;
+  align-content: center;
   padding: 3mm;
   border: 0.3mm dashed var(--print-line);
   overflow: hidden;
@@ -111,25 +112,30 @@
 .words b {
   font-size: 10.5pt;
 }
+/* The batch code on its own line under the code and the words, the label's
+   full width: in the 22 mm text column it broke after "B-" and read as two
+   codes (P4b-H walk). */
 .code {
+  grid-column: 1 / -1;
   font-variant-numeric: tabular-nums;
-  overflow-wrap: anywhere;
+  white-space: nowrap;
 }
+/* A band in the label's own flow, under the batch code, clear of the QR.
+   Laid across the code it stopped the sample from scanning at all (P4b-H
+   walk), and a sample sheet exists to check size and scanning first. */
 .watermark {
-  position: absolute;
-  inset: 0;
+  grid-column: 1 / -1;
   display: grid;
   place-items: center;
   pointer-events: none;
 }
 .watermark span {
-  padding: 1mm 2mm;
+  padding: 0.6mm 2mm;
   border: 0.6mm solid #a4282a;
   color: #a4282a;
-  background: rgb(255 255 255 / 0.85);
+  background: #fff;
   font-size: 10pt;
   font-weight: 700;
-  transform: rotate(-24deg);
   white-space: nowrap;
 }
 

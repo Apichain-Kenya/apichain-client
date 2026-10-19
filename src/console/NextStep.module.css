@@ -26,12 +26,11 @@
 .problem button {
   justify-self: start;
 }
+/* Sentence case, as the board draws it: no tracked capitals (12 §4.2 #5). */
 .eyebrow {
   margin: 0 0 calc(-1 * var(--space-3));
   font-size: var(--text-sm);
   font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
   color: var(--ink-2);
 }
 .h3 {
