@@ -276,6 +276,29 @@ describe('Enrolling a farmer (D8: online only)', () => {
     expect(env.server.farmers.filter((f) => f.phone === '+254745220961')).toHaveLength(1)
   })
 
+  it('says plainly when the server refuses the number as not a Kenyan mobile (P5-A)', async () => {
+    const env = await officer()
+    renderConsole(env, '/farmers/new')
+    await screen.findByRole('heading', { name: 'Enrol a farmer' })
+    await userEvent.type(screen.getByLabelText('First name'), 'Akinyi')
+    await userEvent.type(screen.getByLabelText('Last name'), 'Odhiambo')
+    await userEvent.type(screen.getByLabelText('Phone number'), '0711 223 344')
+    await userEvent.click(screen.getByRole('button', { name: 'Next' }))
+    await userEvent.click(await screen.findByRole('checkbox', { name: 'Akinyi agrees' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Next' }))
+    await userEvent.type(await screen.findByLabelText('Their password'), FARMER_PW)
+    await userEvent.click(screen.getByRole('button', { name: 'Next' }))
+    env.server.answerNext = {
+      path: /^\/v2\/farmers$/,
+      status: 422,
+      body: { code: 'invalid_phone', message: 'Not a Kenyan mobile number' },
+    }
+    await userEvent.click(await screen.findByRole('button', { name: 'Enrol' }))
+    expect(
+      await screen.findByText('Use a Kenyan mobile number, like 0712 345 678.'),
+    ).toBeInTheDocument()
+  })
+
   it('says plainly when the number is already enrolled', async () => {
     const env = await officer()
     renderConsole(env, '/farmers/new')
@@ -499,6 +522,25 @@ describe('Documents (D9: online only)', () => {
     await userEvent.upload(upload(), PDF())
     expect(
       await screen.findByText('The file checker is starting up. Try again in a few minutes.'),
+    ).toBeInTheDocument()
+  })
+
+  it('a 429 on upload says how long to wait (P5-B)', async () => {
+    const env = await officer()
+    env.server.consent(env.mwende.id, 'document_upload', true, 'onboarder')
+    renderConsole(env, `/farmers/${env.mwende.id}`)
+    await vi.waitFor(() => expect(upload()).toBeEnabled())
+    env.server.answerNext = {
+      path: /\/documents$/,
+      status: 429,
+      body: { code: 'rate_limited', message: 'Too many', details: { retry_after_seconds: 1 } },
+      headers: { 'Retry-After': '1' },
+    }
+    await userEvent.upload(upload(), PDF())
+    expect(
+      await screen.findByText(
+        'Too many uploads from this connection. Wait 1 second, then try again.',
+      ),
     ).toBeInTheDocument()
   })
 

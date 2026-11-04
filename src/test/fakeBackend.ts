@@ -302,6 +302,15 @@ export class FakeBackend {
     const body = form ? {} : init?.body ? (JSON.parse(String(init.body)) as Json) : {}
     const method = (init?.method ?? 'GET').toUpperCase()
 
+    // Sign-in and password change answer before the write log below, so a
+    // canned refusal for them (a 429, P5-B) is taken here.
+    if (method === 'POST' && /^\/v2\/auth\/(login|password)$/.test(path)) {
+      const canned = this.answerNext?.path.test(path) ? this.answerNext : null
+      if (canned) {
+        this.answerNext = null
+        return json(canned.status, canned.body, canned.headers)
+      }
+    }
     if (path === '/v2/auth/login' && method === 'POST') return this.login(body)
     if (path === '/v2/auth/refresh' && method === 'POST') return this.doRefresh(headers)
     if (path === '/v2/auth/logout' && method === 'POST') {

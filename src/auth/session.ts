@@ -25,6 +25,7 @@
 //   `changePassword` sends it, and the fresh session that comes back clears
 //   `me.must_change_password` in every tab.
 
+import { retryAfterSeconds } from '../i18n/wait'
 import type { Me, SessionState } from './SessionContext'
 
 export class OfflineError extends Error {
@@ -60,9 +61,21 @@ export type ChangeResult =
   | { ok: true }
   | {
       ok: false
-      reason: 'wrong_password' | 'unchanged' | 'too_short' | 'too_long' | 'offline' | 'signed_out'
+      reason:
+        | 'wrong_password'
+        | 'unchanged'
+        | 'too_short'
+        | 'too_long'
+        | 'rate_limited'
+        | 'offline'
+        | 'signed_out'
       minLength?: number
+      /** Seconds to wait, on `rate_limited`. */
+      wait?: number
     }
+
+/** A 429 (P5-B) is its own answer, with the seconds the server asks to wait. */
+export type SignInResult = 'ok' | 'invalid' | 'offline' | { rateLimited: number | undefined }
 
 export class Session {
   state: SessionState = { status: 'restoring', me: null }
@@ -115,7 +128,7 @@ export class Session {
     }
   }
 
-  async signIn(identifier: string, password: string): Promise<'ok' | 'invalid' | 'offline'> {
+  async signIn(identifier: string, password: string): Promise<SignInResult> {
     let res: Response
     try {
       res = await this.raw('/v2/auth/login', {
@@ -127,6 +140,7 @@ export class Session {
       return 'offline'
     }
     if (res.status === 401) return 'invalid'
+    if (res.status === 429) return { rateLimited: await retryAfterSeconds(res) }
     if (!res.ok) return 'offline'
     const { access_token } = (await res.json()) as { access_token: string }
     const me = await this.loadMe(access_token)
@@ -170,6 +184,9 @@ export class Session {
       return { ok: true }
     }
     if (res.status === 401) return { ok: false, reason: 'signed_out' }
+    if (res.status === 429) {
+      return { ok: false, reason: 'rate_limited', wait: await retryAfterSeconds(res) }
+    }
     const err = (await res.json().catch(() => ({}))) as {
       code?: string
       details?: { min_length?: number }

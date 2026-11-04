@@ -129,6 +129,9 @@ export function EnrolFarmer({
       setFailure(t('console.farmers.new.errors.offline'))
     } else if (result.code === 'phone_taken') {
       setFailure(t('console.farmers.new.errors.taken'))
+    } else if (result.code === 'invalid_phone') {
+      // The form checks the number first; this is the server's own check (P5-A).
+      setFailure(t('console.farmers.new.errors.phone'))
     } else if (result.code === 'password_too_short') {
       setFailure(t('console.farmers.new.errors.tooShort'))
     } else if (result.code === 'consent_required') {

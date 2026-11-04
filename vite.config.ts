@@ -1,12 +1,50 @@
 /// <reference types="vitest/config" />
-import { defineConfig } from 'vite'
+import { defineConfig, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
+
+// The Content Security Policy (14 P5-F), as a <meta> in the built index.html.
+// - Scripts and styles from this origin only: the build emits no inline
+//   script or style (bundle-report checks the built page).
+// - img-src: the OSM tiles of the apiary map, and data: for the small icons
+//   Vite inlines into Leaflet's stylesheet. No media origin is needed: a
+//   document is downloaded by following its signed link, never shown inline.
+// - connect-src: this origin (the API is same-origin, 12 D4) and the tiles.
+// - worker-src: the service worker, and blob: for the QR fallback, which
+//   starts its decoder from a Blob URL.
+// - frame-ancestors is ignored in a <meta>; it is a response header (P5-L).
+// Build only: Vite's dev server injects an inline script (React refresh).
+const CSP = [
+  "default-src 'self'",
+  "script-src 'self'",
+  "style-src 'self'",
+  "img-src 'self' data: https://tile.openstreetmap.org",
+  "connect-src 'self' https://tile.openstreetmap.org",
+  "worker-src 'self' blob:",
+  "object-src 'none'",
+  "base-uri 'self'",
+  "form-action 'self'",
+].join('; ')
+
+function contentSecurityPolicy(): Plugin {
+  return {
+    name: 'apichain-csp',
+    apply: 'build',
+    transformIndexHtml: () => [
+      {
+        tag: 'meta',
+        attrs: { 'http-equiv': 'Content-Security-Policy', content: CSP },
+        injectTo: 'head-prepend',
+      },
+    ],
+  }
+}
 
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [
     react(),
+    contentSecurityPolicy(),
     // The installable PWA (12 §9). injectManifest: the worker is our own
     // src/sw/sw.ts; the plugin only builds it and injects the precache list.
     VitePWA({

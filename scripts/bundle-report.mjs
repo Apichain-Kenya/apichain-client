@@ -100,15 +100,46 @@ const precacheChecks = [
 ]
 for (const [, ok] of precacheChecks) if (!ok) failed = true
 
+// The CSP (14 P5-F): the built page carries it, it allows no inline script or
+// style, and the page itself needs none (no inline <script>, <style>, style
+// attribute or on* handler), so the policy never needs an exception.
+const html = readFileSync(join(DIST, 'index.html'), 'utf8')
+// The attribute is HTML-escaped in the built file (' is &#39;); a browser
+// reads it decoded, so the checks do too.
+const policy = (
+  html.match(/<meta http-equiv="Content-Security-Policy" content="([^"]*)"/)?.[1] ?? ''
+)
+  .replaceAll('&#39;', "'")
+  .replaceAll('&quot;', '"')
+  .replaceAll('&amp;', '&')
+const directive = (name) =>
+  policy
+    .split(';')
+    .map((d) => d.trim().split(/\s+/))
+    .find(([n]) => n === name)
+    ?.slice(1) ?? null
+const onlySelf = (name) => directive(name)?.join(' ') === "'self'"
+const cspChecks = [
+  ['index.html carries the CSP', policy !== ''],
+  ["CSP: default-src 'self'", onlySelf('default-src')],
+  ["CSP: script-src 'self' only", onlySelf('script-src')],
+  ["CSP: style-src 'self' only", onlySelf('style-src')],
+  ["CSP: object-src 'none'", directive('object-src')?.join(' ') === "'none'"],
+  ['page has no inline script', !/<script(?![^>]*\ssrc=)[^>]*>/i.test(html)],
+  ['page has no inline style', !/<style[\s>]/i.test(html) && !/\sstyle=/i.test(html)],
+  ['page has no inline handler', !/\son[a-z]+=/i.test(html)],
+]
+for (const [, ok] of cspChecks) if (!ok) failed = true
+
 const fmt = (n) => (n === null ? 'not built' : `${(n / KB).toFixed(1)} KB`)
 console.log('| Budget item | Size (gzip) | Budget |\n|---|---:|---:|')
 for (const [label, size, budget] of rows) {
   const over = size !== null && budget !== null && size > budget ? ' **OVER**' : ''
   console.log(`| ${label} | ${fmt(size)}${over} | ${budget === null ? '-' : fmt(budget)} |`)
 }
-for (const [label, ok] of [...sessionChecks, ...encoderChecks, ...precacheChecks])
+for (const [label, ok] of [...sessionChecks, ...encoderChecks, ...precacheChecks, ...cspChecks])
   console.log(`| ${label} | ${ok ? 'yes' : '**NO**'} | required |`)
 if (failed) {
-  console.error('\nBundle budget exceeded (12 D13).')
+  console.error('\nBundle budget or build check failed (12 D13, 14 P5-F).')
   process.exit(1)
 }
