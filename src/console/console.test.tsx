@@ -235,6 +235,25 @@ describe('A password someone else set (13 D5)', () => {
     expect(await env.session.signIn('jane', 'honey from tetu in march')).toBe('ok')
   })
 
+  it('a 429 says how long to wait, not that the phone is offline (P5-B)', async () => {
+    const env = await staff('operator', { mustChange: true })
+    renderConsole(env, '/batches')
+    await screen.findByRole('heading', { name: 'Choose your own password' })
+    env.server.answerNext = {
+      path: /\/v2\/auth\/password$/,
+      status: 429,
+      body: { code: 'rate_limited', message: 'Too many', details: { retry_after_seconds: 840 } },
+      headers: { 'Retry-After': '840' },
+    }
+    await userEvent.type(screen.getByLabelText('The password you were given'), STAFF_PW)
+    await userEvent.type(screen.getByLabelText('New password'), 'honey from tetu in march')
+    await userEvent.type(screen.getByLabelText('Type it again'), 'honey from tetu in march')
+    await userEvent.click(screen.getByRole('button', { name: 'Save my password' }))
+    expect(
+      await screen.findByText('Too many tries. Wait 14 minutes, then try again.'),
+    ).toBeInTheDocument()
+  })
+
   it('says plainly when the given password is wrong', async () => {
     const env = await staff('operator', { mustChange: true })
     renderConsole(env, '/batches')
@@ -280,6 +299,43 @@ describe('One sign-in for everyone (13 §7 step 2)', () => {
     await vi.waitFor(() => expect(memory.history.at(-1)).not.toMatch(/^\/sign-in/))
     return memory.history.at(-1)
   }
+
+  it('a 429 says how long to wait, not that the phone is offline (P5-B)', async () => {
+    const server = new FakeBackend()
+    server.addStaff('jane', STAFF_PW, 21, 'operator', 'Jane Mwende')
+    const locks = new FakeLocks()
+    const session = new Session({
+      fetch: server.fetch,
+      locks,
+      channel: new FakeBus().channel(),
+      storage: null,
+    })
+    const outbox = new Outbox(`console-signin-${++n}`, locks)
+    const memory = memoryLocation({ path: '/sign-in', record: true })
+    render(
+      <Providers session={session} outbox={outbox} sync={new SyncRunner(outbox, session)}>
+        <Router hook={memory.hook} searchHook={memory.searchHook}>
+          <Switch>
+            <Route path="/sign-in" component={SignInPage} />
+          </Switch>
+        </Router>
+      </Providers>,
+    )
+    await screen.findByRole('heading', { name: 'Sign in' })
+    server.answerNext = {
+      path: /\/v2\/auth\/login$/,
+      status: 429,
+      body: { code: 'rate_limited', message: 'Too many', details: { retry_after_seconds: 45 } },
+      headers: { 'Retry-After': '45' },
+    }
+    await userEvent.type(screen.getByLabelText('Phone number or username'), 'jane')
+    await userEvent.type(screen.getByLabelText('Password'), STAFF_PW)
+    await userEvent.click(screen.getByRole('button', { name: 'Sign in' }))
+    expect(
+      await screen.findByText('Too many tries. Wait 45 seconds, then try again.'),
+    ).toBeInTheDocument()
+    expect(memory.history.at(-1)).toBe('/sign-in')
+  })
 
   it('sends staff to the console and a farmer to the capture app', async () => {
     expect(await signInAt('/sign-in', 'operator')).toBe('/console')

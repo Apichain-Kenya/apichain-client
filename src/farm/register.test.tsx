@@ -20,6 +20,7 @@ import { Snapshots } from '../offline/snapshots'
 import { FakeBackend, FakeBus, FakeLocks } from '../test/fakeBackend'
 import { FarmRoutes } from './FarmApp'
 import { FarmServicesContext, type FarmServices, type Fix } from './FarmServices'
+import { REREAD_MS } from './useFarmData'
 
 let server: FakeBackend
 let services: FarmServices
@@ -441,6 +442,58 @@ describe('the "Sending" gap (13 §11 item 3)', () => {
     await new Promise((r) => setTimeout(r, 50))
     expect(container.querySelectorAll('ul > li')).toHaveLength(1)
     expect(screen.queryByText(/^Sent\./)).not.toBeInTheDocument()
+  })
+
+  it('a list that raced the harvest is read once more, and the row turns to sent (P5-F)', async () => {
+    await setup({ online: true })
+    server.apiaries.push({ id: 101, farmer_id: 7, name: 'Mukurwe-ini' })
+    const answers = heldList()
+    await services.outbox.enqueue(
+      11,
+      harvestDrafts({
+        farmerId: 7,
+        apiaryId: 101,
+        metadata: { honey_type: 'acacia' },
+        harvest: { harvest_date: TODAY, quantity_kg: '35.00', hive_ids: [] },
+      }),
+      services.now(),
+    )
+    await services.outbox.replay(11, services.session, services.now)
+    renderAt('/')
+    await vi.waitFor(() => expect(answers).toHaveLength(1))
+    const id = Number(server.batches[0].id)
+    answers[0]([summary(id, 'CREATED')]) // the read that raced the write
+    await screen.findByText('Sending')
+    await vi.waitFor(() => expect(answers).toHaveLength(2), { timeout: REREAD_MS + 3000 })
+    answers[1]([summary(id, 'HARVESTED')])
+    expect(await screen.findByText('Sent. Now harvest recorded')).toBeInTheDocument()
+    expect(screen.queryByText('Sending')).not.toBeInTheDocument()
+  })
+
+  it('reads the list again only once, even if it still shows the batch registered', async () => {
+    await setup({ online: true })
+    server.apiaries.push({ id: 101, farmer_id: 7, name: 'Mukurwe-ini' })
+    const answers = heldList()
+    await services.outbox.enqueue(
+      11,
+      harvestDrafts({
+        farmerId: 7,
+        apiaryId: 101,
+        metadata: { honey_type: 'acacia' },
+        harvest: { harvest_date: TODAY, quantity_kg: '35.00', hive_ids: [] },
+      }),
+      services.now(),
+    )
+    await services.outbox.replay(11, services.session, services.now)
+    renderAt('/')
+    await vi.waitFor(() => expect(answers).toHaveLength(1))
+    const id = Number(server.batches[0].id)
+    answers[0]([summary(id, 'CREATED')])
+    await vi.waitFor(() => expect(answers).toHaveLength(2), { timeout: REREAD_MS + 3000 })
+    answers[1]([summary(id, 'CREATED')])
+    await new Promise((r) => setTimeout(r, REREAD_MS + 500))
+    expect(answers).toHaveLength(2)
+    expect(screen.getByText('Sending')).toBeInTheDocument()
   })
 
   it('opening the page never flashes a harvest already in the list as "Sending"', async () => {

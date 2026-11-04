@@ -1,12 +1,50 @@
 /// <reference types="vitest/config" />
-import { defineConfig } from 'vite'
+import { defineConfig, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
+
+// The Content Security Policy (14 P5-F), as a <meta> in the built index.html.
+// - Scripts and styles from this origin only: the build emits no inline
+//   script or style (bundle-report checks the built page).
+// - img-src: the OSM tiles of the apiary map, and data: for the small icons
+//   Vite inlines into Leaflet's stylesheet. No media origin is needed: a
+//   document is downloaded by following its signed link, never shown inline.
+// - connect-src: this origin (the API is same-origin, 12 D4) and the tiles.
+// - worker-src: the service worker, and blob: for the QR fallback, which
+//   starts its decoder from a Blob URL.
+// - frame-ancestors is ignored in a <meta>; it is a response header (P5-L).
+// Build only: Vite's dev server injects an inline script (React refresh).
+const CSP = [
+  "default-src 'self'",
+  "script-src 'self'",
+  "style-src 'self'",
+  "img-src 'self' data: https://tile.openstreetmap.org",
+  "connect-src 'self' https://tile.openstreetmap.org",
+  "worker-src 'self' blob:",
+  "object-src 'none'",
+  "base-uri 'self'",
+  "form-action 'self'",
+].join('; ')
+
+function contentSecurityPolicy(): Plugin {
+  return {
+    name: 'apichain-csp',
+    apply: 'build',
+    transformIndexHtml: () => [
+      {
+        tag: 'meta',
+        attrs: { 'http-equiv': 'Content-Security-Policy', content: CSP },
+        injectTo: 'head-prepend',
+      },
+    ],
+  }
+}
 
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [
     react(),
+    contentSecurityPolicy(),
     // The installable PWA (12 §9). injectManifest: the worker is our own
     // src/sw/sw.ts; the plugin only builds it and injects the precache list.
     VitePWA({
@@ -101,5 +139,24 @@ export default defineConfig({
     maxWorkers: 2,
     // Process CSS so `tokens.css?raw` is the real file in tokens.test.ts.
     css: true,
+    // The coverage floor (14 P5-E). `include` names every source file, so a
+    // file no test imports counts as 0% instead of dropping out of the total.
+    // The floor is the measured value minus one point; raise it when coverage
+    // rises, never lower it.
+    coverage: {
+      provider: 'v8',
+      include: ['src/**/*.{ts,tsx}'],
+      exclude: [
+        'src/**/*.test.{ts,tsx}',
+        'src/test/**',
+        'src/**/*.d.ts',
+        'src/main.tsx',
+        'src/sw/**',
+      ],
+      reporter: ['text-summary'],
+      // Measured 2026-11-04: statements 90.22, branches 82.58, functions
+      // 87.61, lines 92.84 (377 tests).
+      thresholds: { statements: 89.2, branches: 81.5, functions: 86.6, lines: 91.8 },
+    },
   },
 })

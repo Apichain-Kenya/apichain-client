@@ -137,7 +137,7 @@ describe("the farmer's own message choices", () => {
       granted: true,
       granted_via: 'farmer_self',
     })
-    expect(await screen.findByText('You turned this on on 13 Oct')).toBeInTheDocument()
+    expect(await screen.findByText('Turned on 13 Oct')).toBeInTheDocument()
   })
 
   it('works offline after a reload, from what this phone last saw', async () => {
@@ -163,7 +163,7 @@ describe("the farmer's own message choices", () => {
     server.consent(farmer.id, 'sms_notifications', false, 'farmer_self', '2026-10-11T07:00:00')
     server.consent(farmer.id, 'email_notifications', true, 'onboarder', '2026-10-03T08:00:00')
     renderMe()
-    expect(await screen.findByText('You turned this off on 11 Oct')).toBeInTheDocument()
+    expect(await screen.findByText('Turned off 11 Oct')).toBeInTheDocument()
     await userEvent.click(await ready(TEXTS))
     expect((await choices())[0].body).toMatchObject({ granted: true })
   })
@@ -172,9 +172,7 @@ describe("the farmer's own message choices", () => {
     await setup({ email: 'wanjiru@example.com' })
     server.consent(farmer.id, 'email_notifications', true, 'onboarder', '2026-10-03T08:00:00')
     renderMe()
-    expect(
-      await screen.findByText('Your field officer turned this on on 3 Oct'),
-    ).toBeInTheDocument()
+    expect(await screen.findByText('Turned on by your field officer, 3 Oct')).toBeInTheDocument()
     expect(screen.getByRole('switch', { name: EMAILS })).toHaveAttribute('aria-checked', 'true')
   })
 
@@ -216,7 +214,7 @@ describe("the farmer's own message choices", () => {
     document.documentElement.setAttribute('data-theme', theme)
     server.consent(farmer.id, 'sms_notifications', true, 'farmer_self', '2026-10-11T07:00:00')
     const { container } = renderMe()
-    await screen.findByText('You turned this on on 11 Oct')
+    await screen.findByText('Turned on 11 Oct')
     const result = await axe.run(container, { rules: { 'color-contrast': { enabled: false } } })
     expect(result.violations.map((v) => v.id)).toEqual([])
     document.documentElement.removeAttribute('data-theme')

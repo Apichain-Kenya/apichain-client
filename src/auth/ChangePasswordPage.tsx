@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { useLocation } from 'wouter'
 
 import { useSync } from '../app/useSync'
+import { waitWords } from '../i18n/wait'
 import { Brand } from '../ui/Brand'
 import { Button } from '../ui/Button'
 import { Field } from '../ui/Field'
@@ -69,6 +70,10 @@ export function ChangePasswordPage({ me, forced }: { me: Me; forced: boolean }) 
       setErrors({ next: t('password.errors.tooShort', { count: result.minLength ?? min }) })
     } else if (result.reason === 'too_long') {
       setErrors({ next: t('password.errors.tooLong') })
+    } else if (result.reason === 'rate_limited') {
+      setErrors({
+        current: t('password.errors.rateLimited', { wait: waitWords(t, result.wait) }),
+      })
     } else {
       setErrors({ again: t('password.errors.offline') })
     }

@@ -150,6 +150,12 @@
   },
   "app": {
     "restoring": "Signing you back in",
+    "wait": {
+      "seconds_one": "{{count}} second",
+      "seconds_other": "{{count}} seconds",
+      "minutes_one": "{{count}} minute",
+      "minutes_other": "{{count}} minutes"
+    },
     "wrongRole": {
       "title": "This page is not for your account",
       "body": "Your account can't use this page. Go back, or sign in with a different account.",
@@ -309,10 +315,10 @@
       "note": "Both start off. Turn one on whenever you like; it saves on this phone and sends by itself.",
       "noEmail": "No email on file",
       "notYet": "Off until you turn it on",
-      "you_on": "You turned this on on {{day}}",
-      "you_off": "You turned this off on {{day}}",
-      "onboarder_on": "Your field officer turned this on on {{day}}",
-      "onboarder_off": "Your field officer turned this off on {{day}}",
+      "you_on": "Turned on {{day}}",
+      "you_off": "Turned off {{day}}",
+      "onboarder_on": "Turned on by your field officer, {{day}}",
+      "onboarder_off": "Turned off by your field officer, {{day}}",
       "refused": "Not accepted: {{reason}}",
       "remove": "Remove it"
     },
@@ -328,7 +334,8 @@
     "password": "Password",
     "submit": "Sign in",
     "invalid": "That phone number or password isn't right. Check them and try again.",
-    "offline": "You're offline. Connect to sign in the first time."
+    "offline": "You're offline. Connect to sign in the first time.",
+    "rateLimited": "Too many tries. Wait {{wait}}, then try again."
   },
   "password": {
     "forced": {
@@ -368,7 +375,8 @@
       "tooLong": "That's too long. Use a shorter password.",
       "mismatch": "The two new passwords don't match. Type it again.",
       "unchanged": "Choose a password that's different from the one you have now.",
-      "offline": "You're offline. Saving your password needs a connection."
+      "offline": "You're offline. Saving your password needs a connection.",
+      "rateLimited": "Too many tries. Wait {{wait}}, then try again."
     }
   },
   "console": {
@@ -750,6 +758,7 @@
         "scanner": "The file checker is starting up. Try again in a few minutes.",
         "storage": "Documents can't be stored right now. Try again in a few minutes.",
         "uploadOffline": "You're offline. Uploads need internet.",
+        "rateLimited": "Too many uploads from this connection. Wait {{wait}}, then try again.",
         "failed": "That didn't work. Try again in a moment.",
         "docRow": "{{size}} · {{day}}",
         "viewLabel": "Download {{type}}, {{name}}",

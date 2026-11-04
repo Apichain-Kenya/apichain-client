@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useLocation } from 'wouter'
 import { Plus } from 'lucide-react'
@@ -10,7 +10,7 @@ import { SyncBadge } from '../ui/Sync'
 import { dayLabel, localDay } from './dayLabel'
 import { useFarm } from './FarmServices'
 import styles from './HarvestsPage.module.css'
-import { useFarmData, type Apiary, type BatchSummary } from './useFarmData'
+import { REREAD_MS, useFarmData, type Apiary, type BatchSummary } from './useFarmData'
 
 const HEX = 'M32 3 L60 19 L60 53 L32 69 L4 53 L4 19 Z'
 
@@ -71,8 +71,33 @@ function localHarvests(actions: ActionRecord[], batches: BatchSummary[] | null):
 export function HarvestsPage({ me }: { me: Me }) {
   const { t } = useTranslation()
   const farm = useFarm()
-  const { apiaries, batches, actions, fresh } = useFarmData(me.user_id, me.farmer_id ?? null)
+  const { apiaries, batches, actions, fresh, reread } = useFarmData(
+    me.user_id,
+    me.farmer_id ?? null,
+  )
   const unsent = localHarvests(actions, batches)
+  // The stale-list edge (handoff 11b): the server took a harvest, but the
+  // list read that followed still shows its batch at CREATED (the read raced
+  // the write), so the row would say "Sending" until the page is opened
+  // again. Read the list once more, shortly after, once per harvest.
+  const stale = unsent
+    .filter(
+      (u) =>
+        u.harvest.status === 'sent' &&
+        (batches ?? []).some((b) => b.id === u.batchId && b.state === 'CREATED'),
+    )
+    .map((u) => u.harvest.id)
+    .join(' ')
+  const rereadFor = useRef(new Set<string>())
+  const timers = useRef<ReturnType<typeof setTimeout>[]>([])
+  useEffect(() => {
+    if (!fresh || stale === '') return
+    const todo = stale.split(' ').filter((id) => !rereadFor.current.has(id))
+    if (todo.length === 0) return
+    for (const id of todo) rereadFor.current.add(id)
+    timers.current.push(setTimeout(reread, REREAD_MS))
+  }, [fresh, stale, reread])
+  useEffect(() => () => timers.current.forEach(clearTimeout), [])
   // A batch this phone still shows is not shown twice.
   const mine = new Set(unsent.map((u) => u.batchId))
   const sent = (batches ?? []).filter((b) => !mine.has(b.id))

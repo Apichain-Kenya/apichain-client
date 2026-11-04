@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useLocation, useSearch } from 'wouter'
 
+import { waitWords } from '../i18n/wait'
 import { Brand } from '../ui/Brand'
 import { Button } from '../ui/Button'
 import { Field } from '../ui/Field'
@@ -33,7 +34,13 @@ export function SignInPage() {
       // Only ever back into this person's own app, never to another origin.
       navigate(landingFor(session.state.me.role, next), { replace: true })
     } else {
-      setError(result === 'invalid' ? t('signIn.invalid') : t('signIn.offline'))
+      setError(
+        typeof result === 'object'
+          ? t('signIn.rateLimited', { wait: waitWords(t, result.rateLimited) })
+          : result === 'invalid'
+            ? t('signIn.invalid')
+            : t('signIn.offline'),
+      )
     }
   }
 

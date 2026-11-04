@@ -9,6 +9,7 @@
     "lint": "oxlint",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
     "typecheck": "tsc -b --noEmit",
     "generate:api": "openapi-typescript ./openapi.json -o src/api/client/schema.d.ts",
     "format": "prettier --write .",
@@ -18,7 +19,7 @@
   },
   "apichainBackendContract": {
     "repo": "Apichain-Kenya/apichain-backend",
-    "commit": "d089f0c96ef96258a30c132c23676e88dd45ff5f",
+    "commit": "990a4d4194af8e6b69e55ed09c9124a4cea70633",
     "note": "openapi.json is vendored at this backend commit. Bumping it is an explicit, reviewed change: copy the new openapi.json, run npm run generate:api, commit both."
   },
   "dependencies": {

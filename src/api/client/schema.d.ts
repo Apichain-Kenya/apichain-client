@@ -21,6 +21,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/health/ops": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Health Ops */
+        get: operations["health_ops_health_ops_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v2/apiaries": {
         parameters: {
             query?: never;
@@ -58,7 +75,8 @@ export interface paths {
          * @description Anchor lag: how far the public witness trails the log (05 §3.6).
          *
          *     A separate endpoint rather than extra fields on /audit/health, so the
-         *     Phase 1 contract does not move. Phase 5's alarms read these fields.
+         *     Phase 1 contract does not move. `last_error` is only ever the calendar's
+         *     refusal, never an arbitrary exception (which could name internal hosts).
          */
         get: operations["anchor_health_v2_audit_anchor_health_get"];
         put?: never;
@@ -95,7 +113,15 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Login */
+        /**
+         * Login
+         * @description Sign in with a phone or username and a password.
+         *
+         *     Rate-limited (14 D7): every attempt counts against the client's address,
+         *     and failures count against the (identifier, address) pair and against the
+         *     identifier alone. Once a limit is reached the answer is 429 with
+         *     `Retry-After`, even for the right password, until the window passes.
+         */
         post: operations["login_v2_auth_login_post"];
         delete?: never;
         options?: never;
@@ -141,8 +167,9 @@ export interface paths {
          *     issued to this caller: they stay signed in here, and every other device
          *     (perhaps the one of whoever chose the old password) is signed out. Access
          *     tokens already issued elsewhere expire on their own within the access TTL.
-         *     Wrong-password guessing needs a live session for the account; per-IP
-         *     limits on this and on login are Phase 5 (04 §5.8).
+         *     Wrong-password guessing needs a live session for the account, and is
+         *     limited per account (14 D7): after five wrong current passwords in the
+         *     window the answer is 429, even for the right one.
          */
         post: operations["change_password_v2_auth_password_post"];
         delete?: never;
@@ -1440,6 +1467,20 @@ export interface components {
             target_state: string;
         };
         /**
+         * OpsHealthResponse
+         * @description `ok` false means at least one alarm is crossed; `failing` names them
+         *     (see `services/ops_health.py`) and nothing more.
+         */
+        OpsHealthResponse: {
+            /**
+             * Failing
+             * @default []
+             */
+            failing: string[];
+            /** Ok */
+            ok: boolean;
+        };
+        /**
          * PackagingRecordRequest
          * @description S4. One QR per batch, so v1's per-jar `qr_codes` is gone; `unit_count`
          *     already equals the jar count.
@@ -1728,6 +1769,35 @@ export interface operations {
             };
         };
     };
+    health_ops_health_ops_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpsHealthResponse"];
+                };
+            };
+            /** @description At least one alarm is red */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpsHealthResponse"];
+                };
+            };
+        };
+    };
     list_apiaries_v2_apiaries_get: {
         parameters: {
             query?: {
@@ -1940,6 +2010,15 @@ export interface operations {
                     "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
         };
     };
     logout_v2_auth_logout_post: {
@@ -2047,6 +2126,15 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"] | components["schemas"]["RequestValidationErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
         };
@@ -3289,6 +3377,15 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"] | components["schemas"]["RequestValidationErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
             /** @description Service Unavailable */

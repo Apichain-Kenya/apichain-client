@@ -21,6 +21,7 @@ import { localPhone } from '../auth/phone'
 import { OfflineError } from '../auth/session'
 import { useSessionApi, type Me } from '../auth/SessionContext'
 import { CONSENT_TEXT_VERSION } from '../i18n/consent'
+import { retryAfterSeconds, waitWords } from '../i18n/wait'
 import { consentDraft, type ActionRecord } from '../offline/outbox'
 import { useSync } from '../app/useSync'
 import { Button } from '../ui/Button'
@@ -414,6 +415,9 @@ function Documents({
           ),
         })
         setMine((n) => n + 1)
+      } else if (res.status === 429) {
+        const wait = waitWords(t, await retryAfterSeconds(res))
+        setSaid({ tone: 'alert', text: t('console.farmers.farmer.rateLimited', { wait }) })
       } else {
         const err = (await res.json().catch(() => ({}))) as { code?: string }
         setSaid({

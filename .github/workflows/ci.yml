@@ -5,14 +5,19 @@ on:
   push:
     branches: [main]
 
+permissions:
+  contents: read
+
 jobs:
   quality:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Set up Node
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: .nvmrc
           cache: npm
@@ -34,8 +39,9 @@ jobs:
       - name: Type check
         run: npm run typecheck
 
-      - name: Tests (Vitest)
-        run: npm test
+      # The floor is `coverage.thresholds` in vite.config.ts (14 P5-E): it only goes up.
+      - name: Tests (Vitest) + coverage floor
+        run: npm run test:coverage
 
       - name: Build
         run: npm run build
@@ -46,15 +52,11 @@ jobs:
       - name: Dependency audit
         run: npm audit --audit-level=high
 
-  docker:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Build image
-        run: docker build -t apichain-client:ci .
-
   # Shared, reusable cross-repo gates hosted in apichain-backend (05 §6.2
-  # guardrail 4). The secret scan runs byte-identical logic in both repos so
-  # it cannot drift. Requires the backend WP4 to be merged to main first.
+  # guardrail 4): the secret scan and the image build + Trivy scan run
+  # byte-identical logic in both repos. `scan-image` needs the backend's P5-E
+  # quality-gates.yml on main, so the backend PR merges first.
   shared:
     uses: Apichain-Kenya/apichain-backend/.github/workflows/quality-gates.yml@main
+    with:
+      scan-image: true

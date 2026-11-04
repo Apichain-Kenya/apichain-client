@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 
 import type { components } from '../api/client/schema'
 import type { ActionRecord } from '../offline/outbox'
@@ -6,6 +6,9 @@ import { useFarm } from './FarmServices'
 
 export type Apiary = components['schemas']['ApiaryResponse']
 export type BatchSummary = components['schemas']['BatchSummary']
+
+/** How long after a stale list to read it again (P5-F, handoff 11b). */
+export const REREAD_MS = 2000
 
 /**
  * The farmer's apiaries and sent batches: from the server when it answers,
@@ -18,6 +21,9 @@ export function useFarmData(userId: number, farmerId: number | null) {
   const [batches, setBatches] = useState<BatchSummary[] | null>(null)
   const [actions, setActions] = useState<ActionRecord[] | null>(null)
   const [fresh, setFresh] = useState(false)
+  // Bumped by `reread()` to read the server lists once more (P5-F).
+  const [again, setAgain] = useState(0)
+  const reread = useCallback(() => setAgain((n) => n + 1), [])
   // How many harvests have reached the server. When it grows (the outbox just
   // sent one), fetch the sent list again so the harvest does not vanish from
   // the screen between "on this phone" and the server's list (review).
@@ -77,7 +83,7 @@ export function useFarmData(userId: number, farmerId: number | null) {
     return () => {
       live = false
     }
-  }, [userId, farmerId, session, snapshots, online, sentHarvests])
+  }, [userId, farmerId, session, snapshots, online, sentHarvests, again])
 
-  return { apiaries, batches, actions: actions ?? [], fresh }
+  return { apiaries, batches, actions: actions ?? [], fresh, reread }
 }
