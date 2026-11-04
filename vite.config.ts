@@ -101,5 +101,24 @@ export default defineConfig({
     maxWorkers: 2,
     // Process CSS so `tokens.css?raw` is the real file in tokens.test.ts.
     css: true,
+    // The coverage floor (14 P5-E). `include` names every source file, so a
+    // file no test imports counts as 0% instead of dropping out of the total.
+    // The floor is the measured value minus one point; raise it when coverage
+    // rises, never lower it.
+    coverage: {
+      provider: 'v8',
+      include: ['src/**/*.{ts,tsx}'],
+      exclude: [
+        'src/**/*.test.{ts,tsx}',
+        'src/test/**',
+        'src/**/*.d.ts',
+        'src/main.tsx',
+        'src/sw/**',
+      ],
+      reporter: ['text-summary'],
+      // Measured 2026-11-04: statements 90.22, branches 82.58, functions
+      // 87.61, lines 92.84 (377 tests).
+      thresholds: { statements: 89.2, branches: 81.5, functions: 86.6, lines: 91.8 },
+    },
   },
 })

@@ -9,6 +9,7 @@
     "lint": "oxlint",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
     "typecheck": "tsc -b --noEmit",
     "generate:api": "openapi-typescript ./openapi.json -o src/api/client/schema.d.ts",
     "format": "prettier --write .",

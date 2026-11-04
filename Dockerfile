@@ -10,6 +10,9 @@ COPY . .
 RUN npm run build
 
 FROM nginx:alpine
+# The base image lags Alpine's security fixes by days to weeks; take them at
+# build time so the Trivy gate (P5-E) reads the packages we actually ship.
+RUN apk upgrade --no-cache
 COPY --from=build /src/dist /usr/share/nginx/html
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 EXPOSE 80
